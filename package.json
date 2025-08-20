@@ -1,0 +1,42 @@
+{
+  "name": "dropfly-beauty-booking-platform",
+  "version": "2.0.0",
+  "description": "Complete voice AI booking platform for beauty businesses - nail salons, spas, and beauty clinics",
+  "main": "scripts/setup.js",
+  "scripts": {
+    "setup": "node scripts/setup.js",
+    "deploy": "node scripts/deploy.js",
+    "test": "node scripts/test.js",
+    "register-business": "node src/business-registration.js",
+    "start": "npm run setup && npm run deploy",
+    "platform-setup": "node scripts/platform-setup.js"
+  },
+  "keywords": [
+    "vapi",
+    "voice-ai",
+    "appointment-booking",
+    "nail-salon",
+    "n8n",
+    "automation"
+  ],
+  "author": "DropFly AI",
+  "license": "MIT",
+  "dependencies": {
+    "inquirer": "^9.2.12",
+    "chalk": "^4.1.2",
+    "dotenv": "^16.3.1",
+    "axios": "^1.6.2",
+    "ora": "^5.4.1"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/dropfly/vapi-nail-salon-agent.git"
+  },
+  "bugs": {
+    "url": "https://github.com/dropfly/vapi-nail-salon-agent/issues"
+  },
+  "homepage": "https://github.com/dropfly/vapi-nail-salon-agent#readme"
+}

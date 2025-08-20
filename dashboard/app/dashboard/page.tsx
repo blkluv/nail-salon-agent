@@ -1,0 +1,380 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import Layout from '../../components/Layout'
+import { BusinessAPI, type Business } from '../../lib/supabase'
+import {
+  CalendarIcon,
+  UsersIcon,
+  CurrencyDollarIcon,
+  ChartBarIcon,
+  PhoneIcon,
+  ClockIcon,
+} from '@heroicons/react/24/outline'
+import { format, isToday, isTomorrow } from 'date-fns'
+
+// Mock business ID - in real app this would come from auth
+const BUSINESS_ID = 'demo-business-id'
+
+interface DashboardStats {
+  totalAppointments: number
+  todayAppointments: number
+  monthlyRevenue: number
+  activeCustomers: number
+}
+
+interface UpcomingAppointment {
+  id: string
+  customer_name: string
+  service_type: string
+  appointment_date: string
+  start_time: string
+  technician_name: string
+  status: string
+}
+
+export default function DashboardPage() {
+  const [business, setBusiness] = useState<Business | null>(null)
+  const [stats, setStats] = useState<DashboardStats>({
+    totalAppointments: 0,
+    todayAppointments: 0,
+    monthlyRevenue: 0,
+    activeCustomers: 0
+  })
+  const [upcomingAppointments, setUpcomingAppointments] = useState<UpcomingAppointment[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    loadDashboardData()
+  }, [])
+
+  const loadDashboardData = async () => {
+    try {
+      setLoading(true)
+      
+      // In a real app, you'd get the business ID from authentication
+      // For demo purposes, we'll use mock data
+      setBusiness({
+        id: BUSINESS_ID,
+        name: 'Bella Nails & Spa',
+        slug: 'bella-nails-spa',
+        business_type: 'nail_salon',
+        phone: '(555) 123-4567',
+        email: 'hello@bellanails.com',
+        address_line1: '123 Beauty Lane',
+        city: 'Los Angeles',
+        state: 'CA',
+        subscription_tier: 'professional',
+        subscription_status: 'active',
+        created_at: new Date().toISOString()
+      })
+
+      // Mock stats data
+      setStats({
+        totalAppointments: 1247,
+        todayAppointments: 12,
+        monthlyRevenue: 8450,
+        activeCustomers: 324
+      })
+
+      // Mock upcoming appointments
+      setUpcomingAppointments([
+        {
+          id: '1',
+          customer_name: 'Sarah Johnson',
+          service_type: 'Gel Manicure',
+          appointment_date: new Date().toISOString().split('T')[0],
+          start_time: '10:00',
+          technician_name: 'Maya',
+          status: 'confirmed'
+        },
+        {
+          id: '2',
+          customer_name: 'Emily Chen',
+          service_type: 'Spa Pedicure',
+          appointment_date: new Date().toISOString().split('T')[0],
+          start_time: '11:30',
+          technician_name: 'Jessica',
+          status: 'confirmed'
+        },
+        {
+          id: '3',
+          customer_name: 'Maria Rodriguez',
+          service_type: 'Mani + Pedi Combo',
+          appointment_date: new Date(Date.now() + 24*60*60*1000).toISOString().split('T')[0],
+          start_time: '14:00',
+          technician_name: 'Sarah',
+          status: 'confirmed'
+        }
+      ])
+
+    } catch (error) {
+      console.error('Error loading dashboard data:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const formatAppointmentDate = (dateStr: string) => {
+    const date = new Date(dateStr)
+    if (isToday(date)) return 'Today'
+    if (isTomorrow(date)) return 'Tomorrow'
+    return format(date, 'MMM d')
+  }
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'confirmed': return 'bg-green-100 text-green-800'
+      case 'pending': return 'bg-yellow-100 text-yellow-800'
+      case 'cancelled': return 'bg-red-100 text-red-800'
+      default: return 'bg-gray-100 text-gray-800'
+    }
+  }
+
+  if (loading) {
+    return (
+      <Layout business={business}>
+        <div className="p-8">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-1/4 mb-8"></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              {[1,2,3,4].map((i) => (
+                <div key={i} className="h-24 bg-gray-200 rounded"></div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </Layout>
+    )
+  }
+
+  return (
+    <Layout business={business}>
+      <div className="p-8">
+        {/* Header */}
+        <div className="mb-8">
+          <h1 className="text-2xl font-bold text-gray-900">
+            Welcome back! 👋
+          </h1>
+          <p className="text-gray-600 mt-1">
+            Here's what's happening at {business?.name} today.
+          </p>
+        </div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <div className="stat-card">
+            <div className="px-4 py-5 sm:p-6">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <CalendarIcon className="h-8 w-8 text-brand-600" />
+                </div>
+                <div className="ml-5 w-0 flex-1">
+                  <dl>
+                    <dt className="text-sm font-medium text-gray-500 truncate">
+                      Today's Appointments
+                    </dt>
+                    <dd className="text-lg font-medium text-gray-900">
+                      {stats.todayAppointments}
+                    </dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="stat-card">
+            <div className="px-4 py-5 sm:p-6">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <CurrencyDollarIcon className="h-8 w-8 text-green-600" />
+                </div>
+                <div className="ml-5 w-0 flex-1">
+                  <dl>
+                    <dt className="text-sm font-medium text-gray-500 truncate">
+                      Monthly Revenue
+                    </dt>
+                    <dd className="text-lg font-medium text-gray-900">
+                      ${stats.monthlyRevenue.toLocaleString()}
+                    </dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="stat-card">
+            <div className="px-4 py-5 sm:p-6">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <UsersIcon className="h-8 w-8 text-beauty-600" />
+                </div>
+                <div className="ml-5 w-0 flex-1">
+                  <dl>
+                    <dt className="text-sm font-medium text-gray-500 truncate">
+                      Active Customers
+                    </dt>
+                    <dd className="text-lg font-medium text-gray-900">
+                      {stats.activeCustomers}
+                    </dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="stat-card">
+            <div className="px-4 py-5 sm:p-6">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <ChartBarIcon className="h-8 w-8 text-indigo-600" />
+                </div>
+                <div className="ml-5 w-0 flex-1">
+                  <dl>
+                    <dt className="text-sm font-medium text-gray-500 truncate">
+                      Total Appointments
+                    </dt>
+                    <dd className="text-lg font-medium text-gray-900">
+                      {stats.totalAppointments.toLocaleString()}
+                    </dd>
+                  </dl>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Upcoming Appointments */}
+          <div className="lg:col-span-2">
+            <div className="card">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-medium text-gray-900">
+                  Upcoming Appointments
+                </h2>
+                <a 
+                  href="/dashboard/appointments" 
+                  className="text-brand-600 hover:text-brand-700 text-sm font-medium"
+                >
+                  View all
+                </a>
+              </div>
+              
+              <div className="space-y-4">
+                {upcomingAppointments.map((appointment) => (
+                  <div 
+                    key={appointment.id} 
+                    className="flex items-center p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                  >
+                    <div className="flex-shrink-0">
+                      <div className="h-10 w-10 bg-brand-100 rounded-full flex items-center justify-center">
+                        <CalendarIcon className="h-5 w-5 text-brand-600" />
+                      </div>
+                    </div>
+                    <div className="ml-4 flex-1">
+                      <div className="flex items-center justify-between">
+                        <p className="text-sm font-medium text-gray-900">
+                          {appointment.customer_name}
+                        </p>
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(appointment.status)}`}>
+                          {appointment.status}
+                        </span>
+                      </div>
+                      <p className="text-sm text-gray-500">
+                        {appointment.service_type} with {appointment.technician_name}
+                      </p>
+                      <div className="flex items-center mt-1 text-xs text-gray-400">
+                        <ClockIcon className="h-4 w-4 mr-1" />
+                        {formatAppointmentDate(appointment.appointment_date)} at {appointment.start_time}
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Quick Actions & Voice AI Status */}
+          <div className="space-y-6">
+            {/* Quick Actions */}
+            <div className="card">
+              <h2 className="text-lg font-medium text-gray-900 mb-4">
+                Quick Actions
+              </h2>
+              <div className="space-y-3">
+                <a 
+                  href="/dashboard/appointments" 
+                  className="flex items-center p-3 bg-brand-50 rounded-lg hover:bg-brand-100 transition-colors group"
+                >
+                  <CalendarIcon className="h-5 w-5 text-brand-600 mr-3" />
+                  <span className="text-sm font-medium text-brand-700 group-hover:text-brand-800">
+                    Add New Appointment
+                  </span>
+                </a>
+                
+                <a 
+                  href="/dashboard/customers" 
+                  className="flex items-center p-3 bg-beauty-50 rounded-lg hover:bg-beauty-100 transition-colors group"
+                >
+                  <UsersIcon className="h-5 w-5 text-beauty-600 mr-3" />
+                  <span className="text-sm font-medium text-beauty-700 group-hover:text-beauty-800">
+                    View Customers
+                  </span>
+                </a>
+                
+                <a 
+                  href="/dashboard/staff" 
+                  className="flex items-center p-3 bg-green-50 rounded-lg hover:bg-green-100 transition-colors group"
+                >
+                  <UsersIcon className="h-5 w-5 text-green-600 mr-3" />
+                  <span className="text-sm font-medium text-green-700 group-hover:text-green-800">
+                    Manage Staff
+                  </span>
+                </a>
+              </div>
+            </div>
+
+            {/* Voice AI Status */}
+            <div className="card">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-medium text-gray-900">
+                  Voice AI Status
+                </h2>
+                <div className="flex items-center">
+                  <div className="h-2 w-2 bg-green-400 rounded-full animate-pulse"></div>
+                  <span className="ml-2 text-sm text-green-600 font-medium">
+                    Active
+                  </span>
+                </div>
+              </div>
+              
+              <div className="space-y-3">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">Calls Today</span>
+                  <span className="font-medium">23</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">Bookings Made</span>
+                  <span className="font-medium">8</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">Conversion Rate</span>
+                  <span className="font-medium text-green-600">34.8%</span>
+                </div>
+              </div>
+              
+              <a 
+                href="/dashboard/voice-ai" 
+                className="mt-4 flex items-center justify-center p-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition-colors"
+              >
+                <PhoneIcon className="h-4 w-4 mr-2" />
+                <span className="text-sm font-medium">Manage Voice AI</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </Layout>
+  )
+}
