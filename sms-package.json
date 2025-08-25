@@ -1,0 +1,22 @@
+{
+  "name": "sms-booking-webhook",
+  "version": "1.0.0",
+  "description": "SMS booking webhook that integrates with existing voice AI system",
+  "main": "sms-webhook-server.js",
+  "scripts": {
+    "start": "node sms-webhook-server.js",
+    "dev": "nodemon sms-webhook-server.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.38.0",
+    "express": "^4.18.2",
+    "twilio": "^4.20.0",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.1"
+  },
+  "keywords": ["sms", "booking", "twilio", "voice-ai", "salon"],
+  "author": "Your Name",
+  "license": "MIT"
+}

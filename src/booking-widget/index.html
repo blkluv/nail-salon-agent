@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Your Appointment - DropFly Beauty Studio</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#fef7ee',
+                            500: '#f97316',
+                            600: '#ea580c',
+                            700: '#c2410c'
+                        },
+                        beauty: {
+                            50: '#fdf4ff',
+                            500: '#d946ef',
+                            600: '#c026d3',
+                            700: '#a21caf'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-50 min-h-screen py-8">
+    <div class="max-w-md mx-auto bg-white rounded-xl shadow-lg overflow-hidden">
+        <!-- Header -->
+        <div class="bg-gradient-to-r from-brand-500 to-beauty-500 p-6 text-white text-center">
+            <h1 class="text-2xl font-bold">Book Your Appointment</h1>
+            <p class="text-brand-50 mt-1">DropFly Beauty Studio</p>
+        </div>
+
+        <!-- Booking Form -->
+        <form id="bookingForm" class="p-6 space-y-4">
+            <!-- Customer Info -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
+                <input type="text" id="customerName" required 
+                       class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Email Address</label>
+                <input type="email" id="customerEmail" required 
+                       class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent">
+            </div>
+
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+                <input type="tel" id="customerPhone" required 
+                       class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent">
+            </div>
+
+            <!-- Service Selection -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Select Service</label>
+                <select id="serviceType" required 
+                        class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent">
+                    <option value="">Choose a service...</option>
+                    <option value="manicure_signature" data-duration="60" data-price="45">Signature Manicure - $45 (60 min)</option>
+                    <option value="manicure_gel" data-duration="75" data-price="55">Gel Manicure - $55 (75 min)</option>
+                    <option value="pedicure_signature" data-duration="75" data-price="50">Signature Pedicure - $50 (75 min)</option>
+                    <option value="pedicure_spa" data-duration="90" data-price="65">Spa Pedicure - $65 (90 min)</option>
+                    <option value="combo_mani_pedi" data-duration="120" data-price="85">Mani + Pedi Combo - $85 (120 min)</option>
+                    <option value="nail_art" data-duration="30" data-price="25">Nail Art Design - $25 (30 min)</option>
+                </select>
+            </div>
+
+            <!-- Technician Preference -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Preferred Technician (Optional)</label>
+                <select id="technicianName" 
+                        class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent">
+                    <option value="">Any available</option>
+                    <option value="Sarah">Sarah - Manicure & Nail Art Specialist</option>
+                    <option value="Maya">Maya - Pedicure & Combo Expert</option>
+                    <option value="Jessica">Jessica - All-Around Specialist</option>
+                </select>
+            </div>
+
+            <!-- Date Selection -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Preferred Date</label>
+                <input type="date" id="appointmentDate" required 
+                       class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent">
+            </div>
+
+            <!-- Time Selection -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Preferred Time</label>
+                <select id="startTime" required 
+                        class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent">
+                    <option value="">Choose time...</option>
+                    <!-- Business hours: Mon-Fri 9-6, Sat 9-4, Sun 11-3 -->
+                </select>
+            </div>
+
+            <!-- Special Requests -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Special Requests (Optional)</label>
+                <textarea id="specialRequests" rows="3" 
+                          class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-transparent"
+                          placeholder="Any special requests or notes..."></textarea>
+            </div>
+
+            <!-- Submit Button -->
+            <button type="submit" id="submitBtn" 
+                    class="w-full bg-gradient-to-r from-brand-500 to-beauty-500 text-white font-semibold py-3 px-4 rounded-lg hover:from-brand-600 hover:to-beauty-600 transition duration-200 disabled:opacity-50">
+                Book Appointment
+            </button>
+        </form>
+
+        <!-- Loading State -->
+        <div id="loadingState" class="hidden p-6 text-center">
+            <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500 mx-auto mb-4"></div>
+            <p class="text-gray-600">Processing your booking request...</p>
+        </div>
+
+        <!-- Success State -->
+        <div id="successState" class="hidden p-6 text-center">
+            <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Appointment Requested!</h3>
+            <p class="text-gray-600 mb-4">We'll confirm your appointment shortly via email and text.</p>
+            <button onclick="resetForm()" class="text-brand-600 font-semibold hover:text-brand-700">
+                Book Another Appointment
+            </button>
+        </div>
+
+        <!-- Error State -->
+        <div id="errorState" class="hidden p-6 text-center">
+            <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </div>
+            <h3 class="text-lg font-semibold text-gray-900 mb-2">Booking Failed</h3>
+            <p class="text-gray-600 mb-4" id="errorMessage">Something went wrong. Please try again or call us.</p>
+            <div class="space-y-2">
+                <button onclick="resetForm()" class="block w-full text-brand-600 font-semibold hover:text-brand-700">
+                    Try Again
+                </button>
+                <a href="tel:+15551234567" class="block w-full text-gray-600 hover:text-gray-800">
+                    Or call us: (555) 123-4567
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Configuration
+        const WEBHOOK_URL = 'https://your-n8n-instance.app.n8n.cloud/webhook/web-booking';
+        const BUSINESS_HOURS = {
+            'monday': { start: '09:00', end: '18:00' },
+            'tuesday': { start: '09:00', end: '18:00' },
+            'wednesday': { start: '09:00', end: '18:00' },
+            'thursday': { start: '09:00', end: '18:00' },
+            'friday': { start: '09:00', end: '18:00' },
+            'saturday': { start: '09:00', end: '16:00' },
+            'sunday': { start: '11:00', end: '15:00' }
+        };
+
+        // Initialize form
+        document.addEventListener('DOMContentLoaded', function() {
+            setMinDate();
+            populateTimeSlots();
+            
+            document.getElementById('appointmentDate').addEventListener('change', populateTimeSlots);
+            document.getElementById('bookingForm').addEventListener('submit', handleSubmit);
+        });
+
+        function setMinDate() {
+            const today = new Date();
+            const tomorrow = new Date(today);
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            
+            const minDate = tomorrow.toISOString().split('T')[0];
+            document.getElementById('appointmentDate').setAttribute('min', minDate);
+            
+            const maxDate = new Date(today);
+            maxDate.setDate(maxDate.getDate() + 30);
+            document.getElementById('appointmentDate').setAttribute('max', maxDate.toISOString().split('T')[0]);
+        }
+
+        function populateTimeSlots() {
+            const dateInput = document.getElementById('appointmentDate');
+            const timeSelect = document.getElementById('startTime');
+            
+            // Clear existing options except the first
+            timeSelect.innerHTML = '<option value="">Choose time...</option>';
+            
+            if (!dateInput.value) return;
+            
+            const selectedDate = new Date(dateInput.value);
+            const dayName = selectedDate.toLocaleDateString('en-US', { weekday: 'lowercase' });
+            
+            const hours = BUSINESS_HOURS[dayName];
+            if (!hours) {
+                timeSelect.innerHTML += '<option value="">Closed this day</option>';
+                return;
+            }
+            
+            // Generate 30-minute time slots
+            const [startHour, startMin] = hours.start.split(':').map(Number);
+            const [endHour, endMin] = hours.end.split(':').map(Number);
+            
+            let currentTime = startHour * 60 + startMin;
+            const endTime = endHour * 60 + endMin;
+            
+            while (currentTime < endTime) {
+                const hour = Math.floor(currentTime / 60);
+                const min = currentTime % 60;
+                const timeString = `${hour.toString().padStart(2, '0')}:${min.toString().padStart(2, '0')}`;
+                
+                // Convert to 12-hour format for display
+                const displayTime = new Date(`2000-01-01T${timeString}`).toLocaleTimeString('en-US', {
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: true
+                });
+                
+                timeSelect.innerHTML += `<option value="${timeString}">${displayTime}</option>`;
+                currentTime += 30; // 30-minute intervals
+            }
+        }
+
+        async function handleSubmit(e) {
+            e.preventDefault();
+            
+            const form = document.getElementById('bookingForm');
+            const loadingState = document.getElementById('loadingState');
+            const successState = document.getElementById('successState');
+            const errorState = document.getElementById('errorState');
+            
+            // Show loading state
+            form.classList.add('hidden');
+            loadingState.classList.remove('hidden');
+            
+            // Collect form data
+            const formData = {
+                customer_name: document.getElementById('customerName').value,
+                customer_email: document.getElementById('customerEmail').value,
+                customer_phone: document.getElementById('customerPhone').value,
+                service_type: document.getElementById('serviceType').value,
+                technician_name: document.getElementById('technicianName').value || null,
+                appointment_date: document.getElementById('appointmentDate').value,
+                start_time: document.getElementById('startTime').value,
+                special_requests: document.getElementById('specialRequests').value,
+                booking_source: 'web_widget',
+                timestamp: new Date().toISOString()
+            };
+            
+            // Get service details
+            const serviceSelect = document.getElementById('serviceType');
+            const selectedOption = serviceSelect.options[serviceSelect.selectedIndex];
+            formData.service_duration = parseInt(selectedOption.getAttribute('data-duration'));
+            formData.service_price = parseInt(selectedOption.getAttribute('data-price'));
+            
+            try {
+                const response = await fetch(WEBHOOK_URL, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(formData)
+                });
+                
+                if (response.ok) {
+                    loadingState.classList.add('hidden');
+                    successState.classList.remove('hidden');
+                } else {
+                    throw new Error('Booking request failed');
+                }
+                
+            } catch (error) {
+                console.error('Booking error:', error);
+                loadingState.classList.add('hidden');
+                errorState.classList.remove('hidden');
+                document.getElementById('errorMessage').textContent = 
+                    'Unable to process your booking. Please call us directly or try again later.';
+            }
+        }
+
+        function resetForm() {
+            document.getElementById('bookingForm').reset();
+            document.getElementById('bookingForm').classList.remove('hidden');
+            document.getElementById('loadingState').classList.add('hidden');
+            document.getElementById('successState').classList.add('hidden');
+            document.getElementById('errorState').classList.add('hidden');
+            setMinDate();
+            populateTimeSlots();
+        }
+    </script>
+</body>
+</html>

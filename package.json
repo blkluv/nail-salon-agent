@@ -5,11 +5,29 @@
   "main": "scripts/setup.js",
   "scripts": {
     "setup": "node scripts/setup.js",
+    "production-setup": "node scripts/production-setup.js",
     "deploy": "node scripts/deploy.js",
     "test": "node scripts/test.js",
+    "test-database": "node scripts/test-database.js",
     "register-business": "node src/business-registration.js",
-    "start": "npm run setup && npm run deploy",
-    "platform-setup": "node scripts/platform-setup.js"
+    "register": "node src/enhanced-registration.js",
+    "register-demo": "node src/enhanced-registration.js --demo",
+    "onboard": "node src/automated-onboarding.js --demo",
+    "start": "npm run register",
+    "one-click-deploy": "node scripts/one-click-deploy.js",
+    "vapi:setup": "node scripts/vapi-setup.js",
+    "vapi:list": "node scripts/vapi-setup.js --list",
+    "vapi:create": "node scripts/vapi-setup.js --create",
+    "dashboard": "cd dashboard && npm run dev",
+    "dashboard:build": "cd dashboard && npm run build",
+    "dashboard:install": "cd dashboard && npm install",
+    "demo": "node scripts/simple-demo-test.js",
+    "demo-full": "npm run register-demo",
+    "webhook": "node webhook-server.js",
+    "quick-start": "npm install && npm run register",
+    "help": "echo 'Available commands:' && echo '  npm run quick-start - Complete automated salon setup' && echo '  npm run register - Interactive salon registration' && echo '  npm run demo - Try with demo data' && echo '  npm run onboard - Test automated onboarding' && echo '  npm run dashboard - Start admin dashboard' && echo '  npm run help - Show this help'",
+    "docs": "echo 'Documentation: https://github.com/dropfly/vapi-nail-salon-agent#readme'",
+    "support": "echo 'Support: https://github.com/dropfly/vapi-nail-salon-agent/issues'"
   },
   "keywords": [
     "vapi",
@@ -22,10 +40,12 @@
   "author": "DropFly AI",
   "license": "MIT",
   "dependencies": {
-    "inquirer": "^9.2.12",
+    "@supabase/supabase-js": "^2.56.0",
+    "axios": "^1.11.0",
     "chalk": "^4.1.2",
     "dotenv": "^16.3.1",
-    "axios": "^1.6.2",
+    "express": "^5.1.0",
+    "inquirer": "^8.2.7",
     "ora": "^5.4.1"
   },
   "engines": {

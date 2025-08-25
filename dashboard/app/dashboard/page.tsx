@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Layout from '../../components/Layout'
-import { BusinessAPI, type Business } from '../../lib/supabase'
+import { BusinessAPI, type Business, type DashboardStats, type Appointment } from '../../lib/supabase'
 import {
   CalendarIcon,
   UsersIcon,
@@ -13,25 +13,14 @@ import {
 } from '@heroicons/react/24/outline'
 import { format, isToday, isTomorrow } from 'date-fns'
 
-// Mock business ID - in real app this would come from auth
-const BUSINESS_ID = 'demo-business-id'
-
-interface DashboardStats {
-  totalAppointments: number
-  todayAppointments: number
-  monthlyRevenue: number
-  activeCustomers: number
+// Get business ID from localStorage (set during onboarding) or use demo
+const getBusinessId = () => {
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem('demo_business_id') || process.env.NEXT_PUBLIC_DEMO_BUSINESS_ID || '8424aa26-4fd5-4d4b-92aa-8a9c5ba77dad'
+  }
+  return process.env.NEXT_PUBLIC_DEMO_BUSINESS_ID || '8424aa26-4fd5-4d4b-92aa-8a9c5ba77dad'
 }
 
-interface UpcomingAppointment {
-  id: string
-  customer_name: string
-  service_type: string
-  appointment_date: string
-  start_time: string
-  technician_name: string
-  status: string
-}
 
 export default function DashboardPage() {
   const [business, setBusiness] = useState<Business | null>(null)
@@ -41,8 +30,9 @@ export default function DashboardPage() {
     monthlyRevenue: 0,
     activeCustomers: 0
   })
-  const [upcomingAppointments, setUpcomingAppointments] = useState<UpcomingAppointment[]>([])
+  const [upcomingAppointments, setUpcomingAppointments] = useState<Appointment[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     loadDashboardData()
@@ -51,65 +41,29 @@ export default function DashboardPage() {
   const loadDashboardData = async () => {
     try {
       setLoading(true)
+      setError(null)
       
-      // In a real app, you'd get the business ID from authentication
-      // For demo purposes, we'll use mock data
-      setBusiness({
-        id: BUSINESS_ID,
-        name: 'Bella Nails & Spa',
-        slug: 'bella-nails-spa',
-        business_type: 'nail_salon',
-        phone: '(555) 123-4567',
-        email: 'hello@bellanails.com',
-        address_line1: '123 Beauty Lane',
-        city: 'Los Angeles',
-        state: 'CA',
-        subscription_tier: 'professional',
-        subscription_status: 'active',
-        created_at: new Date().toISOString()
-      })
+      // Load business data
+      const businessId = getBusinessId()
+      const businessData = await BusinessAPI.getBusiness(businessId)
+      if (businessData) {
+        setBusiness(businessData)
+      } else {
+        setError('Business not found. Please check your configuration.')
+        return
+      }
 
-      // Mock stats data
-      setStats({
-        totalAppointments: 1247,
-        todayAppointments: 12,
-        monthlyRevenue: 8450,
-        activeCustomers: 324
-      })
+      // Load dashboard statistics
+      const dashboardStats = await BusinessAPI.getDashboardStats(BUSINESS_ID)
+      setStats(dashboardStats)
 
-      // Mock upcoming appointments
-      setUpcomingAppointments([
-        {
-          id: '1',
-          customer_name: 'Sarah Johnson',
-          service_type: 'Gel Manicure',
-          appointment_date: new Date().toISOString().split('T')[0],
-          start_time: '10:00',
-          technician_name: 'Maya',
-          status: 'confirmed'
-        },
-        {
-          id: '2',
-          customer_name: 'Emily Chen',
-          service_type: 'Spa Pedicure',
-          appointment_date: new Date().toISOString().split('T')[0],
-          start_time: '11:30',
-          technician_name: 'Jessica',
-          status: 'confirmed'
-        },
-        {
-          id: '3',
-          customer_name: 'Maria Rodriguez',
-          service_type: 'Mani + Pedi Combo',
-          appointment_date: new Date(Date.now() + 24*60*60*1000).toISOString().split('T')[0],
-          start_time: '14:00',
-          technician_name: 'Sarah',
-          status: 'confirmed'
-        }
-      ])
+      // Load upcoming appointments
+      const upcomingAppts = await BusinessAPI.getUpcomingAppointments(BUSINESS_ID, 5)
+      setUpcomingAppointments(upcomingAppts)
 
     } catch (error) {
       console.error('Error loading dashboard data:', error)
+      setError('Failed to load dashboard data. Please try again.')
     } finally {
       setLoading(false)
     }
@@ -141,6 +95,27 @@ export default function DashboardPage() {
               {[1,2,3,4].map((i) => (
                 <div key={i} className="h-24 bg-gray-200 rounded"></div>
               ))}
+            </div>
+          </div>
+        </div>
+      </Layout>
+    )
+  }
+
+  if (error) {
+    return (
+      <Layout business={business}>
+        <div className="p-8">
+          <div className="text-center">
+            <div className="text-red-600 text-lg font-medium mb-4">{error}</div>
+            <button 
+              onClick={() => loadDashboardData()}
+              className="btn-primary"
+            >
+              Try Again
+            </button>
+            <div className="mt-4 text-sm text-gray-500">
+              Make sure you have configured your Supabase credentials in .env.local
             </div>
           </div>
         </div>
@@ -275,14 +250,14 @@ export default function DashboardPage() {
                     <div className="ml-4 flex-1">
                       <div className="flex items-center justify-between">
                         <p className="text-sm font-medium text-gray-900">
-                          {appointment.customer_name}
+                          {appointment.customer ? `${appointment.customer.first_name} ${appointment.customer.last_name}` : 'Unknown Customer'}
                         </p>
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(appointment.status)}`}>
                           {appointment.status}
                         </span>
                       </div>
                       <p className="text-sm text-gray-500">
-                        {appointment.service_type} with {appointment.technician_name}
+                        {appointment.service?.name || 'Unknown Service'} {appointment.staff && `with ${appointment.staff.first_name} ${appointment.staff.last_name}`}
                       </p>
                       <div className="flex items-center mt-1 text-xs text-gray-400">
                         <ClockIcon className="h-4 w-4 mr-1" />
