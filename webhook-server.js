@@ -15,6 +15,12 @@ const DEFAULT_BUSINESS_ID = '8424aa26-4fd5-4d4b-92aa-8a9c5ba77dad';
 const app = express();
 const PORT = process.env.PORT || 3001;
 
+// Debug environment variables
+console.log('🔍 Environment Variables Debug:');
+console.log('SUPABASE_URL:', process.env.SUPABASE_URL ? 'SET' : 'MISSING');
+console.log('SUPABASE_SERVICE_KEY:', process.env.SUPABASE_SERVICE_KEY ? 'SET' : 'MISSING');
+console.log('NODE_ENV:', process.env.NODE_ENV || 'not set');
+
 // Initialize Supabase
 const supabase = createClient(
     process.env.SUPABASE_URL,
