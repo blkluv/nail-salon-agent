@@ -19,8 +19,8 @@ import {
   ResponsiveContainer 
 } from 'recharts'
 
-// Demo business ID
-const BUSINESS_ID = process.env.NEXT_PUBLIC_DEMO_BUSINESS_ID || '550e8400-e29b-41d4-a716-446655440000'
+// Demo business ID - corrected to use voice AI business ID
+const BUSINESS_ID = process.env.NEXT_PUBLIC_DEMO_BUSINESS_ID || '8424aa26-4fd5-4d4b-92aa-8a9c5ba77dad'
 
 // Mock service data for now - will be replaced with real data later
 const serviceData = [
