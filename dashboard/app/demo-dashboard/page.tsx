@@ -113,42 +113,114 @@ export default function DemoDashboardPage() {
 
   const handleNewAppointment = () => {
     console.log('New appointment:', newAppointment)
-    alert(`Demo: Appointment for ${newAppointment.customer_name} would be created! 
-    
-Service: ${newAppointment.service_name}
-Date: ${newAppointment.date}
-Time: ${newAppointment.time}
-Staff: ${newAppointment.staff_name}
-Price: $${newAppointment.price}
+    alert(`✅ Demo: Appointment Successfully Created!
 
-In the real app, this would save to your database.`)
+📋 APPOINTMENT DETAILS:
+👤 Customer: ${newAppointment.customer_name}
+💅 Service: ${newAppointment.service_name}
+📅 Date: ${newAppointment.date}
+⏰ Time: ${newAppointment.time}
+👩‍💼 Staff: ${newAppointment.staff_name}
+💰 Price: $${newAppointment.price}
+
+🎯 AUTOMATED ACTIONS COMPLETED:
+✅ Customer SMS confirmation sent
+✅ Staff calendar updated automatically
+✅ Reminder scheduled for 24hrs before
+✅ Payment link sent to customer
+✅ Inventory reserved for appointment
+✅ Email confirmation with directions
+
+📈 BUSINESS IMPACT:
+• Revenue added: $${newAppointment.price}
+• Calendar utilization: +1.2%
+• Customer satisfaction: Instant booking
+• Staff efficiency: Zero manual work
+
+In the real app, this appointment would be immediately available across all your systems, and your customer would receive instant confirmation!`)
     setShowNewAppointmentForm(false)
     setNewAppointment({ customer_name: '', service_name: 'Gel Manicure', date: '', time: '', staff_name: 'Maria', price: 50 })
   }
 
   const handleEditAppointment = (appointmentId: string) => {
+    const appointment = MOCK_APPOINTMENTS.find(a => a.id === appointmentId)
     console.log('Edit appointment:', appointmentId)
-    alert(`Demo: Appointment ${appointmentId} would open for editing!
-    
-In the real app, you could:
-✅ Change appointment time
-✅ Reassign to different staff
-✅ Modify service type
-✅ Update customer notes
-✅ Send notifications to customer`)
+    alert(`⚡ Demo: Appointment Editor Opened!
+
+📝 CURRENT APPOINTMENT:
+👤 Customer: ${appointment?.customer_name}
+💅 Service: ${appointment?.service_name} ($${appointment?.price})
+📅 Date: ${appointment?.appointment_date.split('T')[0]}
+⏰ Time: ${appointment?.appointment_time}
+👩‍💼 Staff: ${appointment?.staff_name}
+📋 Status: ${appointment?.status}
+
+✨ EDITING OPTIONS AVAILABLE:
+
+🕐 TIME CHANGES:
+• Drag to new time slot
+• See real-time availability
+• Auto-conflict detection
+
+👥 STAFF REASSIGNMENT:
+• View all qualified staff
+• Check availability instantly
+• Maintain service quality
+
+💅 SERVICE MODIFICATIONS:
+• Upgrade/downgrade services
+• Adjust pricing automatically
+• Update duration estimates
+
+📞 CUSTOMER COMMUNICATION:
+• Auto-send change notifications
+• Request confirmation
+• Update calendar invites
+
+💡 SMART FEATURES:
+✅ Drag & drop rescheduling
+✅ Conflict prevention
+✅ Automatic notifications
+✅ Revenue impact calculations
+✅ Staff workload optimization
+
+In the real app, any changes sync instantly across all systems and notify both staff and customers automatically!`)
     setShowEditForm(null)
   }
 
   const handleCancelAppointment = (appointmentId: string) => {
     const appointment = MOCK_APPOINTMENTS.find(a => a.id === appointmentId)
-    if (confirm(`Demo: Cancel appointment for ${appointment?.customer_name}?`)) {
-      alert(`Demo: Appointment cancelled! 
-      
-In the real app:
-✅ Customer would receive cancellation notification
-✅ Slot would become available for rebooking  
-✅ Staff schedule would be updated
-✅ Refund would be processed if needed`)
+    if (confirm(`🚫 Confirm Cancellation\n\nCancel ${appointment?.service_name} appointment for ${appointment?.customer_name} on ${appointment?.appointment_date.split('T')[0]} at ${appointment?.appointment_time}?\n\nThis action will free up the time slot and notify the customer.`)) {
+      alert(`✅ Demo: Appointment Successfully Cancelled!
+
+📋 CANCELLED APPOINTMENT:
+👤 Customer: ${appointment?.customer_name}
+💅 Service: ${appointment?.service_name}
+📅 Date: ${appointment?.appointment_date.split('T')[0]}
+⏰ Time: ${appointment?.appointment_time}
+👩‍💼 Staff: ${appointment?.staff_name}
+💰 Value: $${appointment?.price}
+
+🔄 AUTOMATED ACTIONS COMPLETED:
+✅ Customer SMS cancellation notice sent
+✅ Email confirmation with apology message
+✅ Staff calendar automatically updated
+✅ Time slot opened for new bookings
+✅ Refund processed (if applicable)
+✅ Waitlist customers notified of availability
+
+📊 BUSINESS INTELLIGENCE:
+• Cancelled revenue: $${appointment?.price}
+• Time slot now available for rebooking
+• Staff utilization optimized
+• Customer relationship maintained
+
+💡 SMART RESCHEDULING:
+The system automatically offered 3 alternative dates to ${appointment?.customer_name} and she selected next Tuesday at 2:00 PM!
+
+🎯 RESULT: Cancellation converted to rescheduled appointment - no lost revenue!
+
+In the real app, cancellations are handled professionally with automatic rebooking opportunities and customer retention features.`)
     }
   }
   
