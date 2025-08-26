@@ -100,6 +100,57 @@ const MOCK_AI_ACTIVITY = [
 
 export default function DemoDashboardPage() {
   const [showAIActivity, setShowAIActivity] = useState(false)
+  const [showNewAppointmentForm, setShowNewAppointmentForm] = useState(false)
+  const [showEditForm, setShowEditForm] = useState<string | null>(null)
+  const [newAppointment, setNewAppointment] = useState({
+    customer_name: '',
+    service_name: 'Gel Manicure',
+    date: '',
+    time: '',
+    staff_name: 'Maria',
+    price: 50
+  })
+
+  const handleNewAppointment = () => {
+    console.log('New appointment:', newAppointment)
+    alert(`Demo: Appointment for ${newAppointment.customer_name} would be created! 
+    
+Service: ${newAppointment.service_name}
+Date: ${newAppointment.date}
+Time: ${newAppointment.time}
+Staff: ${newAppointment.staff_name}
+Price: $${newAppointment.price}
+
+In the real app, this would save to your database.`)
+    setShowNewAppointmentForm(false)
+    setNewAppointment({ customer_name: '', service_name: 'Gel Manicure', date: '', time: '', staff_name: 'Maria', price: 50 })
+  }
+
+  const handleEditAppointment = (appointmentId: string) => {
+    console.log('Edit appointment:', appointmentId)
+    alert(`Demo: Appointment ${appointmentId} would open for editing!
+    
+In the real app, you could:
+✅ Change appointment time
+✅ Reassign to different staff
+✅ Modify service type
+✅ Update customer notes
+✅ Send notifications to customer`)
+    setShowEditForm(null)
+  }
+
+  const handleCancelAppointment = (appointmentId: string) => {
+    const appointment = MOCK_APPOINTMENTS.find(a => a.id === appointmentId)
+    if (confirm(`Demo: Cancel appointment for ${appointment?.customer_name}?`)) {
+      alert(`Demo: Appointment cancelled! 
+      
+In the real app:
+✅ Customer would receive cancellation notification
+✅ Slot would become available for rebooking  
+✅ Staff schedule would be updated
+✅ Refund would be processed if needed`)
+    }
+  }
   
   const formatAppointmentDate = (dateStr: string) => {
     const date = new Date(dateStr)
@@ -288,6 +339,26 @@ export default function DemoDashboardPage() {
                         <span>•</span>
                         <span className="font-medium text-green-600">${appointment.price}</span>
                       </div>
+                      <div className="flex items-center mt-2 space-x-2">
+                        <button
+                          onClick={() => handleEditAppointment(appointment.id)}
+                          className="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded hover:bg-blue-200 transition-colors"
+                        >
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => handleCancelAppointment(appointment.id)}
+                          className="text-xs bg-red-100 text-red-600 px-2 py-1 rounded hover:bg-red-200 transition-colors"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={() => alert(`Demo: Send reminder to ${appointment.customer_name}!\n\n✅ SMS reminder sent\n✅ Email confirmation sent\n✅ Calendar updated`)}
+                          className="text-xs bg-green-100 text-green-600 px-2 py-1 rounded hover:bg-green-200 transition-colors"
+                        >
+                          Remind
+                        </button>
+                      </div>
                     </div>
                   </div>
                 ))}
@@ -303,21 +374,30 @@ export default function DemoDashboardPage() {
                 Quick Actions
               </h2>
               <div className="space-y-3">
-                <button className="flex items-center w-full p-3 bg-brand-50 rounded-lg hover:bg-brand-100 transition-colors group text-left">
+                <button 
+                  onClick={() => setShowNewAppointmentForm(true)}
+                  className="flex items-center w-full p-3 bg-brand-50 rounded-lg hover:bg-brand-100 transition-colors group text-left"
+                >
                   <CalendarIcon className="h-5 w-5 text-brand-600 mr-3" />
                   <span className="text-sm font-medium text-brand-700 group-hover:text-brand-800">
                     Add New Appointment
                   </span>
                 </button>
                 
-                <button className="flex items-center w-full p-3 bg-beauty-50 rounded-lg hover:bg-beauty-100 transition-colors group text-left">
+                <button 
+                  onClick={() => alert('Demo: Customer management page would open here!\n\nFeatures include:\n✅ Customer profiles\n✅ Booking history\n✅ Contact information\n✅ Preferences & notes\n✅ Loyalty tracking')}
+                  className="flex items-center w-full p-3 bg-beauty-50 rounded-lg hover:bg-beauty-100 transition-colors group text-left"
+                >
                   <UsersIcon className="h-5 w-5 text-beauty-600 mr-3" />
                   <span className="text-sm font-medium text-beauty-700 group-hover:text-beauty-800">
                     View Customers
                   </span>
                 </button>
                 
-                <button className="flex items-center w-full p-3 bg-green-50 rounded-lg hover:bg-green-100 transition-colors group text-left">
+                <button 
+                  onClick={() => alert('Demo: Staff management page would open here!\n\nFeatures include:\n✅ Staff schedules\n✅ Performance tracking\n✅ Commission reports\n✅ Individual calendars\n✅ Availability settings')}
+                  className="flex items-center w-full p-3 bg-green-50 rounded-lg hover:bg-green-100 transition-colors group text-left"
+                >
                   <UsersIcon className="h-5 w-5 text-green-600 mr-3" />
                   <span className="text-sm font-medium text-green-700 group-hover:text-green-800">
                     Manage Staff
@@ -450,6 +530,88 @@ export default function DemoDashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* New Appointment Modal */}
+      {showNewAppointmentForm && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-xl shadow-2xl p-6 w-full max-w-md">
+            <h2 className="text-xl font-bold mb-4">Add New Appointment</h2>
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Customer Name</label>
+                <input
+                  type="text"
+                  value={newAppointment.customer_name}
+                  onChange={(e) => setNewAppointment({...newAppointment, customer_name: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500"
+                  placeholder="Enter customer name"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Service</label>
+                <select
+                  value={newAppointment.service_name}
+                  onChange={(e) => setNewAppointment({...newAppointment, service_name: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500"
+                >
+                  <option value="Gel Manicure">Gel Manicure ($50)</option>
+                  <option value="Spa Pedicure">Spa Pedicure ($75)</option>
+                  <option value="Nail Art">Nail Art ($65)</option>
+                  <option value="Mani-Pedi Combo">Mani-Pedi Combo ($85)</option>
+                  <option value="French Manicure">French Manicure ($45)</option>
+                </select>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                  <input
+                    type="date"
+                    value={newAppointment.date}
+                    onChange={(e) => setNewAppointment({...newAppointment, date: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Time</label>
+                  <input
+                    type="time"
+                    value={newAppointment.time}
+                    onChange={(e) => setNewAppointment({...newAppointment, time: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Technician</label>
+                <select
+                  value={newAppointment.staff_name}
+                  onChange={(e) => setNewAppointment({...newAppointment, staff_name: e.target.value})}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500"
+                >
+                  <option value="Maria">Maria</option>
+                  <option value="Ana">Ana</option>
+                  <option value="Jessica">Jessica</option>
+                </select>
+              </div>
+            </div>
+            <div className="flex space-x-3 mt-6">
+              <button
+                onClick={() => setShowNewAppointmentForm(false)}
+                className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleNewAppointment}
+                disabled={!newAppointment.customer_name || !newAppointment.date || !newAppointment.time}
+                className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Create Appointment
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </Layout>
   )
 }

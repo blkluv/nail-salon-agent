@@ -73,7 +73,14 @@ export default function InteractiveDemoPage() {
   const [progress, setProgress] = useState(0)
   const [totalRevenue, setTotalRevenue] = useState(0)
   const [completedScenarios, setCompletedScenarios] = useState<string[]>([])
+  const [debugInfo, setDebugInfo] = useState('')
   const router = useRouter()
+
+  // Debug logging
+  useEffect(() => {
+    console.log('Demo Page State:', { currentStep, selectedScenario, completedScenarios })
+    setDebugInfo(`Step: ${currentStep}, Scenarios: ${completedScenarios.length}`)
+  }, [currentStep, selectedScenario, completedScenarios])
 
   useEffect(() => {
     let interval: NodeJS.Timeout
@@ -114,34 +121,42 @@ export default function InteractiveDemoPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-purple-800 to-indigo-900">
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 py-4 md:py-8 max-w-7xl">
+        
+        {/* Debug Info - Remove in production */}
+        <div className="fixed top-4 left-4 bg-black bg-opacity-50 text-white text-xs p-2 rounded z-50 lg:hidden">
+          {debugInfo}
+        </div>
         
         {/* Header */}
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-white mb-4">
+        <div className="text-center mb-6 md:mb-8">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white mb-2 md:mb-4 px-2 leading-tight">
             Experience YOUR Salon with AI
           </h1>
-          <p className="text-xl text-purple-200 max-w-2xl mx-auto">
+          <p className="text-base sm:text-lg lg:text-xl text-purple-200 max-w-3xl mx-auto px-4 leading-relaxed">
             Step into the shoes of a salon owner and see how AI transforms your daily challenges into revenue wins
           </p>
         </div>
 
         {/* Progress Indicator */}
-        <div className="max-w-4xl mx-auto mb-8">
-          <div className="flex justify-center items-center space-x-4 text-white">
+        <div className="max-w-4xl mx-auto mb-6 md:mb-8">
+          <div className="flex justify-center items-center space-x-2 md:space-x-4 text-white text-sm md:text-base">
             <div className={`flex items-center ${currentStep !== 'intro' ? 'text-green-400' : ''}`}>
-              <CheckCircleIcon className="w-6 h-6 mr-2" />
-              <span>Welcome</span>
+              <CheckCircleIcon className="w-4 h-4 md:w-6 md:h-6 mr-1 md:mr-2" />
+              <span className="hidden sm:inline">Welcome</span>
+              <span className="sm:hidden">1</span>
             </div>
-            <ArrowRightIcon className="w-5 h-5 text-purple-300" />
+            <ArrowRightIcon className="w-3 h-3 md:w-5 md:h-5 text-purple-300" />
             <div className={`flex items-center ${completedScenarios.length > 0 ? 'text-green-400' : currentStep === 'scenario-select' || currentStep === 'playing' || currentStep === 'results' ? 'text-white' : 'text-purple-400'}`}>
-              <PlayIcon className="w-6 h-6 mr-2" />
-              <span>Experience ({completedScenarios.length}/3)</span>
+              <PlayIcon className="w-4 h-4 md:w-6 md:h-6 mr-1 md:mr-2" />
+              <span className="hidden sm:inline">Experience ({completedScenarios.length}/3)</span>
+              <span className="sm:hidden">2</span>
             </div>
-            <ArrowRightIcon className="w-5 h-5 text-purple-300" />
+            <ArrowRightIcon className="w-3 h-3 md:w-5 md:h-5 text-purple-300" />
             <div className={`flex items-center ${currentStep === 'final-cta' ? 'text-green-400' : 'text-purple-400'}`}>
-              <StarIcon className="w-6 h-6 mr-2" />
-              <span>Get Started</span>
+              <StarIcon className="w-4 h-4 md:w-6 md:h-6 mr-1 md:mr-2" />
+              <span className="hidden sm:inline">Get Started</span>
+              <span className="sm:hidden">3</span>
             </div>
           </div>
           
@@ -171,36 +186,36 @@ export default function InteractiveDemoPage() {
                 See how AI booking transforms problems into profit, stress into success.
               </p>
               
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 md:gap-6 mb-8">
                 <div className="text-center">
-                  <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <ExclamationTriangleIcon className="w-8 h-8 text-red-600" />
+                  <div className="w-12 h-12 md:w-16 md:h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <ExclamationTriangleIcon className="w-6 h-6 md:w-8 md:h-8 text-red-600" />
                   </div>
-                  <h3 className="font-semibold text-gray-900 mb-2">Real Problems</h3>
-                  <p className="text-sm text-gray-600">Experience the daily challenges every salon owner faces</p>
+                  <h3 className="font-semibold text-gray-900 mb-2 text-sm md:text-base">Real Problems</h3>
+                  <p className="text-xs md:text-sm text-gray-600">Experience the daily challenges every salon owner faces</p>
                 </div>
                 <div className="text-center">
-                  <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <PlayIcon className="w-8 h-8 text-blue-600" />
+                  <div className="w-12 h-12 md:w-16 md:h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <PlayIcon className="w-6 h-6 md:w-8 md:h-8 text-blue-600" />
                   </div>
-                  <h3 className="font-semibold text-gray-900 mb-2">Interactive Solutions</h3>
-                  <p className="text-sm text-gray-600">Watch AI solve problems in real-time</p>
+                  <h3 className="font-semibold text-gray-900 mb-2 text-sm md:text-base">Interactive Solutions</h3>
+                  <p className="text-xs md:text-sm text-gray-600">Watch AI solve problems in real-time</p>
                 </div>
                 <div className="text-center">
-                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
-                    <CurrencyDollarIcon className="w-8 h-8 text-green-600" />
+                  <div className="w-12 h-12 md:w-16 md:h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-3">
+                    <CurrencyDollarIcon className="w-6 h-6 md:w-8 md:h-8 text-green-600" />
                   </div>
-                  <h3 className="font-semibold text-gray-900 mb-2">Measure Impact</h3>
-                  <p className="text-sm text-gray-600">See exactly how much revenue you could gain</p>
+                  <h3 className="font-semibold text-gray-900 mb-2 text-sm md:text-base">Measure Impact</h3>
+                  <p className="text-xs md:text-sm text-gray-600">See exactly how much revenue you could gain</p>
                 </div>
               </div>
 
               <button
                 onClick={() => setCurrentStep('scenario-select')}
-                className="inline-flex items-center px-8 py-4 bg-purple-600 text-white font-bold text-lg rounded-full hover:bg-purple-700 transition-colors shadow-lg"
+                className="inline-flex items-center px-6 py-3 md:px-8 md:py-4 bg-purple-600 text-white font-bold text-base md:text-lg rounded-full hover:bg-purple-700 transition-colors shadow-lg"
               >
                 Start Demo Experience
-                <ArrowRightIcon className="w-6 h-6 ml-2" />
+                <ArrowRightIcon className="w-5 h-5 md:w-6 md:h-6 ml-2" />
               </button>
             </div>
           </div>
@@ -208,17 +223,35 @@ export default function InteractiveDemoPage() {
 
         {/* Scenario Selection */}
         {currentStep === 'scenario-select' && (
-          <div className="max-w-6xl mx-auto">
-            <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold text-white mb-4">
+          <div className="max-w-6xl mx-auto px-4">
+            <div className="text-center mb-6 md:mb-8">
+              <h2 className="text-2xl md:text-3xl font-bold text-white mb-4">
                 Choose Your Challenge
               </h2>
-              <p className="text-xl text-purple-200">
+              <p className="text-lg md:text-xl text-purple-200">
                 Pick a scenario you've experienced in your salon
               </p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Debug info */}
+            <div className="text-center text-purple-200 text-sm mb-4">
+              Debug: Found {SCENARIOS.length} scenarios, Completed: {completedScenarios.length}
+            </div>
+
+            {/* Fallback for debugging */}
+            {SCENARIOS.length === 0 && (
+              <div className="text-center text-white p-8 bg-red-500 bg-opacity-20 rounded-lg mb-6">
+                <p>Error: Scenarios not loading. Please refresh the page.</p>
+                <button 
+                  onClick={() => window.location.reload()}
+                  className="mt-4 px-4 py-2 bg-white text-red-600 rounded"
+                >
+                  Refresh Page
+                </button>
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
               {SCENARIOS.map((scenario) => {
                 const Icon = scenario.icon
                 const isCompleted = completedScenarios.includes(scenario.id)
@@ -226,10 +259,13 @@ export default function InteractiveDemoPage() {
                 return (
                   <div
                     key={scenario.id}
-                    className={`bg-white rounded-xl shadow-lg p-6 cursor-pointer transform transition-all duration-200 hover:scale-105 ${
+                    className={`bg-white rounded-xl shadow-lg p-4 md:p-6 cursor-pointer transform transition-all duration-200 hover:scale-105 ${
                       isCompleted ? 'ring-2 ring-green-500 bg-green-50' : 'hover:shadow-xl'
-                    }`}
-                    onClick={() => !isCompleted && handleScenarioSelect(scenario.id)}
+                    } active:scale-95 min-h-[300px] flex flex-col`}
+                    onClick={() => {
+                      console.log('Scenario clicked:', scenario.id)
+                      if (!isCompleted) handleScenarioSelect(scenario.id)
+                    }}
                   >
                     <div className="flex items-center justify-between mb-4">
                       <div className={`w-12 h-12 rounded-full flex items-center justify-center ${
@@ -246,42 +282,50 @@ export default function InteractiveDemoPage() {
                       )}
                     </div>
                     
-                    <h3 className="text-xl font-bold text-gray-900 mb-2">
-                      {scenario.title}
-                    </h3>
-                    <p className="text-gray-600 mb-4 text-sm leading-relaxed">
-                      {scenario.description}
-                    </p>
-                    
-                    <div className="border-t pt-4">
-                      <div className="flex justify-between items-center text-sm">
-                        <span className="text-gray-500">Potential Impact:</span>
-                        <span className="font-bold text-green-600">${scenario.revenue}</span>
+                    <div className="flex-1">
+                      <h3 className="text-lg md:text-xl font-bold text-gray-900 mb-2">
+                        {scenario.title}
+                      </h3>
+                      <p className="text-gray-600 mb-4 text-sm leading-relaxed">
+                        {scenario.description}
+                      </p>
+                      
+                      <div className="border-t pt-4 mt-auto">
+                        <div className="flex justify-between items-center text-xs md:text-sm">
+                          <span className="text-gray-500">Potential Impact:</span>
+                          <span className="font-bold text-green-600">${scenario.revenue}</span>
+                        </div>
+                        <div className="flex justify-between items-center text-xs md:text-sm mt-1">
+                          <span className="text-gray-500">Time to Resolve:</span>
+                          <span className="font-medium">{scenario.timeframe}</span>
+                        </div>
                       </div>
-                      <div className="flex justify-between items-center text-sm mt-1">
-                        <span className="text-gray-500">Time to Resolve:</span>
-                        <span className="font-medium">{scenario.timeframe}</span>
-                      </div>
-                    </div>
 
-                    {!isCompleted && (
-                      <button className="w-full mt-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium">
-                        Experience This Scenario
-                      </button>
-                    )}
+                      {!isCompleted && (
+                        <button className="w-full mt-4 py-2 md:py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors font-medium text-sm md:text-base">
+                          Experience This Scenario
+                        </button>
+                      )}
+                      
+                      {isCompleted && (
+                        <div className="w-full mt-4 py-2 md:py-3 bg-green-100 text-green-800 rounded-lg font-medium text-sm md:text-base text-center">
+                          ✅ Completed
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )
               })}
             </div>
 
             {completedScenarios.length > 0 && (
-              <div className="text-center mt-8">
+              <div className="text-center mt-6 md:mt-8">
                 <button
                   onClick={() => setCurrentStep('final-cta')}
-                  className="inline-flex items-center px-8 py-4 bg-green-600 text-white font-bold text-lg rounded-full hover:bg-green-700 transition-colors shadow-lg"
+                  className="inline-flex items-center px-6 py-3 md:px-8 md:py-4 bg-green-600 text-white font-bold text-base md:text-lg rounded-full hover:bg-green-700 transition-colors shadow-lg"
                 >
                   See My Results & Get Started
-                  <ArrowRightIcon className="w-6 h-6 ml-2" />
+                  <ArrowRightIcon className="w-5 h-5 md:w-6 md:h-6 ml-2" />
                 </button>
               </div>
             )}
@@ -505,13 +549,13 @@ export default function InteractiveDemoPage() {
                 <div className="flex flex-col sm:flex-row gap-4 justify-center">
                   <button
                     onClick={completeScenario}
-                    className="px-8 py-4 bg-purple-600 text-white font-bold text-lg rounded-full hover:bg-purple-700 transition-colors"
+                    className="px-6 py-3 md:px-8 md:py-4 bg-purple-600 text-white font-bold text-base md:text-lg rounded-full hover:bg-purple-700 transition-colors"
                   >
                     {completedScenarios.length >= 2 ? 'See All Results' : 'Try Another Scenario'}
                   </button>
                   <button
                     onClick={() => router.push('/onboarding')}
-                    className="px-8 py-4 bg-green-600 text-white font-bold text-lg rounded-full hover:bg-green-700 transition-colors"
+                    className="px-6 py-3 md:px-8 md:py-4 bg-green-600 text-white font-bold text-base md:text-lg rounded-full hover:bg-green-700 transition-colors"
                   >
                     Start My Free Trial
                   </button>
@@ -600,10 +644,10 @@ export default function InteractiveDemoPage() {
                     </div>
                     <button
                       onClick={() => router.push('/onboarding')}
-                      className="w-full sm:w-auto inline-flex items-center px-12 py-4 bg-white text-green-600 font-bold text-xl rounded-full hover:bg-green-50 transition-colors shadow-lg"
+                      className="w-full sm:w-auto inline-flex items-center px-8 py-3 md:px-12 md:py-4 bg-white text-green-600 font-bold text-lg md:text-xl rounded-full hover:bg-green-50 transition-colors shadow-lg justify-center"
                     >
                       Start My 14-Day Free Trial
-                      <ArrowRightIcon className="w-6 h-6 ml-2" />
+                      <ArrowRightIcon className="w-5 h-5 md:w-6 md:h-6 ml-2" />
                     </button>
                   </div>
                   
