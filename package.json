@@ -2,7 +2,7 @@
   "name": "dropfly-beauty-booking-platform",
   "version": "2.0.0",
   "description": "Complete voice AI booking platform for beauty businesses - nail salons, spas, and beauty clinics",
-  "main": "simple-server.js",
+  "main": "server.js",
   "scripts": {
     "setup": "node scripts/setup.js",
     "production-setup": "node scripts/production-setup.js",
