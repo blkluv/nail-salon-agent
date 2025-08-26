@@ -54,11 +54,11 @@ export default function DashboardPage() {
       }
 
       // Load dashboard statistics
-      const dashboardStats = await BusinessAPI.getDashboardStats(BUSINESS_ID)
+      const dashboardStats = await BusinessAPI.getDashboardStats(businessId)
       setStats(dashboardStats)
 
       // Load upcoming appointments
-      const upcomingAppts = await BusinessAPI.getUpcomingAppointments(BUSINESS_ID, 5)
+      const upcomingAppts = await BusinessAPI.getUpcomingAppointments(businessId, 5)
       setUpcomingAppointments(upcomingAppts)
 
     } catch (error) {
