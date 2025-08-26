@@ -1,1 +1,1 @@
-web: node webhook-server.js
+web: npm start
