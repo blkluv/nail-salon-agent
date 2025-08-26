@@ -39,9 +39,14 @@ export default function LandingPage() {
   ]
 
   const handleDemo = () => {
+    // Go to the interactive demo experience
+    router.push('/demo')
+  }
+
+  const handleDashboardDemo = () => {
     // Set the demo business ID and go to dashboard
     localStorage.setItem('demo_business_id', '8424aa26-4fd5-4d4b-92aa-8a9c5ba77dad')
-    router.push('/dashboard')
+    router.push('/demo-dashboard')
   }
 
   const handleOnboarding = () => {
@@ -108,8 +113,20 @@ export default function LandingPage() {
               className="group px-8 py-4 bg-white border-2 border-purple-600 text-purple-600 text-lg font-semibold rounded-xl hover:bg-purple-50 hover:shadow-lg transition-all transform hover:-translate-y-1 flex items-center justify-center"
             >
               <PlayIcon className="w-6 h-6 mr-2" />
-              Try Demo Salon
+              Start Interactive Demo
               <ArrowRightIcon className="w-5 h-5 ml-2 group-hover:translate-x-1 transition" />
+            </button>
+          </div>
+          
+          <div className="mt-6 text-center">
+            <p className="text-sm text-gray-500 mb-2">
+              Or explore the salon management dashboard →
+            </p>
+            <button
+              onClick={handleDashboardDemo}
+              className="text-purple-600 hover:text-purple-700 underline text-sm font-medium"
+            >
+              View Demo Dashboard
             </button>
           </div>
         </div>
