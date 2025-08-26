@@ -11,6 +11,7 @@ import {
   ClockIcon,
   PhoneIcon,
   CheckCircleIcon,
+  CurrencyDollarIcon,
   ArrowRightIcon,
   ArrowLeftIcon
 } from '@heroicons/react/24/outline'
@@ -58,7 +59,136 @@ interface PhonePreferences {
   widgetStyle: 'embedded' | 'floating' | 'fullpage'
 }
 
+interface PricingPlan {
+  id: string
+  name: string
+  price: number
+  channels: ('sms' | 'web' | 'voice')[]
+  description: string
+  features: string[]
+  popular?: boolean
+}
+
+interface AddOn {
+  id: string
+  name: string
+  price: number
+  description: string
+  category: 'ai' | 'communication' | 'business'
+}
+
+interface SubscriptionConfig {
+  plan: PricingPlan | null
+  addOns: AddOn[]
+  totalMonthly: number
+}
+
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday']
+
+const PRICING_PLANS: PricingPlan[] = [
+  {
+    id: 'sms-only',
+    name: 'SMS Starter',
+    price: 39,
+    channels: ['sms'],
+    description: 'Text message booking and customer communication',
+    features: ['Automated SMS booking', 'Appointment reminders', 'Customer management', 'Basic analytics']
+  },
+  {
+    id: 'web-only', 
+    name: 'Web Booking',
+    price: 49,
+    channels: ['web'],
+    description: 'Online booking widget for your website',
+    features: ['Embedded booking widget', 'Online scheduling', 'Customer portal', 'Basic analytics']
+  },
+  {
+    id: 'voice-only',
+    name: 'Voice AI',
+    price: 89,
+    channels: ['voice'], 
+    description: '24/7 AI phone receptionist',
+    features: ['AI phone booking', '24/7 availability', 'Natural conversations', 'Advanced analytics']
+  },
+  {
+    id: 'sms-web',
+    name: 'SMS + Web Duo',
+    price: 79,
+    channels: ['sms', 'web'],
+    description: 'Text and online booking combined',
+    features: ['SMS + Web booking', 'Unified customer data', 'Multi-channel reminders', 'Enhanced analytics'],
+    popular: true
+  },
+  {
+    id: 'voice-sms',
+    name: 'Voice + SMS Duo', 
+    price: 139,
+    channels: ['voice', 'sms'],
+    description: 'AI phone + text messaging',
+    features: ['AI phone + SMS', 'Premium customer service', 'Advanced conversation flows', 'Priority support']
+  },
+  {
+    id: 'voice-web',
+    name: 'Voice + Web Duo',
+    price: 119,
+    channels: ['voice', 'web'], 
+    description: 'AI phone + online booking',
+    features: ['AI phone + Web widget', 'Omnichannel experience', 'Smart routing', 'Advanced reporting']
+  },
+  {
+    id: 'complete',
+    name: 'Complete Suite',
+    price: 159,
+    channels: ['sms', 'web', 'voice'],
+    description: 'Full omnichannel booking experience',
+    features: ['All booking channels', 'Unified dashboard', 'Complete customer journey', 'Premium support', 'Custom integrations']
+  }
+]
+
+const ADD_ONS: AddOn[] = [
+  {
+    id: 'custom-voice',
+    name: 'Custom Voice Agent',
+    price: 99,
+    description: 'Personalized AI voice and branding for your salon',
+    category: 'ai'
+  },
+  {
+    id: 'multi-language',
+    name: 'Multi-Language Support',
+    price: 39, 
+    description: 'Spanish, French, and other language options',
+    category: 'communication'
+  },
+  {
+    id: 'advanced-ai',
+    name: 'Advanced AI Training',
+    price: 49,
+    description: 'Salon-specific knowledge and custom responses',
+    category: 'ai'
+  },
+  {
+    id: 'loyalty-program',
+    name: 'Loyalty Program',
+    price: 39,
+    description: 'Automated customer rewards and retention',
+    category: 'business'
+  },
+  {
+    id: 'payment-processing',
+    name: 'Payment Processing',
+    price: 39,
+    description: 'Integrated payments with Square and Stripe',
+    category: 'business'
+  },
+  {
+    id: 'smart-notifications',
+    name: 'Smart Notifications',
+    price: 19,
+    description: 'Advanced staff alerts and customer reminders',
+    category: 'communication'
+  }
+]
 
 const DEFAULT_SERVICES: Service[] = [
   { name: 'Basic Manicure', duration: 30, price: 30, category: 'manicure' },
@@ -94,6 +224,11 @@ export default function OnboardingPage() {
   const [error, setError] = useState<string | null>(null)
   const [assignedPhoneNumber, setAssignedPhoneNumber] = useState<string | null>(null)
   const [business, setBusiness] = useState<any>(null)
+  const [subscriptionConfig, setSubscriptionConfig] = useState<SubscriptionConfig>({
+    plan: null,
+    addOns: [],
+    totalMonthly: 0
+  })
   
   // Form data
   const [businessInfo, setBusinessInfo] = useState<BusinessInfo>({
@@ -131,13 +266,47 @@ export default function OnboardingPage() {
   })
 
   const steps = [
-    { id: 1, name: 'Business Info', icon: BuildingStorefrontIcon },
-    { id: 2, name: 'Services', icon: ScissorsIcon },
-    { id: 3, name: 'Staff', icon: UserGroupIcon },
-    { id: 4, name: 'Hours', icon: ClockIcon },
-    { id: 5, name: 'Phone Setup', icon: PhoneIcon },
-    { id: 6, name: 'Complete', icon: CheckCircleIcon }
+    { id: 1, name: 'Plan Selection', icon: CurrencyDollarIcon },
+    { id: 2, name: 'Business Info', icon: BuildingStorefrontIcon },
+    { id: 3, name: 'Services', icon: ScissorsIcon },
+    { id: 4, name: 'Staff', icon: UserGroupIcon },
+    { id: 5, name: 'Hours', icon: ClockIcon },
+    { id: 6, name: 'Phone Setup', icon: PhoneIcon },
+    { id: 7, name: 'Complete', icon: CheckCircleIcon }
   ]
+
+  const handlePlanSelection = (plan: PricingPlan) => {
+    const newConfig = {
+      plan,
+      addOns: subscriptionConfig.addOns,
+      totalMonthly: plan.price + subscriptionConfig.addOns.reduce((sum, addon) => sum + addon.price, 0)
+    }
+    setSubscriptionConfig(newConfig)
+    
+    // Update phone preferences based on selected channels
+    setPhonePrefs({
+      ...phonePrefs,
+      smsEnabled: plan.channels.includes('sms'),
+      voiceEnabled: plan.channels.includes('voice'),
+      webEnabled: plan.channels.includes('web')
+    })
+    
+    setCurrentStep(2)
+  }
+
+  const toggleAddOn = (addon: AddOn) => {
+    const isSelected = subscriptionConfig.addOns.some(a => a.id === addon.id)
+    const newAddOns = isSelected 
+      ? subscriptionConfig.addOns.filter(a => a.id !== addon.id)
+      : [...subscriptionConfig.addOns, addon]
+    
+    const newConfig = {
+      ...subscriptionConfig,
+      addOns: newAddOns,
+      totalMonthly: (subscriptionConfig.plan?.price || 0) + newAddOns.reduce((sum, a) => sum + a.price, 0)
+    }
+    setSubscriptionConfig(newConfig)
+  }
 
   const handleBusinessInfoSubmit = () => {
     if (!businessInfo.name || !businessInfo.email || !businessInfo.phone) {
@@ -145,7 +314,7 @@ export default function OnboardingPage() {
       return
     }
     setError(null)
-    setCurrentStep(2)
+    setCurrentStep(3)
   }
 
   const toggleService = (index: number) => {
@@ -366,7 +535,7 @@ export default function OnboardingPage() {
       localStorage.setItem('demo_business_id', business.id)
       
       // Success! Move to completion step
-      setCurrentStep(6)
+      setCurrentStep(7)
       
       // Don't auto-redirect - let user see phone number
       // setTimeout(() => {
@@ -438,6 +607,89 @@ export default function OnboardingPage() {
 
         {/* Step 1: Business Info */}
         {currentStep === 1 && (
+          <div className="bg-white rounded-xl shadow-lg p-8">
+            <h2 className="text-3xl font-bold mb-4 text-center">Choose Your Plan</h2>
+            <p className="text-gray-600 text-center mb-8">Select the channels that work best for your salon</p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              {PRICING_PLANS.map((plan) => (
+                <div 
+                  key={plan.id}
+                  className={`relative border-2 rounded-xl p-6 cursor-pointer transition-all ${
+                    plan.popular 
+                      ? 'border-purple-500 bg-purple-50' 
+                      : 'border-gray-200 hover:border-purple-300'
+                  } ${subscriptionConfig.plan?.id === plan.id ? 'border-purple-600 bg-purple-100' : ''}`}
+                  onClick={() => handlePlanSelection(plan)}
+                >
+                  {plan.popular && (
+                    <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                      <span className="bg-purple-600 text-white px-4 py-1 rounded-full text-sm font-medium">
+                        Most Popular
+                      </span>
+                    </div>
+                  )}
+                  <div className="text-center">
+                    <h3 className="text-xl font-bold mb-2">{plan.name}</h3>
+                    <div className="mb-3">
+                      <span className="text-3xl font-bold">${plan.price}</span>
+                      <span className="text-gray-600">/month</span>
+                    </div>
+                    <p className="text-gray-600 mb-4">{plan.description}</p>
+                    <div className="space-y-2 text-sm">
+                      {plan.features.map((feature, index) => (
+                        <div key={index} className="flex items-center">
+                          <CheckCircleIcon className="w-4 h-4 text-green-500 mr-2 flex-shrink-0" />
+                          <span>{feature}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {subscriptionConfig.plan && (
+              <div className="border-t pt-6">
+                <h3 className="text-lg font-semibold mb-4">Add-On Features (Optional)</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {ADD_ONS.map((addon) => {
+                    const isSelected = subscriptionConfig.addOns.some(a => a.id === addon.id)
+                    return (
+                      <div
+                        key={addon.id}
+                        className={`border rounded-lg p-4 cursor-pointer transition-all ${
+                          isSelected ? 'border-purple-500 bg-purple-50' : 'border-gray-200 hover:border-purple-300'
+                        }`}
+                        onClick={() => toggleAddOn(addon)}
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <h4 className="font-medium">{addon.name}</h4>
+                            <p className="text-sm text-gray-600 mt-1">{addon.description}</p>
+                          </div>
+                          <div className="ml-3 text-right">
+                            <span className="font-bold">${addon.price}</span>
+                            <span className="text-sm text-gray-600">/mo</span>
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+
+                <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+                  <div className="flex justify-between items-center">
+                    <span className="text-lg font-semibold">Total Monthly:</span>
+                    <span className="text-2xl font-bold text-purple-600">${subscriptionConfig.totalMonthly}/month</span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {currentStep === 2 && (
           <div className="bg-white rounded-xl shadow-lg p-8">
             <h2 className="text-2xl font-bold mb-6">Tell us about your salon</h2>
             <div className="space-y-4">
@@ -589,14 +841,14 @@ export default function OnboardingPage() {
 
             <div className="mt-8 flex justify-between">
               <button
-                onClick={() => setCurrentStep(1)}
+                onClick={() => setCurrentStep(2)}
                 className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 flex items-center"
               >
                 <ArrowLeftIcon className="w-5 h-5 mr-2" />
                 Back
               </button>
               <button
-                onClick={() => setCurrentStep(3)}
+                onClick={() => setCurrentStep(4)}
                 className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center"
               >
                 Next Step
