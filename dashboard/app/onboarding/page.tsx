@@ -619,8 +619,27 @@ export default function OnboardingPage() {
         {/* Step 1: Business Info */}
         {currentStep === 1 && (
           <div className="bg-white rounded-xl shadow-lg p-8">
-            <h2 className="text-3xl font-bold mb-4 text-center">Choose Your Plan</h2>
-            <p className="text-gray-600 text-center mb-8">Select the channels that work best for your salon</p>
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold mb-4">Choose Your Plan</h2>
+              <p className="text-gray-600 mb-6">Select the channels that work best for your salon</p>
+              
+              <div className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg p-4 mb-6">
+                <div className="flex items-center justify-center mb-3">
+                  <div className="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center mr-3">
+                    <span className="text-white text-sm font-bold">🎬</span>
+                  </div>
+                  <span className="font-semibold text-purple-800">Not sure which plan fits your salon?</span>
+                </div>
+                <a 
+                  href="/demo"
+                  className="inline-flex items-center px-6 py-3 bg-purple-600 text-white font-bold rounded-full hover:bg-purple-700 transition-colors shadow-lg"
+                >
+                  Experience Interactive Demo
+                  <ArrowRightIcon className="w-5 h-5 ml-2" />
+                </a>
+                <p className="text-xs text-purple-600 mt-2">See exactly how AI booking transforms your salon • 3 minutes</p>
+              </div>
+            </div>
             
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
               {PRICING_PLANS.map((plan) => (
