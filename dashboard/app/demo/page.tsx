@@ -86,8 +86,8 @@ export default function InteractiveDemoPage() {
     let interval: NodeJS.Timeout
     if (isPlaying && progress < 100) {
       interval = setInterval(() => {
-        setProgress(prev => Math.min(prev + 2, 100))
-      }, 100)
+        setProgress(prev => Math.min(prev + 1, 100))
+      }, 300) // Slower progression: 30 seconds total instead of 10
     } else if (progress >= 100 && isPlaying) {
       setIsPlaying(false)
       setCurrentStep('results')
@@ -373,7 +373,7 @@ export default function InteractiveDemoPage() {
 
               {/* Scenario Content with Enhanced Visuals */}
               <div className="space-y-6">
-                {progress < 30 && (
+                {progress < 15 && (
                   <div className="bg-red-50 border-l-4 border-red-500 rounded-lg p-6 animate-pulse">
                     <div className="flex items-center mb-3">
                       <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center mr-3">
@@ -388,67 +388,125 @@ export default function InteractiveDemoPage() {
                   </div>
                 )}
                 
-                {progress >= 30 && progress < 70 && (
+                {progress >= 15 && progress < 85 && (
                   <div className="bg-blue-50 border-l-4 border-blue-500 rounded-lg p-6">
                     <div className="flex items-center mb-3">
                       <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center mr-3">
                         <span className="text-white font-bold">AI</span>
                       </div>
-                      <h3 className="font-bold text-blue-800 text-lg">🤖 AI ASSISTANT TO THE RESCUE</h3>
+                      <h3 className="font-bold text-blue-800 text-lg">🤖 AI ASSISTANT ACTIVATING...</h3>
                     </div>
-                    <p className="text-blue-700 font-medium">Your AI is handling this crisis automatically while you focus on your current client...</p>
-                    <div className="mt-4 space-y-2">
+                    <p className="text-blue-700 font-medium mb-4">Watch your AI handle this crisis step-by-step while you stay focused on your current client...</p>
+                    <div className="space-y-3">
+                      {progress >= 20 && (
+                        <div className={`flex items-start text-blue-600 bg-white p-3 rounded-lg border border-blue-200 transition-all duration-500 ${progress >= 25 ? 'opacity-100' : 'opacity-50'}`}>
+                          {progress >= 25 ? <CheckCircleIcon className="w-5 h-5 mr-3 mt-0.5 flex-shrink-0" /> : <div className="w-5 h-5 mr-3 mt-0.5 flex-shrink-0 border-2 border-blue-300 border-t-blue-600 rounded-full animate-spin"></div>}
+                          <div>
+                            <div className="font-medium">📞 AI Picks Up The Phone (Ring #1)</div>
+                            <div className="text-sm text-blue-500 mt-1">"Hello! Thank you for calling Glamour Nails & Spa. I'm your AI assistant. How can I help you today?"</div>
+                            <div className="text-xs text-blue-400 mt-1">⏱️ Response time: 0.8 seconds</div>
+                          </div>
+                        </div>
+                      )}
                       {progress >= 35 && (
-                        <div className="flex items-center text-blue-600">
-                          <CheckCircleIcon className="w-5 h-5 mr-2" />
-                          <span className="text-sm">📞 AI answered the call professionally</span>
+                        <div className={`flex items-start text-blue-600 bg-white p-3 rounded-lg border border-blue-200 transition-all duration-500 ${progress >= 40 ? 'opacity-100' : 'opacity-50'}`}>
+                          {progress >= 40 ? <CheckCircleIcon className="w-5 h-5 mr-3 mt-0.5 flex-shrink-0" /> : <div className="w-5 h-5 mr-3 mt-0.5 flex-shrink-0 border-2 border-blue-300 border-t-blue-600 rounded-full animate-spin"></div>}
+                          <div>
+                            <div className="font-medium">🧠 AI Processes Natural Language</div>
+                            <div className="text-sm text-blue-500 mt-1">Customer said: "Hi, I need a gel manicure for tomorrow afternoon if possible"</div>
+                            <div className="text-xs text-blue-400 mt-1">🤖 AI extracted: service="gel manicure", time="tomorrow afternoon", urgency="normal"</div>
+                          </div>
                         </div>
                       )}
                       {progress >= 45 && (
-                        <div className="flex items-center text-blue-600">
-                          <CheckCircleIcon className="w-5 h-5 mr-2" />
-                          <span className="text-sm">🗣️ Customer needs understood perfectly</span>
+                        <div className={`flex items-start text-blue-600 bg-white p-3 rounded-lg border border-blue-200 transition-all duration-500 ${progress >= 50 ? 'opacity-100' : 'opacity-50'}`}>
+                          {progress >= 50 ? <CheckCircleIcon className="w-5 h-5 mr-3 mt-0.5 flex-shrink-0" /> : <div className="w-5 h-5 mr-3 mt-0.5 flex-shrink-0 border-2 border-blue-300 border-t-blue-600 rounded-full animate-spin"></div>}
+                          <div>
+                            <div className="font-medium">🗄️ AI Queries Your Business Data</div>
+                            <div className="text-sm text-blue-500 mt-1">Checking: Maria's schedule, Ana's schedule, gel manicure duration (90 mins), current bookings</div>
+                            <div className="text-xs text-blue-400 mt-1">⚡ Database response: 23ms</div>
+                          </div>
                         </div>
                       )}
                       {progress >= 55 && (
-                        <div className="flex items-center text-blue-600">
-                          <CheckCircleIcon className="w-5 h-5 mr-2" />
-                          <span className="text-sm">📅 Checking availability in real-time</span>
+                        <div className={`flex items-start text-blue-600 bg-white p-3 rounded-lg border border-blue-200 transition-all duration-500 ${progress >= 60 ? 'opacity-100' : 'opacity-50'}`}>
+                          {progress >= 60 ? <CheckCircleIcon className="w-5 h-5 mr-3 mt-0.5 flex-shrink-0" /> : <div className="w-5 h-5 mr-3 mt-0.5 flex-shrink-0 border-2 border-blue-300 border-t-blue-600 rounded-full animate-spin"></div>}
+                          <div>
+                            <div className="font-medium">📅 AI Calculates Best Time Slot</div>
+                            <div className="text-sm text-blue-500 mt-1">Options found: 2:00 PM (Ana), 2:30 PM (Maria), 4:00 PM (Maria)</div>
+                            <div className="text-xs text-blue-400 mt-1">🎯 AI recommends: 2:30 PM with Maria (your top tech)</div>
+                          </div>
                         </div>
                       )}
                       {progress >= 65 && (
-                        <div className="flex items-center text-blue-600">
-                          <CheckCircleIcon className="w-5 h-5 mr-2" />
-                          <span className="text-sm">✅ Appointment booked and confirmed!</span>
+                        <div className={`flex items-start text-blue-600 bg-white p-3 rounded-lg border border-blue-200 transition-all duration-500 ${progress >= 70 ? 'opacity-100' : 'opacity-50'}`}>
+                          {progress >= 70 ? <CheckCircleIcon className="w-5 h-5 mr-3 mt-0.5 flex-shrink-0" /> : <div className="w-5 h-5 mr-3 mt-0.5 flex-shrink-0 border-2 border-blue-300 border-t-blue-600 rounded-full animate-spin"></div>}
+                          <div>
+                            <div className="font-medium">💰 AI Presents Options & Upsells</div>
+                            <div className="text-sm text-blue-500 mt-1">"Perfect! I have 2:30 PM tomorrow with Maria. Gel manicure is $45. Add cuticle treatment for $15?"</div>
+                            <div className="text-xs text-blue-400 mt-1">🎯 Smart upsell based on customer profile</div>
+                          </div>
+                        </div>
+                      )}
+                      {progress >= 75 && (
+                        <div className={`flex items-start text-blue-600 bg-white p-3 rounded-lg border border-blue-200 transition-all duration-500 ${progress >= 80 ? 'opacity-100' : 'opacity-50'}`}>
+                          {progress >= 80 ? <CheckCircleIcon className="w-5 h-5 mr-3 mt-0.5 flex-shrink-0" /> : <div className="w-5 h-5 mr-3 mt-0.5 flex-shrink-0 border-2 border-blue-300 border-t-blue-600 rounded-full animate-spin"></div>}
+                          <div>
+                            <div className="font-medium">📋 AI Creates Complete Booking</div>
+                            <div className="text-sm text-blue-500 mt-1">Saving: Customer info, appointment details, staff assignment, service pricing</div>
+                            <div className="text-xs text-blue-400 mt-1">💾 Secure database transaction completed</div>
+                          </div>
+                        </div>
+                      )}
+                      {progress >= 82 && (
+                        <div className={`flex items-start text-blue-600 bg-white p-3 rounded-lg border border-blue-200 transition-all duration-500`}>
+                          <CheckCircleIcon className="w-5 h-5 mr-3 mt-0.5 flex-shrink-0" />
+                          <div>
+                            <div className="font-medium">📱 AI Sends Professional Confirmation</div>
+                            <div className="text-sm text-blue-500 mt-1">SMS: "Hi Jennifer! Your gel manicure + cuticle treatment is confirmed for tomorrow at 2:30 PM with Maria ($60 total). Reply STOP to cancel."</div>
+                            <div className="text-xs text-blue-400 mt-1">📧 Email confirmation also sent automatically</div>
+                          </div>
                         </div>
                       )}
                     </div>
                   </div>
                 )}
                 
-                {progress >= 70 && (
+                {progress >= 85 && (
                   <div className="bg-green-50 border-l-4 border-green-500 rounded-lg p-6 transform scale-105 transition-transform">
                     <div className="flex items-center mb-3">
                       <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center mr-3">
                         <span className="text-white font-bold">✓</span>
                       </div>
-                      <h3 className="font-bold text-green-800 text-lg">🎉 CRISIS SOLVED & MONEY MADE!</h3>
+                      <h3 className="font-bold text-green-800 text-lg">🎉 MISSION ACCOMPLISHED!</h3>
                     </div>
-                    <p className="text-green-700 font-medium text-lg">{currentScenario.solution}</p>
-                    <div className="mt-4 grid grid-cols-2 gap-4">
+                    <p className="text-green-700 font-medium text-lg mb-4">{currentScenario.solution}</p>
+                    
+                    <div className="bg-white rounded-lg p-4 border border-green-200 mb-4">
+                      <h4 className="font-bold text-green-800 mb-2">🎯 What Just Happened:</h4>
+                      <div className="text-sm text-green-700 space-y-1">
+                        <div>✅ Customer got instant professional service</div>
+                        <div>✅ You earned ${currentScenario.revenue} without lifting a finger</div>
+                        <div>✅ Customer is happy and will return</div>
+                        <div>✅ You stayed focused on your current client</div>
+                        <div>✅ No stress, no interruption, just profit</div>
+                      </div>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4 mb-4">
                       <div className="bg-white rounded-lg p-4 border border-green-200">
                         <div className="text-2xl font-bold text-green-600">${currentScenario.revenue}</div>
                         <div className="text-sm text-green-700">Revenue Secured</div>
                       </div>
                       <div className="bg-white rounded-lg p-4 border border-green-200">
                         <div className="text-2xl font-bold text-green-600">{currentScenario.timeframe}</div>
-                        <div className="text-sm text-green-700">Time Saved</div>
+                        <div className="text-sm text-green-700">AI Processing Time</div>
                       </div>
                     </div>
-                    <div className="mt-4 p-3 bg-green-100 rounded-lg">
-                      <div className="text-green-800 font-medium text-sm">
-                        💡 <strong>The best part?</strong> This happened automatically while you focused on your current client. 
-                        No stress, no interruption, just pure profit!
+                    
+                    <div className="p-4 bg-gradient-to-r from-green-100 to-blue-100 rounded-lg">
+                      <div className="text-green-800 font-medium">
+                        💡 <strong>The Magic:</strong> While you were focused on your current client's nails, your AI assistant handled this entire customer interaction, secured the booking, and even upsold an add-on service. This is the power of 24/7 AI working for YOUR business!
                       </div>
                     </div>
                   </div>
@@ -456,13 +514,13 @@ export default function InteractiveDemoPage() {
               </div>
 
               {/* Social Proof Floating Notifications */}
-              {progress >= 40 && progress < 60 && (
-                <div className="absolute bottom-4 left-4 max-w-xs">
+              {progress >= 50 && progress < 75 && (
+                <div className="absolute bottom-4 left-4 max-w-xs animate-slide-in">
                   <div className="bg-white border border-gray-200 shadow-lg rounded-lg p-3 text-sm">
                     <div className="flex items-center">
                       <div className="w-3 h-3 bg-green-400 rounded-full mr-2 animate-pulse"></div>
                       <span className="text-gray-600">
-                        <strong>Sarah in Miami</strong> just made $180 while doing a pedicure
+                        <strong>Sarah in Miami</strong> just earned $180 while doing a pedicure - AI handled 3 calls!
                       </span>
                     </div>
                   </div>
