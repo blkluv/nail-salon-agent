@@ -7,8 +7,8 @@ import {
   CurrencyDollarIcon,
   CalendarIcon,
   UsersIcon,
-  ArrowArrowTrendingUpIcon,
-  ArrowArrowTrendingDownIcon,
+  ArrowTrendingUpIcon,
+  ArrowTrendingDownIcon,
   ClockIcon,
   StarIcon
 } from '@heroicons/react/24/outline'
