@@ -1457,7 +1457,7 @@ export default function OnboardingPage() {
             )}
             
             <button
-              onClick={() => router.push('/dashboard')}
+              onClick={() => router.push('/demo-dashboard')}
               className="px-8 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
             >
               Go to Dashboard Now

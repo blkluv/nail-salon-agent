@@ -44,8 +44,7 @@ export default function LandingPage() {
   }
 
   const handleDashboardDemo = () => {
-    // Set the demo business ID and go to dashboard
-    localStorage.setItem('demo_business_id', '8424aa26-4fd5-4d4b-92aa-8a9c5ba77dad')
+    // Go directly to the mock dashboard demo (no Supabase dependency)
     router.push('/demo-dashboard')
   }
 
