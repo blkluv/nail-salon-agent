@@ -2,7 +2,7 @@ const express = require('express');
 const app = express();
 const PORT = process.env.PORT || 8080;
 
-console.log('🚀 MINIMAL SERVER STARTING');
+console.log('🚀 MINIMAL SERVER STARTING - FORCED REBUILD');
 console.log('PORT:', PORT);
 
 app.use(express.json());
