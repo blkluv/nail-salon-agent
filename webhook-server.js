@@ -72,8 +72,9 @@ app.post('/webhook/vapi', async (req, res) => {
         const { message } = req.body;
         console.log('🔔 Webhook received:', JSON.stringify(message, null, 2));
 
+        // Handle both Vapi formats: toolCalls (plural) and functionCall (singular)
         if (message?.toolCalls) {
-            // Handle tool calls from Vapi
+            // Multiple tool calls
             const results = [];
             const businessId = await getBusinessIdFromCall(message);
             
@@ -83,6 +84,13 @@ app.post('/webhook/vapi', async (req, res) => {
             }
 
             return res.json({ results });
+        }
+        
+        if (message?.functionCall) {
+            // Single function call
+            const businessId = await getBusinessIdFromCall(message);
+            const result = await handleToolCall({ function: message.functionCall }, businessId);
+            return res.json(result);
         }
 
         res.json({ status: 'received' });
@@ -132,7 +140,17 @@ async function checkAvailability(args, businessId) {
         if (!hours || hours.is_closed) {
             return { 
                 available: false, 
-                message: `Sorry, we're closed on ${requestedDate.toLocaleDateString('en-US', { weekday: 'long' })}.`
+                message: `Sorry, we're closed on ${requestedDate.toLocaleDateString('en-US', { weekday: 'long' })}.`,
+                business_hours: 'Closed'
+            };
+        }
+        
+        // Validate business hours have proper time values
+        if (!hours.open_time || !hours.close_time) {
+            return { 
+                available: false, 
+                message: `Sorry, our hours aren't set for ${requestedDate.toLocaleDateString('en-US', { weekday: 'long' })}. Please call us directly.`,
+                business_hours: 'Not configured'
             };
         }
         
@@ -151,7 +169,11 @@ async function checkAvailability(args, businessId) {
         
         for (let hour = openTime; hour < closeTime - 1; hour++) {
             const timeSlot = `${hour.toString().padStart(2, '0')}:00`;
-            const isBooked = appointments?.some(apt => apt.start_time === timeSlot);
+            // Fix: Check both HH:MM and HH:MM:SS formats
+            const isBooked = appointments?.some(apt => 
+                apt.start_time === timeSlot || 
+                apt.start_time === `${timeSlot}:00`
+            );
             
             if (!isBooked) {
                 availableSlots.push(timeSlot);
@@ -206,12 +228,13 @@ async function bookAppointment(args, businessId) {
             customer = newCustomer;
         }
         
-        // Get service
+        // Get service - improved matching
+        const serviceCategory = args.service_type.replace(/_/g, ' ').replace('manicure', 'Manicure').replace('pedicure', 'Pedicure');
         const { data: service } = await supabase
             .from('services')
             .select('*')
             .eq('business_id', BUSINESS_ID)
-            .eq('category', args.service_type.replace('_', ' '))
+            .ilike('name', `%${serviceCategory}%`)
             .limit(1)
             .single();
             
