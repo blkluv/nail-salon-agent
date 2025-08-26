@@ -310,6 +310,51 @@ export default function DashboardPage() {
               </div>
             </div>
 
+            {/* Subscription Status */}
+            <div className="card mb-6">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-lg font-medium text-gray-900">
+                  Subscription
+                </h2>
+                <span className={`px-2 py-1 text-xs font-medium rounded-full ${
+                  business?.subscription_status === 'active' ? 'bg-green-100 text-green-800' :
+                  business?.subscription_status === 'trialing' ? 'bg-blue-100 text-blue-800' :
+                  'bg-gray-100 text-gray-800'
+                }`}>
+                  {business?.subscription_status === 'trialing' ? 'Trial' : business?.subscription_status}
+                </span>
+              </div>
+              
+              <div className="space-y-3">
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">Current Plan</span>
+                  <span className="font-medium capitalize">{business?.subscription_tier || 'Starter'}</span>
+                </div>
+                {business?.subscription_status === 'trialing' && business?.trial_ends_at && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500">Trial Ends</span>
+                    <span className="font-medium">
+                      {new Date(business.trial_ends_at).toLocaleDateString()}
+                    </span>
+                  </div>
+                )}
+                {business?.settings?.monthly_price && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500">Monthly Price</span>
+                    <span className="font-medium">${business.settings.monthly_price}/mo</span>
+                  </div>
+                )}
+              </div>
+              
+              <a 
+                href="/dashboard/billing" 
+                className="mt-4 flex items-center justify-center p-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+              >
+                <CurrencyDollarIcon className="h-4 w-4 mr-2" />
+                <span className="text-sm font-medium">Manage Subscription</span>
+              </a>
+            </div>
+
             {/* Voice AI Status */}
             <div className="card">
               <div className="flex items-center justify-between mb-4">

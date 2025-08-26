@@ -378,19 +378,30 @@ export default function OnboardingPage() {
     setError(null)
     
     try {
-      // 1. Create the business
+      // 1. Create the business with subscription info
+      const slug = businessInfo.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') + '-' + Date.now()
+      
       const { data: business, error: businessError } = await supabase
         .from('businesses')
         .insert({
           name: businessInfo.name,
+          slug: slug,
           email: businessInfo.email,
           phone: businessInfo.phone,
           address: businessInfo.address,
           timezone: businessInfo.timezone,
+          subscription_tier: subscriptionConfig.plan?.id === 'complete' ? 'enterprise' : 
+                           subscriptionConfig.plan?.id === 'voice-sms' || subscriptionConfig.plan?.id === 'voice-web' || subscriptionConfig.plan?.id === 'voice-only' ? 'professional' : 
+                           'starter',
+          subscription_status: 'trialing',
+          trial_ends_at: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(), // 14 days from now
           settings: {
             currency: 'USD',
             booking_buffer_minutes: 15,
-            cancellation_window_hours: 24
+            cancellation_window_hours: 24,
+            selected_plan: subscriptionConfig.plan?.id,
+            selected_addons: subscriptionConfig.addOns.map(a => a.id),
+            monthly_price: subscriptionConfig.totalMonthly
           }
         })
         .select()
@@ -774,8 +785,8 @@ export default function OnboardingPage() {
           </div>
         )}
 
-        {/* Step 2: Services */}
-        {currentStep === 2 && (
+        {/* Step 3: Services */}
+        {currentStep === 3 && (
           <div className="bg-white rounded-xl shadow-lg p-8">
             <h2 className="text-2xl font-bold mb-6">Select your services</h2>
             <p className="text-gray-600 mb-4">Choose from our suggested services or add your own</p>
@@ -858,8 +869,8 @@ export default function OnboardingPage() {
           </div>
         )}
 
-        {/* Step 3: Staff */}
-        {currentStep === 3 && (
+        {/* Step 4: Staff */}
+        {currentStep === 4 && (
           <div className="bg-white rounded-xl shadow-lg p-8">
             <h2 className="text-2xl font-bold mb-6">Add your team members</h2>
             <p className="text-gray-600 mb-4">Add nail technicians and other staff</p>
@@ -927,14 +938,14 @@ export default function OnboardingPage() {
 
             <div className="mt-8 flex justify-between">
               <button
-                onClick={() => setCurrentStep(2)}
+                onClick={() => setCurrentStep(3)}
                 className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 flex items-center"
               >
                 <ArrowLeftIcon className="w-5 h-5 mr-2" />
                 Back
               </button>
               <button
-                onClick={() => setCurrentStep(4)}
+                onClick={() => setCurrentStep(5)}
                 className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center"
               >
                 Next Step
@@ -944,8 +955,8 @@ export default function OnboardingPage() {
           </div>
         )}
 
-        {/* Step 4: Business Hours */}
-        {currentStep === 4 && (
+        {/* Step 5: Business Hours */}
+        {currentStep === 5 && (
           <div className="bg-white rounded-xl shadow-lg p-8">
             <h2 className="text-2xl font-bold mb-6">Set your business hours</h2>
             
@@ -987,14 +998,14 @@ export default function OnboardingPage() {
 
             <div className="mt-8 flex justify-between">
               <button
-                onClick={() => setCurrentStep(3)}
+                onClick={() => setCurrentStep(4)}
                 className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 flex items-center"
               >
                 <ArrowLeftIcon className="w-5 h-5 mr-2" />
                 Back
               </button>
               <button
-                onClick={() => setCurrentStep(5)}
+                onClick={() => setCurrentStep(6)}
                 className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center"
               >
                 Next Step
@@ -1004,8 +1015,8 @@ export default function OnboardingPage() {
           </div>
         )}
 
-        {/* Step 5: Phone Setup */}
-        {currentStep === 5 && (
+        {/* Step 6: Phone Setup */}
+        {currentStep === 6 && (
           <div className="bg-white rounded-xl shadow-lg p-8">
             <h2 className="text-2xl font-bold mb-6">📞 Phone & AI Setup</h2>
             <p className="text-gray-600 mb-6">
@@ -1252,7 +1263,7 @@ export default function OnboardingPage() {
 
             <div className="mt-8 flex justify-between">
               <button
-                onClick={() => setCurrentStep(4)}
+                onClick={() => setCurrentStep(5)}
                 className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 flex items-center"
               >
                 <ArrowLeftIcon className="w-5 h-5 mr-2" />
@@ -1270,8 +1281,8 @@ export default function OnboardingPage() {
           </div>
         )}
 
-        {/* Step 6: Complete */}
-        {currentStep === 6 && (
+        {/* Step 7: Complete */}
+        {currentStep === 7 && (
           <div className="bg-white rounded-xl shadow-lg p-8 text-center">
             <div className="flex justify-center mb-6">
               <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center">

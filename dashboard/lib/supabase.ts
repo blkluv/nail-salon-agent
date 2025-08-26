@@ -24,6 +24,14 @@ export interface Business {
   subscription_tier: 'starter' | 'professional' | 'enterprise'
   subscription_status: 'active' | 'cancelled' | 'past_due' | 'trialing'
   trial_ends_at?: string
+  settings?: {
+    currency?: string
+    booking_buffer_minutes?: number
+    cancellation_window_hours?: number
+    selected_plan?: string
+    selected_addons?: string[]
+    monthly_price?: number
+  }
   created_at: string
   updated_at: string
 }
