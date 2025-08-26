@@ -32,7 +32,7 @@ interface Appointment {
   start_time: string
   end_time: string
   technician_name: string
-  status: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'no_show'
+  status: 'pending' | 'confirmed' | 'cancelled' | 'completed' | 'no_show' | 'in_progress'
   payment_status: 'pending' | 'paid' | 'partially_paid' | 'refunded'
   created_at: string
 }
