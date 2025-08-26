@@ -124,18 +124,37 @@ async function handleToolCall(toolCall, businessId) {
 async function checkAvailability(args, businessId) {
     const BUSINESS_ID = businessId || '8424aa26-4fd5-4d4b-92aa-8a9c5ba77dad';
     try {
-        console.log('📅 Checking availability for:', args);
+        console.log('📅 Checking availability for:', JSON.stringify(args));
+        
+        // Validate required parameters
+        if (!args.preferred_date || !args.service_type) {
+            console.error('❌ Missing required parameters:', args);
+            return {
+                available: false,
+                message: 'I need both a date and service type to check availability.'
+            };
+        }
         
         // Get business hours for the requested date
         const requestedDate = new Date(args.preferred_date);
         const dayOfWeek = requestedDate.getDay();
         
-        const { data: hours } = await supabase
+        console.log('🔍 Looking up hours for day:', dayOfWeek, 'Business:', BUSINESS_ID);
+        
+        const { data: hours, error: hoursError } = await supabase
             .from('business_hours')
             .select('*')
             .eq('business_id', BUSINESS_ID)
             .eq('day_of_week', dayOfWeek)
             .single();
+            
+        if (hoursError) {
+            console.error('❌ Database error fetching hours:', hoursError);
+            return {
+                available: false,
+                message: 'Sorry, I had trouble checking our hours. Please try again.'
+            };
+        }
             
         if (!hours || hours.is_closed) {
             return { 
@@ -189,8 +208,13 @@ async function checkAvailability(args, businessId) {
         };
         
     } catch (error) {
-        console.error('Error checking availability:', error);
-        return { error: 'Sorry, I had trouble checking availability. Please try again.' };
+        console.error('❌ Error in checkAvailability:', error.message);
+        console.error('Stack trace:', error.stack);
+        return { 
+            available: false,
+            message: 'Sorry, I had trouble checking availability. Please try again.',
+            error: error.message 
+        };
     }
 }
 
