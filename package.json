@@ -13,7 +13,7 @@
     "register": "node src/enhanced-registration.js",
     "register-demo": "node src/enhanced-registration.js --demo",
     "onboard": "node src/automated-onboarding.js --demo",
-    "start": "node server.js",
+    "start": "node webhook-server.js",
     "one-click-deploy": "node scripts/one-click-deploy.js",
     "vapi:setup": "node scripts/vapi-setup.js",
     "vapi:list": "node scripts/vapi-setup.js --list",
