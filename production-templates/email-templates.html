@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Glamour Nails - Email Templates</title>
+    <style>
+        /* Base styles for all email templates */
+        .email-container {
+            max-width: 600px;
+            margin: 0 auto;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+        .header {
+            background: linear-gradient(135deg, #ff6b9d, #ff8cc8);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .logo {
+            font-size: 28px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .tagline {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+        .content {
+            padding: 30px 20px;
+            background: #fff;
+        }
+        .appointment-card {
+            background: #f8f9ff;
+            border: 2px solid #e8e9ff;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .service-name {
+            font-size: 20px;
+            font-weight: bold;
+            color: #ff6b9d;
+            margin-bottom: 10px;
+        }
+        .date-time {
+            font-size: 18px;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        .button {
+            display: inline-block;
+            background: #ff6b9d;
+            color: white;
+            padding: 12px 30px;
+            text-decoration: none;
+            border-radius: 25px;
+            font-weight: bold;
+            margin: 20px 0;
+        }
+        .button:hover {
+            background: #ff5a8a;
+        }
+        .footer {
+            background: #f5f5f5;
+            padding: 20px;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+        }
+        .social-links {
+            margin: 15px 0;
+        }
+        .social-links a {
+            display: inline-block;
+            margin: 0 10px;
+            color: #ff6b9d;
+            text-decoration: none;
+        }
+        .contact-info {
+            margin-top: 15px;
+        }
+        .highlight {
+            background: #fff3cd;
+            padding: 15px;
+            border-left: 4px solid #ffc107;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+
+<!-- TEMPLATE 1: BOOKING CONFIRMATION EMAIL -->
+<div class="email-container" id="confirmation-template">
+    <div class="header">
+        <div class="logo">💅 Glamour Nails</div>
+        <div class="tagline">Your Beauty, Our Passion</div>
+    </div>
+    
+    <div class="content">
+        <h2>Appointment Confirmed! ✨</h2>
+        
+        <p>Hi <strong>{{CUSTOMER_NAME}}</strong>,</p>
+        
+        <p>We're excited to see you! Your appointment has been successfully booked.</p>
+        
+        <div class="appointment-card">
+            <div class="service-name">{{SERVICE_NAME}}</div>
+            <div class="date-time">📅 {{APPOINTMENT_DATE}}</div>
+            <div class="date-time">🕐 {{APPOINTMENT_TIME}}</div>
+            <div style="margin-top: 15px;">
+                <strong>Duration:</strong> {{DURATION}} minutes<br>
+                <strong>Price:</strong> ${{PRICE}}<br>
+                <strong>Booking ID:</strong> #{{BOOKING_ID}}
+            </div>
+        </div>
+        
+        <div class="highlight">
+            <strong>📍 Location:</strong> 123 Beauty Lane, Los Angeles, CA 90210<br>
+            <strong>🅿️ Parking:</strong> Free parking available in rear lot
+        </div>
+        
+        <p><strong>What to expect:</strong></p>
+        <ul>
+            <li>Please arrive 5 minutes early</li>
+            <li>Remove any old polish before your visit</li>
+            <li>We accept cash, card, and digital payments</li>
+            <li>Complimentary beverages available</li>
+        </ul>
+        
+        <center>
+            <a href="{{RESCHEDULE_LINK}}" class="button">Reschedule</a>
+            <a href="{{CANCEL_LINK}}" class="button" style="background: #6c757d;">Cancel</a>
+        </center>
+        
+        <p>Questions? Reply to this email or call us at <strong>(424) 351-9304</strong></p>
+        
+        <p>Can't wait to make you look amazing!</p>
+        <p>💕 The Glamour Nails Team</p>
+    </div>
+    
+    <div class="footer">
+        <div class="contact-info">
+            <strong>Glamour Nails</strong><br>
+            123 Beauty Lane, Los Angeles, CA 90210<br>
+            Phone: (424) 351-9304 | Email: hello@glamournails.com
+        </div>
+        
+        <div class="social-links">
+            <a href="#" target="_blank">Instagram</a> |
+            <a href="#" target="_blank">Facebook</a> |
+            <a href="#" target="_blank">Google Reviews</a>
+        </div>
+        
+        <p>© 2024 Glamour Nails. All rights reserved.<br>
+        <a href="{{UNSUBSCRIBE_LINK}}" style="color: #999;">Unsubscribe</a></p>
+    </div>
+</div>
+
+<!-- TEMPLATE 2: 24-HOUR REMINDER EMAIL -->
+<div class="email-container" id="reminder-template" style="margin-top: 50px;">
+    <div class="header">
+        <div class="logo">💅 Glamour Nails</div>
+        <div class="tagline">See You Tomorrow!</div>
+    </div>
+    
+    <div class="content">
+        <h2>Appointment Reminder 🔔</h2>
+        
+        <p>Hi <strong>{{CUSTOMER_NAME}}</strong>,</p>
+        
+        <p>Just a friendly reminder about your appointment tomorrow!</p>
+        
+        <div class="appointment-card">
+            <div class="service-name">{{SERVICE_NAME}}</div>
+            <div class="date-time">📅 {{APPOINTMENT_DATE}} (Tomorrow)</div>
+            <div class="date-time">🕐 {{APPOINTMENT_TIME}}</div>
+        </div>
+        
+        <div class="highlight">
+            <strong>💡 Preparation Tips:</strong>
+            <ul style="margin: 10px 0; padding-left: 20px;">
+                <li>Remove existing polish at home to save time</li>
+                <li>Arrive 5 minutes early</li>
+                <li>Bring inspiration photos if you have them</li>
+            </ul>
+        </div>
+        
+        <p><strong>Running late or need to reschedule?</strong><br>
+        No worries! Just give us a call at <strong>(424) 351-9304</strong></p>
+        
+        <center>
+            <a href="{{CONFIRM_LINK}}" class="button">Confirm Appointment</a>
+        </center>
+        
+        <p>Looking forward to seeing you tomorrow!</p>
+        <p>💅 The Glamour Nails Team</p>
+    </div>
+    
+    <div class="footer">
+        <div class="contact-info">
+            <strong>Glamour Nails</strong><br>
+            123 Beauty Lane, Los Angeles, CA 90210<br>
+            Phone: (424) 351-9304
+        </div>
+        
+        <p>© 2024 Glamour Nails. All rights reserved.</p>
+    </div>
+</div>
+
+<!-- TEMPLATE 3: THANK YOU FOLLOW-UP EMAIL -->
+<div class="email-container" id="followup-template" style="margin-top: 50px;">
+    <div class="header">
+        <div class="logo">💅 Glamour Nails</div>
+        <div class="tagline">Thank You for Visiting!</div>
+    </div>
+    
+    <div class="content">
+        <h2>You Look Amazing! ✨</h2>
+        
+        <p>Hi <strong>{{CUSTOMER_NAME}}</strong>,</p>
+        
+        <p>Thank you for choosing Glamour Nails for your <strong>{{SERVICE_NAME}}</strong> today! We hope you absolutely love your fresh new look.</p>
+        
+        <div style="text-align: center; margin: 30px 0;">
+            <div style="font-size: 48px; margin-bottom: 10px;">⭐⭐⭐⭐⭐</div>
+            <p><strong>Loved your experience?</strong><br>
+            We'd be thrilled if you could share a Google review!</p>
+            
+            <a href="{{GOOGLE_REVIEW_LINK}}" class="button">Leave a Review</a>
+        </div>
+        
+        <div class="highlight">
+            <strong>💡 Nail Care Tips:</strong>
+            <ul style="margin: 10px 0; padding-left: 20px;">
+                <li>Apply cuticle oil daily for healthy nails</li>
+                <li>Wear gloves when cleaning or gardening</li>
+                <li>Book your next appointment in 2-3 weeks</li>
+            </ul>
+        </div>
+        
+        <p><strong>Ready for your next appointment?</strong><br>
+        Call us at <strong>(424) 351-9304</strong> or use our AI booking system for 24/7 convenience!</p>
+        
+        <center>
+            <a href="{{BOOK_NEXT_LINK}}" class="button">Book Next Visit</a>
+        </center>
+        
+        <p><strong>Refer a friend and save!</strong><br>
+        When someone you refer books their first appointment, you both get 15% off your next service!</p>
+        
+        <p>Thank you for being an amazing client!</p>
+        <p>💕 The Glamour Nails Team</p>
+    </div>
+    
+    <div class="footer">
+        <div class="contact-info">
+            <strong>Glamour Nails</strong><br>
+            123 Beauty Lane, Los Angeles, CA 90210<br>
+            Phone: (424) 351-9304 | Email: hello@glamournails.com
+        </div>
+        
+        <div class="social-links">
+            <a href="#" target="_blank">📸 Instagram</a> |
+            <a href="#" target="_blank">👍 Facebook</a> |
+            <a href="#" target="_blank">⭐ Google</a>
+        </div>
+        
+        <p>© 2024 Glamour Nails. All rights reserved.<br>
+        <a href="{{UNSUBSCRIBE_LINK}}" style="color: #999;">Unsubscribe</a></p>
+    </div>
+</div>
+
+<!-- TEMPLATE 4: PROMOTIONAL EMAIL -->
+<div class="email-container" id="promotional-template" style="margin-top: 50px;">
+    <div class="header" style="background: linear-gradient(135deg, #ffd700, #ffed4e);">
+        <div class="logo" style="color: #333;">🎉 Special Offer!</div>
+        <div class="tagline" style="color: #666;">Limited Time Only</div>
+    </div>
+    
+    <div class="content">
+        <h2>{{PROMOTION_TITLE}}</h2>
+        
+        <p>Hi <strong>{{CUSTOMER_NAME}}</strong>,</p>
+        
+        <p>We have something special just for you!</p>
+        
+        <div style="background: linear-gradient(135deg, #ffd700, #ffed4e); color: #333; padding: 30px; border-radius: 10px; text-align: center; margin: 25px 0;">
+            <div style="font-size: 32px; font-weight: bold; margin-bottom: 10px;">
+                {{DISCOUNT_PERCENTAGE}}% OFF
+            </div>
+            <div style="font-size: 18px;">
+                {{PROMOTION_DETAILS}}
+            </div>
+            <div style="font-size: 14px; margin-top: 10px; opacity: 0.8;">
+                Valid until {{EXPIRY_DATE}}
+            </div>
+        </div>
+        
+        <p><strong>How to redeem:</strong></p>
+        <ul>
+            <li>Call (424) 351-9304 and mention code: <strong>{{PROMO_CODE}}</strong></li>
+            <li>Or use our AI voice booking system</li>
+            <li>Book by {{EXPIRY_DATE}} to save!</li>
+        </ul>
+        
+        <center>
+            <a href="{{BOOK_NOW_LINK}}" class="button" style="background: #ffd700; color: #333; font-size: 18px;">Book Now & Save!</a>
+        </center>
+        
+        <p>Don't miss out - this offer won't last long!</p>
+        
+        <p>💅 The Glamour Nails Team</p>
+    </div>
+    
+    <div class="footer">
+        <div class="contact-info">
+            <strong>Glamour Nails</strong><br>
+            Phone: (424) 351-9304 | Email: hello@glamournails.com
+        </div>
+        
+        <p style="font-size: 11px;">
+            Offer valid for new and existing customers. Cannot be combined with other offers. 
+            Subject to availability. See terms and conditions.
+        </p>
+        
+        <p>© 2024 Glamour Nails. <a href="{{UNSUBSCRIBE_LINK}}" style="color: #999;">Unsubscribe</a></p>
+    </div>
+</div>
+
+</body>
+</html>

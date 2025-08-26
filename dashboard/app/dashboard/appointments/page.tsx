@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Layout from '../../../components/Layout'
+import { BusinessAPI } from '../../../lib/supabase'
 import { 
   CalendarIcon, 
   FunnelIcon, 
@@ -91,17 +92,70 @@ const mockAppointments: Appointment[] = [
 ]
 
 export default function AppointmentsPage() {
-  const [appointments, setAppointments] = useState<Appointment[]>(mockAppointments)
-  const [filteredAppointments, setFilteredAppointments] = useState<Appointment[]>(mockAppointments)
+  const [appointments, setAppointments] = useState<Appointment[]>([])
+  const [filteredAppointments, setFilteredAppointments] = useState<Appointment[]>([])
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0])
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null)
   const [showModal, setShowModal] = useState(false)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  // Get business ID from demo or localStorage
+  const businessId = '8424aa26-4fd5-4d4b-92aa-8a9c5ba77dad'
+
+  // Fetch real appointments from Supabase
+  useEffect(() => {
+    loadAppointments()
+  }, [])
 
   useEffect(() => {
     filterAppointments()
   }, [searchTerm, statusFilter, selectedDate, appointments])
+
+  const loadAppointments = async () => {
+    try {
+      setLoading(true)
+      setError(null)
+      
+      const realAppointments = await BusinessAPI.getAppointments(businessId)
+      
+      // Transform the data to match our interface
+      const transformedAppointments: Appointment[] = realAppointments.map(apt => ({
+        id: apt.id,
+        booking_id: apt.id.slice(0, 8), // Use first 8 chars of ID as booking ID
+        customer_name: apt.customer_name || 'Unknown Customer',
+        customer_email: apt.customer_email || '',
+        customer_phone: apt.customer_phone || '',
+        service_type: apt.service_type || 'General Service',
+        service_duration: apt.duration_minutes || 60,
+        service_price: 55, // Default price - could be enhanced
+        appointment_date: apt.appointment_date,
+        start_time: apt.start_time?.slice(0, 5) || '00:00', // Remove seconds
+        end_time: apt.end_time?.slice(0, 5) || '01:00', // Remove seconds
+        technician_name: apt.staff?.first_name || 'Staff Member',
+        status: apt.status || 'pending',
+        payment_status: 'pending' as const,
+        created_at: apt.created_at
+      }))
+      
+      // If no real appointments, show mock data for demo
+      const appointmentsToShow = transformedAppointments.length > 0 
+        ? transformedAppointments 
+        : mockAppointments
+        
+      setAppointments(appointmentsToShow)
+      
+    } catch (error) {
+      console.error('Error loading appointments:', error)
+      setError('Failed to load appointments')
+      // Fallback to mock data on error
+      setAppointments(mockAppointments)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const filterAppointments = () => {
     let filtered = appointments
@@ -163,18 +217,40 @@ export default function AppointmentsPage() {
     ))
   }
 
+  if (loading) {
+    return (
+      <Layout business={{ name: 'Sparkle Nails Demo', subscription_tier: 'professional' }}>
+        <div className="p-8">
+          <div className="flex justify-center items-center h-64">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+            <span className="ml-4 text-gray-600">Loading appointments...</span>
+          </div>
+        </div>
+      </Layout>
+    )
+  }
+
   return (
-    <Layout business={{ name: 'Bella Nails & Spa', subscription_tier: 'professional' }}>
+    <Layout business={{ name: 'Sparkle Nails Demo', subscription_tier: 'professional' }}>
       <div className="p-8">
         {/* Header */}
         <div className="sm:flex sm:items-center sm:justify-between mb-8">
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Appointments</h1>
             <p className="text-gray-600 mt-1">
-              Manage your salon appointments and bookings
+              {appointments.length === mockAppointments.length && appointments[0]?.id === '1'
+                ? '📞 Showing demo data - Call +14243519304 to create real appointments!'
+                : `Managing ${appointments.length} appointments (including real phone bookings)`
+              }
             </p>
           </div>
-          <div className="mt-4 sm:mt-0">
+          <div className="mt-4 sm:mt-0 flex space-x-3">
+            <button 
+              onClick={loadAppointments}
+              className="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50 transition"
+            >
+              Refresh
+            </button>
             <button className="btn-primary">
               <PlusIcon className="h-4 w-4 mr-2" />
               New Appointment

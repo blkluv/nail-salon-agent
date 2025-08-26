@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Generator - Glamour Nails</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #ff6b9d;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .qr-section {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+        }
+        .qr-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        .qr-description {
+            color: #666;
+            margin-bottom: 20px;
+        }
+        canvas {
+            border: 1px solid #ddd;
+            margin: 10px;
+        }
+        .download-btn {
+            background: #ff6b9d;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px;
+            font-size: 16px;
+        }
+        .download-btn:hover {
+            background: #ff5a8a;
+        }
+        .usage-info {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+        .print-section {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 1px solid #ddd;
+        }
+        .print-template {
+            border: 2px dashed #ccc;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+            background: white;
+        }
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            .print-template, .print-template * {
+                visibility: visible;
+            }
+            .print-template {
+                position: absolute;
+                left: 0;
+                top: 0;
+                border: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>💅 QR Code Generator - Glamour Nails</h1>
+        
+        <!-- Voice Booking QR Code -->
+        <div class="qr-section">
+            <div class="qr-title">📞 Voice AI Booking</div>
+            <div class="qr-description">Customers scan to call our AI booking system</div>
+            <canvas id="voice-qr" width="200" height="200"></canvas>
+            <div>
+                <button class="download-btn" onclick="downloadQR('voice-qr', 'Voice-Booking-QR')">Download PNG</button>
+                <button class="download-btn" onclick="generatePrintable('voice')">Print Version</button>
+            </div>
+            <div class="usage-info">
+                <strong>Perfect for:</strong> Business cards, flyers, table tents, window displays
+            </div>
+        </div>
+
+        <!-- Online Booking QR Code -->
+        <div class="qr-section">
+            <div class="qr-title">💻 Online Booking Widget</div>
+            <div class="qr-description">Customers scan to access online booking form</div>
+            <canvas id="booking-qr" width="200" height="200"></canvas>
+            <div>
+                <button class="download-btn" onclick="downloadQR('booking-qr', 'Online-Booking-QR')">Download PNG</button>
+                <button class="download-btn" onclick="generatePrintable('booking')">Print Version</button>
+            </div>
+            <div class="usage-info">
+                <strong>Perfect for:</strong> Waiting area, website, social media posts
+            </div>
+        </div>
+
+        <!-- High Resolution QR Codes -->
+        <div class="qr-section">
+            <div class="qr-title">🖨️ High Resolution (300x300)</div>
+            <div class="qr-description">For professional printing and large displays</div>
+            <canvas id="hires-voice-qr" width="300" height="300"></canvas>
+            <canvas id="hires-booking-qr" width="300" height="300"></canvas>
+            <div>
+                <button class="download-btn" onclick="downloadQR('hires-voice-qr', 'Voice-Booking-QR-HiRes')">Voice QR (Hi-Res)</button>
+                <button class="download-btn" onclick="downloadQR('hires-booking-qr', 'Online-Booking-QR-HiRes')">Booking QR (Hi-Res)</button>
+            </div>
+        </div>
+
+        <!-- Print Templates -->
+        <div class="print-section">
+            <h2>📄 Ready-to-Print Templates</h2>
+            
+            <div id="voice-print-template" class="print-template" style="display: none;">
+                <h2 style="color: #ff6b9d; margin-bottom: 20px;">💅 Glamour Nails</h2>
+                <h3>📞 Book by Voice AI</h3>
+                <div style="margin: 20px 0;">
+                    <canvas id="print-voice-qr" width="150" height="150"></canvas>
+                </div>
+                <p style="font-size: 18px; margin: 15px 0;"><strong>Scan to call our AI booking system!</strong></p>
+                <p>Available 24/7 • Books in under 2 minutes</p>
+                <p style="margin-top: 20px;">
+                    <strong>Or call directly:</strong><br>
+                    <span style="font-size: 24px; color: #ff6b9d;">(424) 351-9304</span>
+                </p>
+                <hr style="margin: 20px 0;">
+                <p style="font-size: 14px; color: #666;">
+                    123 Beauty Lane, Los Angeles, CA 90210<br>
+                    Mon-Sat 9AM-7PM, Sun 10AM-5PM
+                </p>
+            </div>
+
+            <div id="booking-print-template" class="print-template" style="display: none;">
+                <h2 style="color: #ff6b9d; margin-bottom: 20px;">💅 Glamour Nails</h2>
+                <h3>💻 Book Online</h3>
+                <div style="margin: 20px 0;">
+                    <canvas id="print-booking-qr" width="150" height="150"></canvas>
+                </div>
+                <p style="font-size: 18px; margin: 15px 0;"><strong>Scan to book online!</strong></p>
+                <p>Quick form • Instant confirmation</p>
+                <p style="margin-top: 20px;">
+                    <strong>Or call our Voice AI:</strong><br>
+                    <span style="font-size: 24px; color: #ff6b9d;">(424) 351-9304</span>
+                </p>
+                <hr style="margin: 20px 0;">
+                <p style="font-size: 14px; color: #666;">
+                    123 Beauty Lane, Los Angeles, CA 90210<br>
+                    Mon-Sat 9AM-7PM, Sun 10AM-5PM
+                </p>
+            </div>
+        </div>
+
+        <div style="margin-top: 30px; padding: 20px; background: #e8f5e8; border-radius: 8px;">
+            <h3 style="color: #28a745; margin-bottom: 15px;">📋 Usage Guidelines</h3>
+            <ul style="text-align: left; color: #333;">
+                <li><strong>Table Tents:</strong> Use 200x200 QR codes, place at each station</li>
+                <li><strong>Business Cards:</strong> Use smaller QR code with phone number backup</li>
+                <li><strong>Window Displays:</strong> Use high-res 300x300 codes</li>
+                <li><strong>Social Media:</strong> Download PNG and add to Instagram stories/posts</li>
+                <li><strong>Flyers:</strong> Use print templates for professional look</li>
+            </ul>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    <script>
+        // URLs for QR codes
+        const VOICE_URL = 'tel:+14243519304';
+        const BOOKING_URL = 'https://vapi-nail-salon-agent-production.up.railway.app/widget/book';
+
+        // Generate QR codes when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            generateAllQRCodes();
+        });
+
+        function generateAllQRCodes() {
+            // Standard size QR codes
+            QRCode.toCanvas(document.getElementById('voice-qr'), VOICE_URL, {
+                width: 200,
+                color: { dark: '#28a745', light: '#ffffff' }
+            });
+
+            QRCode.toCanvas(document.getElementById('booking-qr'), BOOKING_URL, {
+                width: 200,
+                color: { dark: '#ff6b9d', light: '#ffffff' }
+            });
+
+            // High resolution QR codes
+            QRCode.toCanvas(document.getElementById('hires-voice-qr'), VOICE_URL, {
+                width: 300,
+                margin: 2,
+                color: { dark: '#28a745', light: '#ffffff' }
+            });
+
+            QRCode.toCanvas(document.getElementById('hires-booking-qr'), BOOKING_URL, {
+                width: 300,
+                margin: 2,
+                color: { dark: '#ff6b9d', light: '#ffffff' }
+            });
+        }
+
+        function downloadQR(canvasId, filename) {
+            const canvas = document.getElementById(canvasId);
+            const link = document.createElement('a');
+            link.download = filename + '.png';
+            link.href = canvas.toDataURL();
+            link.click();
+        }
+
+        function generatePrintable(type) {
+            if (type === 'voice') {
+                // Generate print template for voice booking
+                QRCode.toCanvas(document.getElementById('print-voice-qr'), VOICE_URL, {
+                    width: 150,
+                    color: { dark: '#28a745', light: '#ffffff' }
+                });
+                document.getElementById('voice-print-template').style.display = 'block';
+                document.getElementById('booking-print-template').style.display = 'none';
+            } else {
+                // Generate print template for online booking
+                QRCode.toCanvas(document.getElementById('print-booking-qr'), BOOKING_URL, {
+                    width: 150,
+                    color: { dark: '#ff6b9d', light: '#ffffff' }
+                });
+                document.getElementById('booking-print-template').style.display = 'block';
+                document.getElementById('voice-print-template').style.display = 'none';
+            }
+            
+            // Scroll to print template
+            document.querySelector('.print-template:not([style*="display: none"])').scrollIntoView({
+                behavior: 'smooth'
+            });
+            
+            // Show print dialog after a delay
+            setTimeout(() => {
+                if (confirm('Ready to print? Click OK to open print dialog.')) {
+                    window.print();
+                }
+            }, 1000);
+        }
+
+        // Add print styles
+        const printStyles = document.createElement('style');
+        printStyles.textContent = `
+            @media print {
+                body * { visibility: hidden; }
+                .print-template, .print-template * { visibility: visible; }
+                .print-template { 
+                    position: absolute; 
+                    left: 0; 
+                    top: 0; 
+                    border: none;
+                    box-shadow: none;
+                    background: white;
+                    width: 100%;
+                    padding: 20px;
+                }
+            }
+        `;
+        document.head.appendChild(printStyles);
+    </script>
+</body>
+</html>

@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Your Appointment - Glamour Nails</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #ff6b9d, #ff8cc8);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .booking-container {
+            max-width: 500px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #ff6b9d, #ff8cc8);
+            color: white;
+            padding: 30px 20px;
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .tagline {
+            font-size: 16px;
+            opacity: 0.9;
+        }
+
+        .booking-options {
+            padding: 30px 20px;
+        }
+
+        .option-card {
+            background: #f8f9ff;
+            border: 2px solid #e8e9ff;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 20px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .option-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(255, 107, 157, 0.2);
+            border-color: #ff6b9d;
+        }
+
+        .option-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+        }
+
+        .option-title {
+            font-size: 22px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .option-description {
+            color: #666;
+            line-height: 1.5;
+            margin-bottom: 15px;
+        }
+
+        .book-button {
+            background: #ff6b9d;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .book-button:hover {
+            background: #ff5a8a;
+        }
+
+        .phone-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #ff6b9d;
+        }
+
+        .form-container {
+            display: none;
+            padding: 20px;
+        }
+
+        .form-container.active {
+            display: block;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .form-input, .form-select {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e8e9ff;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-input:focus, .form-select:focus {
+            outline: none;
+            border-color: #ff6b9d;
+        }
+
+        .form-row {
+            display: flex;
+            gap: 15px;
+        }
+
+        .form-row .form-group {
+            flex: 1;
+        }
+
+        .submit-button {
+            width: 100%;
+            background: #ff6b9d;
+            color: white;
+            border: none;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .submit-button:hover {
+            background: #ff5a8a;
+        }
+
+        .back-button {
+            background: #6c757d;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+
+        .back-button:hover {
+            background: #5a6268;
+        }
+
+        .success-message {
+            display: none;
+            text-align: center;
+            padding: 40px 20px;
+            color: #28a745;
+        }
+
+        .success-message.active {
+            display: block;
+        }
+
+        .success-icon {
+            font-size: 64px;
+            margin-bottom: 20px;
+        }
+
+        .footer {
+            background: #f5f5f5;
+            padding: 20px;
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+        }
+
+        .contact-info {
+            margin-bottom: 15px;
+        }
+
+        .social-links a {
+            color: #ff6b9d;
+            text-decoration: none;
+            margin: 0 10px;
+        }
+
+        /* Mobile responsiveness */
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .form-row {
+                flex-direction: column;
+                gap: 0;
+            }
+            
+            .booking-container {
+                margin: 10px;
+                border-radius: 15px;
+            }
+        }
+
+        /* QR Code styling */
+        .qr-section {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            text-align: center;
+            margin: 20px 0;
+        }
+
+        .qr-code {
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="booking-container">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo">💅 Glamour Nails</div>
+            <div class="tagline">Book Your Perfect Appointment</div>
+        </div>
+
+        <!-- Main Booking Options -->
+        <div id="booking-options" class="booking-options">
+            <!-- Voice AI Booking -->
+            <div class="option-card" onclick="showVoiceBooking()">
+                <div class="option-icon">🎙️</div>
+                <div class="option-title">Book by Voice AI</div>
+                <div class="option-description">
+                    Call our smart AI assistant! Available 24/7, speaks naturally, and books your appointment in under 2 minutes.
+                </div>
+                <button class="book-button">Call Now</button>
+            </div>
+
+            <!-- Online Form Booking -->
+            <div class="option-card" onclick="showFormBooking()">
+                <div class="option-icon">📝</div>
+                <div class="option-title">Book Online</div>
+                <div class="option-description">
+                    Fill out our quick form and we'll confirm your appointment via text or call within 15 minutes.
+                </div>
+                <button class="book-button">Book Online</button>
+            </div>
+
+            <!-- Walk-in Information -->
+            <div class="option-card">
+                <div class="option-icon">🚶‍♀️</div>
+                <div class="option-title">Walk-ins Welcome</div>
+                <div class="option-description">
+                    Visit us directly! We accept walk-ins based on availability. Average wait time: 15-30 minutes.
+                </div>
+                <div style="margin-top: 15px;">
+                    <strong>📍 123 Beauty Lane, LA 90210</strong><br>
+                    <small>Mon-Sat 9AM-7PM, Sun 10AM-5PM</small>
+                </div>
+            </div>
+        </div>
+
+        <!-- Voice AI Booking Screen -->
+        <div id="voice-booking" class="form-container">
+            <div style="text-align: center; padding: 20px;">
+                <div style="font-size: 48px; margin-bottom: 20px;">📞</div>
+                <h2>Ready to Book by Voice?</h2>
+                <p style="margin: 20px 0; color: #666;">
+                    Our AI assistant will help you choose your service, find the perfect time, and book your appointment - all in a natural conversation!
+                </p>
+                
+                <div class="phone-number" style="margin: 30px 0;">
+                    (424) 351-9304
+                </div>
+                
+                <div style="margin: 30px 0;">
+                    <a href="tel:+14243519304" class="submit-button" style="display: inline-block; text-decoration: none; margin-bottom: 15px;">
+                        📞 Call Now
+                    </a>
+                </div>
+
+                <!-- QR Code for easy mobile access -->
+                <div class="qr-section">
+                    <h3>Scan to Call</h3>
+                    <div class="qr-code">
+                        <canvas id="qr-canvas" width="200" height="200"></canvas>
+                    </div>
+                    <small>Point your phone camera at the QR code</small>
+                </div>
+                
+                <p style="color: #666; font-size: 14px; margin-top: 20px;">
+                    💡 <strong>Pro tip:</strong> Have your preferred date and service in mind. Our AI is smart but it helps to be prepared!
+                </p>
+                
+                <button class="back-button" onclick="showBookingOptions()">← Back to Options</button>
+            </div>
+        </div>
+
+        <!-- Online Form Booking -->
+        <div id="form-booking" class="form-container">
+            <form id="appointment-form">
+                <h2 style="margin-bottom: 20px; text-align: center;">Book Your Appointment</h2>
+                
+                <div class="form-group">
+                    <label class="form-label">Your Name *</label>
+                    <input type="text" class="form-input" name="customer_name" required placeholder="Enter your full name">
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Phone Number *</label>
+                        <input type="tel" class="form-input" name="customer_phone" required placeholder="(555) 123-4567">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-input" name="customer_email" placeholder="your@email.com">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Service *</label>
+                    <select class="form-select" name="service_type" required>
+                        <option value="">Choose your service</option>
+                        <option value="manicure_gel">Gel Manicure - $45</option>
+                        <option value="manicure_signature">Signature Manicure - $35</option>
+                        <option value="pedicure">Classic Pedicure - $50</option>
+                        <option value="combo">Manicure + Pedicure Combo - $80</option>
+                        <option value="enhancement">Nail Enhancement - $60</option>
+                    </select>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Preferred Date *</label>
+                        <input type="date" class="form-input" name="preferred_date" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Preferred Time</label>
+                        <select class="form-select" name="preferred_time">
+                            <option value="">Any time</option>
+                            <option value="09:00">9:00 AM</option>
+                            <option value="10:00">10:00 AM</option>
+                            <option value="11:00">11:00 AM</option>
+                            <option value="12:00">12:00 PM</option>
+                            <option value="13:00">1:00 PM</option>
+                            <option value="14:00">2:00 PM</option>
+                            <option value="15:00">3:00 PM</option>
+                            <option value="16:00">4:00 PM</option>
+                            <option value="17:00">5:00 PM</option>
+                            <option value="18:00">6:00 PM</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Special Requests</label>
+                    <textarea class="form-input" name="special_requests" rows="3" placeholder="Any color preferences, allergies, or special requests?"></textarea>
+                </div>
+
+                <div style="margin: 30px 0;">
+                    <button type="submit" class="submit-button">Request Appointment</button>
+                </div>
+
+                <button type="button" class="back-button" onclick="showBookingOptions()">← Back to Options</button>
+                
+                <p style="font-size: 14px; color: #666; margin-top: 15px;">
+                    * We'll confirm your appointment within 15 minutes via text or call. Appointments are not guaranteed until confirmed.
+                </p>
+            </form>
+        </div>
+
+        <!-- Success Message -->
+        <div id="success-message" class="success-message">
+            <div class="success-icon">✅</div>
+            <h2>Appointment Request Received!</h2>
+            <p style="margin: 20px 0; color: #666;">
+                Thank you! We'll confirm your appointment within 15 minutes via text or call. 
+                Please keep your phone nearby.
+            </p>
+            <p style="color: #666;">
+                Questions? Call us at <strong>(424) 351-9304</strong>
+            </p>
+            <button class="book-button" onclick="showBookingOptions()" style="margin-top: 20px;">
+                Book Another Appointment
+            </button>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <div class="contact-info">
+                <strong>Glamour Nails</strong><br>
+                123 Beauty Lane, Los Angeles, CA 90210<br>
+                Phone: (424) 351-9304
+            </div>
+            <div class="social-links">
+                <a href="#">Instagram</a> |
+                <a href="#">Facebook</a> |
+                <a href="#">Google Reviews</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- QR Code Generation Library -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+    
+    <script>
+        // Set minimum date to tomorrow
+        document.addEventListener('DOMContentLoaded', function() {
+            const dateInput = document.querySelector('input[name="preferred_date"]');
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            dateInput.min = tomorrow.toISOString().split('T')[0];
+
+            // Generate QR code for voice booking
+            generateQRCode();
+        });
+
+        function showVoiceBooking() {
+            document.getElementById('booking-options').style.display = 'none';
+            document.getElementById('voice-booking').classList.add('active');
+            document.getElementById('form-booking').classList.remove('active');
+            document.getElementById('success-message').classList.remove('active');
+        }
+
+        function showFormBooking() {
+            document.getElementById('booking-options').style.display = 'none';
+            document.getElementById('form-booking').classList.add('active');
+            document.getElementById('voice-booking').classList.remove('active');
+            document.getElementById('success-message').classList.remove('active');
+        }
+
+        function showBookingOptions() {
+            document.getElementById('booking-options').style.display = 'block';
+            document.getElementById('voice-booking').classList.remove('active');
+            document.getElementById('form-booking').classList.remove('active');
+            document.getElementById('success-message').classList.remove('active');
+        }
+
+        function showSuccessMessage() {
+            document.getElementById('booking-options').style.display = 'none';
+            document.getElementById('voice-booking').classList.remove('active');
+            document.getElementById('form-booking').classList.remove('active');
+            document.getElementById('success-message').classList.add('active');
+        }
+
+        // Generate QR code for calling
+        function generateQRCode() {
+            const canvas = document.getElementById('qr-canvas');
+            if (canvas && window.QRCode) {
+                QRCode.toCanvas(canvas, 'tel:+14243519304', {
+                    width: 200,
+                    color: {
+                        dark: '#ff6b9d',
+                        light: '#ffffff'
+                    }
+                }, function (error) {
+                    if (error) console.error(error);
+                });
+            }
+        }
+
+        // Handle form submission
+        document.getElementById('appointment-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(this);
+            const appointmentData = Object.fromEntries(formData);
+            
+            try {
+                // Submit to your booking API endpoint
+                const response = await fetch('/api/book-appointment', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(appointmentData)
+                });
+                
+                if (response.ok) {
+                    showSuccessMessage();
+                } else {
+                    alert('Sorry, there was an error submitting your request. Please try calling (424) 351-9304 instead.');
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Sorry, there was an error submitting your request. Please try calling (424) 351-9304 instead.');
+            }
+        });
+
+        // Phone number formatting
+        document.querySelector('input[name="customer_phone"]').addEventListener('input', function(e) {
+            let value = e.target.value.replace(/\D/g, '');
+            if (value.length >= 10) {
+                value = value.replace(/(\d{3})(\d{3})(\d{4})/, '($1) $2-$3');
+            }
+            e.target.value = value;
+        });
+    </script>
+</body>
+</html>
