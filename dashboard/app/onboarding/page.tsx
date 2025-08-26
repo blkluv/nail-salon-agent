@@ -87,106 +87,60 @@ const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 
 
 const PRICING_PLANS: PricingPlan[] = [
   {
-    id: 'sms-only',
-    name: 'SMS Starter',
-    price: 39,
-    channels: ['sms'],
-    description: 'Text message booking and customer communication',
-    features: ['Automated SMS booking', 'Appointment reminders', 'Customer management', 'Basic analytics']
-  },
-  {
-    id: 'web-only', 
-    name: 'Web Booking',
-    price: 49,
-    channels: ['web'],
-    description: 'Online booking widget for your website',
-    features: ['Embedded booking widget', 'Online scheduling', 'Customer portal', 'Basic analytics']
-  },
-  {
-    id: 'voice-only',
-    name: 'Voice AI',
-    price: 89,
-    channels: ['voice'], 
-    description: '24/7 AI phone receptionist',
-    features: ['AI phone booking', '24/7 availability', 'Natural conversations', 'Advanced analytics']
-  },
-  {
-    id: 'sms-web',
-    name: 'SMS + Web Duo',
-    price: 79,
+    id: 'starter',
+    name: 'Starter',
+    price: 59,
     channels: ['sms', 'web'],
-    description: 'Text and online booking combined',
-    features: ['SMS + Web booking', 'Unified customer data', 'Multi-channel reminders', 'Enhanced analytics'],
+    description: 'Perfect for solo entrepreneurs and small salons',
+    features: ['SMS + Web booking', 'Customer management', 'Basic analytics', 'Email notifications', 'Mobile-friendly dashboard']
+  },
+  {
+    id: 'professional',
+    name: 'Professional',
+    price: 99,
+    channels: ['sms', 'web', 'voice'],
+    description: 'Complete booking solution for growing salons',
+    features: ['All booking channels', 'AI phone receptionist', 'Advanced analytics', 'Priority support', 'Custom reminders', 'Staff management'],
     popular: true
   },
   {
-    id: 'voice-sms',
-    name: 'Voice + SMS Duo', 
-    price: 139,
-    channels: ['voice', 'sms'],
-    description: 'AI phone + text messaging',
-    features: ['AI phone + SMS', 'Premium customer service', 'Advanced conversation flows', 'Priority support']
-  },
-  {
-    id: 'voice-web',
-    name: 'Voice + Web Duo',
-    price: 119,
-    channels: ['voice', 'web'], 
-    description: 'AI phone + online booking',
-    features: ['AI phone + Web widget', 'Omnichannel experience', 'Smart routing', 'Advanced reporting']
-  },
-  {
-    id: 'complete',
-    name: 'Complete Suite',
-    price: 159,
+    id: 'premium',
+    name: 'Premium',
+    price: 179,
     channels: ['sms', 'web', 'voice'],
-    description: 'Full omnichannel booking experience',
-    features: ['All booking channels', 'Unified dashboard', 'Complete customer journey', 'Premium support', 'Custom integrations']
+    description: 'Enterprise features for established salons',
+    features: ['Everything in Professional', 'White-label booking pages', 'API access', 'Custom integrations', 'Advanced reporting', 'Dedicated support', '24/7 phone support']
   }
 ]
 
 const ADD_ONS: AddOn[] = [
   {
-    id: 'custom-voice',
-    name: 'Custom Voice Agent',
-    price: 99,
-    description: 'Personalized AI voice and branding for your salon',
-    category: 'ai'
+    id: 'tech-calendars',
+    name: 'Individual Tech Calendars',
+    price: 15,
+    description: 'Separate calendars for each technician with auto-assignment ($15 per tech)',
+    category: 'business'
   },
   {
     id: 'multi-language',
     name: 'Multi-Language Support',
-    price: 39, 
+    price: 29, 
     description: 'Spanish, French, and other language options',
     category: 'communication'
   },
   {
-    id: 'advanced-ai',
-    name: 'Advanced AI Training',
+    id: 'premium-support',
+    name: 'Premium Support',
     price: 49,
-    description: 'Salon-specific knowledge and custom responses',
+    description: '1-hour response time and dedicated account manager',
+    category: 'business'
+  },
+  {
+    id: 'custom-training',
+    name: 'Custom AI Training',
+    price: 99,
+    description: 'Salon-specific AI knowledge and personalized responses',
     category: 'ai'
-  },
-  {
-    id: 'loyalty-program',
-    name: 'Loyalty Program',
-    price: 39,
-    description: 'Automated customer rewards and retention',
-    category: 'business'
-  },
-  {
-    id: 'payment-processing',
-    name: 'Payment Processing',
-    price: 39,
-    description: 'Integrated payments with Square and Stripe',
-    category: 'business'
-  },
-  {
-    id: 'smart-notifications',
-    name: 'Smart Notifications',
-    price: 19,
-    description: 'Advanced staff alerts and customer reminders',
-    category: 'communication'
   }
 ]
 
@@ -229,6 +183,7 @@ export default function OnboardingPage() {
     addOns: [],
     totalMonthly: 0
   })
+  const [techCalendarCount, setTechCalendarCount] = useState(0)
   
   // Form data
   const [businessInfo, setBusinessInfo] = useState<BusinessInfo>({
@@ -296,16 +251,60 @@ export default function OnboardingPage() {
 
   const toggleAddOn = (addon: AddOn) => {
     const isSelected = subscriptionConfig.addOns.some(a => a.id === addon.id)
-    const newAddOns = isSelected 
-      ? subscriptionConfig.addOns.filter(a => a.id !== addon.id)
-      : [...subscriptionConfig.addOns, addon]
     
-    const newConfig = {
-      ...subscriptionConfig,
-      addOns: newAddOns,
-      totalMonthly: (subscriptionConfig.plan?.price || 0) + newAddOns.reduce((sum, a) => sum + a.price, 0)
+    if (addon.id === 'tech-calendars') {
+      // Handle tech calendars specially - need to show count selector
+      if (isSelected) {
+        // Remove tech calendars
+        const newAddOns = subscriptionConfig.addOns.filter(a => a.id !== addon.id)
+        setTechCalendarCount(0)
+        const newConfig = {
+          ...subscriptionConfig,
+          addOns: newAddOns,
+          totalMonthly: (subscriptionConfig.plan?.price || 0) + newAddOns.reduce((sum, a) => sum + a.price, 0)
+        }
+        setSubscriptionConfig(newConfig)
+      } else {
+        // Add tech calendars with default count
+        setTechCalendarCount(staff.length || 1)
+      }
+    } else {
+      // Handle regular add-ons
+      const newAddOns = isSelected 
+        ? subscriptionConfig.addOns.filter(a => a.id !== addon.id)
+        : [...subscriptionConfig.addOns, addon]
+      
+      const techCalendarAddon = subscriptionConfig.addOns.find(a => a.id === 'tech-calendars')
+      const techCalendarCost = techCalendarAddon ? techCalendarCount * 15 : 0
+      
+      const newConfig = {
+        ...subscriptionConfig,
+        addOns: newAddOns,
+        totalMonthly: (subscriptionConfig.plan?.price || 0) + 
+                     newAddOns.filter(a => a.id !== 'tech-calendars').reduce((sum, a) => sum + a.price, 0) +
+                     techCalendarCost
+      }
+      setSubscriptionConfig(newConfig)
     }
-    setSubscriptionConfig(newConfig)
+  }
+  
+  const updateTechCalendarCount = (count: number) => {
+    setTechCalendarCount(count)
+    if (count > 0) {
+      // Add or update tech calendars addon
+      const otherAddOns = subscriptionConfig.addOns.filter(a => a.id !== 'tech-calendars')
+      const techCalendarAddon = ADD_ONS.find(a => a.id === 'tech-calendars')!
+      const newAddOns = [...otherAddOns, techCalendarAddon]
+      
+      const newConfig = {
+        ...subscriptionConfig,
+        addOns: newAddOns,
+        totalMonthly: (subscriptionConfig.plan?.price || 0) + 
+                     otherAddOns.reduce((sum, a) => sum + a.price, 0) +
+                     (count * 15)
+      }
+      setSubscriptionConfig(newConfig)
+    }
   }
 
   const handleBusinessInfoSubmit = () => {
@@ -390,8 +389,8 @@ export default function OnboardingPage() {
           phone: businessInfo.phone,
           address: businessInfo.address,
           timezone: businessInfo.timezone,
-          subscription_tier: subscriptionConfig.plan?.id === 'complete' ? 'enterprise' : 
-                           subscriptionConfig.plan?.id === 'voice-sms' || subscriptionConfig.plan?.id === 'voice-web' || subscriptionConfig.plan?.id === 'voice-only' ? 'professional' : 
+          subscription_tier: subscriptionConfig.plan?.id === 'premium' ? 'enterprise' : 
+                           subscriptionConfig.plan?.id === 'professional' ? 'professional' : 
                            'starter',
           subscription_status: 'trialing',
           trial_ends_at: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(), // 14 days from now
@@ -401,7 +400,8 @@ export default function OnboardingPage() {
             cancellation_window_hours: 24,
             selected_plan: subscriptionConfig.plan?.id,
             selected_addons: subscriptionConfig.addOns.map(a => a.id),
-            monthly_price: subscriptionConfig.totalMonthly
+            monthly_price: subscriptionConfig.totalMonthly,
+            tech_calendar_count: techCalendarCount
           }
         })
         .select()
@@ -663,26 +663,87 @@ export default function OnboardingPage() {
             {subscriptionConfig.plan && (
               <div className="border-t pt-6">
                 <h3 className="text-lg font-semibold mb-4">Add-On Features (Optional)</h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {ADD_ONS.map((addon) => {
                     const isSelected = subscriptionConfig.addOns.some(a => a.id === addon.id)
+                    const isTechCalendars = addon.id === 'tech-calendars'
+                    
                     return (
                       <div
                         key={addon.id}
-                        className={`border rounded-lg p-4 cursor-pointer transition-all ${
+                        className={`border rounded-lg p-4 transition-all ${
                           isSelected ? 'border-purple-500 bg-purple-50' : 'border-gray-200 hover:border-purple-300'
-                        }`}
-                        onClick={() => toggleAddOn(addon)}
+                        } ${isTechCalendars && !isSelected ? 'cursor-pointer' : ''}`}
+                        onClick={isTechCalendars && !isSelected ? () => toggleAddOn(addon) : undefined}
                       >
                         <div className="flex items-start justify-between">
                           <div className="flex-1">
                             <h4 className="font-medium">{addon.name}</h4>
                             <p className="text-sm text-gray-600 mt-1">{addon.description}</p>
+                            
+                            {isTechCalendars && (techCalendarCount > 0 || isSelected) && (
+                              <div className="mt-3">
+                                <label className="block text-sm font-medium text-gray-700 mb-2">
+                                  Number of technicians:
+                                </label>
+                                <div className="flex items-center space-x-3">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      if (techCalendarCount > 1) updateTechCalendarCount(techCalendarCount - 1)
+                                    }}
+                                    className="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50"
+                                    disabled={techCalendarCount <= 1}
+                                  >
+                                    -
+                                  </button>
+                                  <span className="px-4 py-1 border border-gray-300 rounded bg-white min-w-[3rem] text-center">
+                                    {techCalendarCount}
+                                  </span>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      updateTechCalendarCount(techCalendarCount + 1)
+                                    }}
+                                    className="px-3 py-1 border border-gray-300 rounded hover:bg-gray-50"
+                                  >
+                                    +
+                                  </button>
+                                </div>
+                                <div className="mt-2 flex justify-between items-center">
+                                  <span className="text-sm text-gray-600">
+                                    ${techCalendarCount * 15}/month total
+                                  </span>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation()
+                                      toggleAddOn(addon)
+                                    }}
+                                    className="text-sm text-red-600 hover:text-red-700"
+                                  >
+                                    Remove
+                                  </button>
+                                </div>
+                              </div>
+                            )}
                           </div>
-                          <div className="ml-3 text-right">
-                            <span className="font-bold">${addon.price}</span>
-                            <span className="text-sm text-gray-600">/mo</span>
-                          </div>
+                          {!isTechCalendars && (
+                            <div className="ml-3 text-right">
+                              <div
+                                className="cursor-pointer"
+                                onClick={() => toggleAddOn(addon)}
+                              >
+                                <span className="font-bold">${addon.price}</span>
+                                <span className="text-sm text-gray-600">/mo</span>
+                              </div>
+                            </div>
+                          )}
+                          {isTechCalendars && techCalendarCount === 0 && !isSelected && (
+                            <div className="ml-3 text-right">
+                              <span className="font-bold">$15</span>
+                              <span className="text-sm text-gray-600">/tech</span>
+                            </div>
+                          )}
                         </div>
                       </div>
                     )

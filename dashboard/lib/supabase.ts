@@ -31,6 +31,7 @@ export interface Business {
     selected_plan?: string
     selected_addons?: string[]
     monthly_price?: number
+    tech_calendar_count?: number
   }
   created_at: string
   updated_at: string

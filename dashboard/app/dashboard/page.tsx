@@ -344,6 +344,18 @@ export default function DashboardPage() {
                     <span className="font-medium">${business.settings.monthly_price}/mo</span>
                   </div>
                 )}
+                {business?.settings?.selected_plan && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500">Plan Type</span>
+                    <span className="font-medium capitalize">{business.settings.selected_plan}</span>
+                  </div>
+                )}
+                {business?.settings?.tech_calendar_count && business.settings.tech_calendar_count > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-500">Tech Calendars</span>
+                    <span className="font-medium">{business.settings.tech_calendar_count} technicians</span>
+                  </div>
+                )}
               </div>
               
               <a 
