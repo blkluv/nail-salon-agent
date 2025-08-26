@@ -259,7 +259,7 @@ export class BusinessAPI {
       .from('customers')
       .select('*')
       .eq('business_id', businessId)
-      .order('last_visit_date', { ascending: false, nullsLast: true })
+      .order('last_visit_date', { ascending: false, nullsFirst: false })
       .limit(limit)
 
     if (error) {
