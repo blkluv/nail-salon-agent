@@ -93,6 +93,7 @@ export default function OnboardingPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [assignedPhoneNumber, setAssignedPhoneNumber] = useState<string | null>(null)
+  const [business, setBusiness] = useState<any>(null)
   
   // Form data
   const [businessInfo, setBusinessInfo] = useState<BusinessInfo>({
@@ -227,6 +228,9 @@ export default function OnboardingPage() {
         .single()
 
       if (businessError) throw businessError
+      
+      // Store the created business in state
+      setBusiness(business)
 
       // 2. Add selected services
       const selectedServices = services.filter((s: any) => s.selected)
