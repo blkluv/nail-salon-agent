@@ -356,15 +356,28 @@ async function cancelAppointment(args, businessId) {
     }
 }
 
+// Root route
+app.get('/', (req, res) => {
+    res.json({ 
+        message: 'Vapi Nail Salon Agent - Production Ready!',
+        endpoints: {
+            webhook: '/webhook/vapi',
+            health: '/health'
+        },
+        status: 'active',
+        timestamp: new Date().toISOString()
+    });
+});
+
 // Health check
 app.get('/health', (req, res) => {
     res.json({ status: 'healthy', timestamp: new Date().toISOString() });
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
     console.log(`🚀 Webhook server running on port ${PORT}`);
     console.log(`📞 Vapi webhook URL: http://localhost:${PORT}/webhook/vapi`);
-    console.log(`💾 Connected to Supabase: ${process.env.SUPABASE_URL}`);
+    console.log(`💾 Connected to Supabase: ${SUPABASE_URL}`);
     console.log(`🏢 Default Business ID: ${DEFAULT_BUSINESS_ID}`);
 });
 
