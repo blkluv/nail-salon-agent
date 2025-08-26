@@ -7,8 +7,8 @@ import {
   CurrencyDollarIcon,
   CalendarIcon,
   UsersIcon,
-  TrendingUpIcon,
-  TrendingDownIcon,
+  ArrowArrowTrendingUpIcon,
+  ArrowArrowTrendingDownIcon,
   ClockIcon,
   StarIcon
 } from '@heroicons/react/24/outline'
@@ -127,7 +127,7 @@ export default function AnalyticsPage() {
                         {formatCurrency(totalRevenue)}
                       </div>
                       <div className="ml-2 flex items-baseline text-sm font-semibold text-green-600">
-                        <TrendingUpIcon className="h-4 w-4 mr-1" />
+                        <ArrowTrendingUpIcon className="h-4 w-4 mr-1" />
                         {revenueGrowth}%
                       </div>
                     </dd>
@@ -153,7 +153,7 @@ export default function AnalyticsPage() {
                         {totalAppointments}
                       </div>
                       <div className="ml-2 flex items-baseline text-sm font-semibold text-green-600">
-                        <TrendingUpIcon className="h-4 w-4 mr-1" />
+                        <ArrowTrendingUpIcon className="h-4 w-4 mr-1" />
                         {appointmentGrowth}%
                       </div>
                     </dd>
@@ -179,7 +179,7 @@ export default function AnalyticsPage() {
                         {formatCurrency(avgTicket)}
                       </div>
                       <div className="ml-2 flex items-baseline text-sm font-semibold text-green-600">
-                        <TrendingUpIcon className="h-4 w-4 mr-1" />
+                        <ArrowTrendingUpIcon className="h-4 w-4 mr-1" />
                         {ticketGrowth}%
                       </div>
                     </dd>
@@ -205,7 +205,7 @@ export default function AnalyticsPage() {
                         {customerRetention}%
                       </div>
                       <div className="ml-2 flex items-baseline text-sm font-semibold text-red-600">
-                        <TrendingDownIcon className="h-4 w-4 mr-1" />
+                        <ArrowTrendingDownIcon className="h-4 w-4 mr-1" />
                         2.1%
                       </div>
                     </dd>
