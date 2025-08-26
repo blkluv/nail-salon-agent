@@ -305,7 +305,10 @@ In the real app:
                 <h2 className="text-lg font-medium text-gray-900">
                   Upcoming Appointments
                 </h2>
-                <button className="text-brand-600 hover:text-brand-700 text-sm font-medium">
+                <button 
+                  onClick={() => alert('Demo: Complete Appointments Calendar\n\n📅 FULL SCHEDULE VIEW:\n\nTODAY (12 appointments):\n• 9:00 AM - Sarah J. - Gel Manicure (Maria) - $50\n• 9:30 AM - Lisa M. - French Tips (Ana) - $45\n• 10:00 AM - Emma K. - Spa Pedicure (Jessica) - $75\n• 11:30 AM - Jennifer L. - Spa Pedicure (Ana) - $75\n• 12:00 PM - David R. - Basic Manicure (Maria) - $35\n• 1:00 PM - Sophie T. - Nail Art (Maria) - $65\n• 2:00 PM - Alex W. - Mani-Pedi Combo (Jessica) - $85\n• 3:00 PM - Rachel P. - Gel Extensions (Maria) - $95\n• 4:00 PM - Mike L. - Basic Manicure (Ana) - $35\n• 5:00 PM - Jessica H. - Luxury Pedicure (Ana) - $90\n• 6:00 PM - Chris D. - Quick Polish (Jessica) - $25\n• 7:00 PM - Amanda S. - Gel Removal (Maria) - $20\n\nTOMORROW (15 appointments scheduled)\nTHIS WEEK (89 appointments total)\nNEXT WEEK (94% booked already!)\n\n✨ CALENDAR FEATURES:\n✅ Drag & drop rescheduling\n✅ Color coding by service type\n✅ Staff availability optimization\n✅ Automated reminder system\n✅ Real-time availability sync\n✅ Mobile calendar access\n\nIn the real app, you can manage hundreds of appointments with ease!')}
+                  className="text-brand-600 hover:text-brand-700 text-sm font-medium"
+                >
                   View all
                 </button>
               </div>
@@ -385,7 +388,7 @@ In the real app:
                 </button>
                 
                 <button 
-                  onClick={() => alert('Demo: Customer management page would open here!\n\nFeatures include:\n✅ Customer profiles\n✅ Booking history\n✅ Contact information\n✅ Preferences & notes\n✅ Loyalty tracking')}
+                  onClick={() => alert('Demo: Customer Management System\n\n📋 CUSTOMER DATABASE:\n\n👤 Sarah Johnson - VIP Customer\n   • Total Visits: 23\n   • Total Spent: $1,247\n   • Preferred Tech: Maria\n   • Last Visit: 3 days ago\n   • Notes: Loves gel extensions\n\n👤 Jennifer Lee - Regular\n   • Total Visits: 8\n   • Total Spent: $420\n   • Preferred Tech: Ana\n   • Last Visit: 2 weeks ago\n   • Birthday: March 15th\n\n👤 Emily Chen - New Customer\n   • Total Visits: 1\n   • Total Spent: $65\n   • Interested in: Nail art\n   • Referral: Instagram\n\n✨ FEATURES AVAILABLE:\n✅ Customer profiles with photos\n✅ Complete booking history\n✅ Contact & preference tracking\n✅ Loyalty points system\n✅ Birthday reminders\n✅ Automated follow-ups')}
                   className="flex items-center w-full p-3 bg-beauty-50 rounded-lg hover:bg-beauty-100 transition-colors group text-left"
                 >
                   <UsersIcon className="h-5 w-5 text-beauty-600 mr-3" />
@@ -395,7 +398,7 @@ In the real app:
                 </button>
                 
                 <button 
-                  onClick={() => alert('Demo: Staff management page would open here!\n\nFeatures include:\n✅ Staff schedules\n✅ Performance tracking\n✅ Commission reports\n✅ Individual calendars\n✅ Availability settings')}
+                  onClick={() => alert('Demo: Staff Management System\n\n👥 STAFF ROSTER:\n\n💅 Maria Rodriguez - Lead Technician\n   • Experience: 8 years\n   • Specialties: Gel extensions, nail art\n   • This Month: 89 appointments, $4,230 revenue\n   • Rating: 4.9/5 stars (127 reviews)\n   • Schedule: Tue-Sat, 9am-7pm\n   • Commission: $847 earned\n\n💅 Ana Santos - Senior Technician\n   • Experience: 5 years  \n   • Specialties: Pedicures, classic manicures\n   • This Month: 76 appointments, $3,420 revenue\n   • Rating: 4.8/5 stars (98 reviews)\n   • Schedule: Mon-Fri, 10am-6pm\n   • Commission: $684 earned\n\n💅 Jessica Kim - Junior Technician\n   • Experience: 2 years\n   • Specialties: Basic services, training\n   • This Month: 45 appointments, $1,890 revenue\n   • Rating: 4.6/5 stars (34 reviews)\n   • Schedule: Wed-Sun, 11am-8pm\n   • Commission: $378 earned\n\n✨ STAFF FEATURES:\n✅ Individual performance tracking\n✅ Automated schedule management\n✅ Commission calculations\n✅ Customer review aggregation\n✅ Training progress tracking\n✅ Availability optimization')}
                   className="flex items-center w-full p-3 bg-green-50 rounded-lg hover:bg-green-100 transition-colors group text-left"
                 >
                   <UsersIcon className="h-5 w-5 text-green-600 mr-3" />
@@ -438,7 +441,10 @@ In the real app:
                 </div>
               </div>
               
-              <button className="mt-4 w-full flex items-center justify-center p-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
+              <button 
+                onClick={() => alert('Demo: Subscription Management\n\n💎 CURRENT PLAN: Professional ($99/month)\n\n📊 PLAN BENEFITS:\n✅ SMS + Web + Voice booking channels\n✅ AI phone receptionist (24/7)\n✅ Advanced analytics dashboard\n✅ Priority customer support\n✅ Custom reminder templates\n✅ Staff management tools\n✅ Tech calendar add-on: $45/month (3 techs)\n\n💰 BILLING DETAILS:\nNext Billing: March 26, 2025\nTotal: $144/month ($99 + $45 add-on)\nPayment Method: •••• 4242\n\n🎯 UPGRADE OPTIONS:\n• Premium Plan: $179/month\n  → White-label booking pages\n  → API access & integrations\n  → Dedicated account manager\n  → 24/7 phone support\n\n📈 ROI THIS MONTH:\n• Automated bookings: $18,650 revenue\n• Time saved: 40 hours\n• Cost per booking: $0.83\n• Return on investment: 12,900%\n\nIn the real app, you can upgrade, downgrade, or cancel anytime!')}
+                className="mt-4 w-full flex items-center justify-center p-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+              >
                 <CurrencyDollarIcon className="h-4 w-4 mr-2" />
                 <span className="text-sm font-medium">Manage Subscription</span>
               </button>
