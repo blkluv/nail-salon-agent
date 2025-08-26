@@ -9,6 +9,7 @@ import {
   ScissorsIcon,
   UserGroupIcon,
   ClockIcon,
+  PhoneIcon,
   CheckCircleIcon,
   ArrowRightIcon,
   ArrowLeftIcon
