@@ -125,12 +125,12 @@ export default function AppointmentsPage() {
       const transformedAppointments: Appointment[] = realAppointments.map(apt => ({
         id: apt.id,
         booking_id: apt.id.slice(0, 8), // Use first 8 chars of ID as booking ID
-        customer_name: apt.customer_name || 'Unknown Customer',
-        customer_email: apt.customer_email || '',
-        customer_phone: apt.customer_phone || '',
-        service_type: apt.service_type || 'General Service',
-        service_duration: apt.duration_minutes || 60,
-        service_price: 55, // Default price - could be enhanced
+        customer_name: apt.customer ? `${apt.customer.first_name} ${apt.customer.last_name}` : 'Unknown Customer',
+        customer_email: apt.customer?.email || '',
+        customer_phone: apt.customer?.phone || '',
+        service_type: apt.service?.name || 'General Service',
+        service_duration: apt.service?.duration_minutes || 60,
+        service_price: apt.service?.base_price || 55,
         appointment_date: apt.appointment_date,
         start_time: apt.start_time?.slice(0, 5) || '00:00', // Remove seconds
         end_time: apt.end_time?.slice(0, 5) || '01:00', // Remove seconds
