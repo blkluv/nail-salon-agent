@@ -497,7 +497,7 @@
             
             try {
                 // Submit to your booking API endpoint
-                const response = await fetch('/api/book-appointment', {
+                const response = await fetch('https://vapi-nail-salon-agent-production.up.railway.app/webhook/web-booking', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
