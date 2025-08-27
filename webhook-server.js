@@ -436,6 +436,14 @@ app.post('/webhook/web-booking', async (req, res) => {
         
         const { name, phone, email, service, date, time, notes } = req.body;
         
+        // Validate required fields
+        if (!name || !phone || !date || !time) {
+            return res.status(400).json({ 
+                error: 'Missing required fields', 
+                required: ['name', 'phone', 'date', 'time'] 
+            });
+        }
+        
         // Use default business ID
         const businessId = 'c7f6221a-f588-43fa-a095-09151fbc41e8';
         
@@ -448,11 +456,12 @@ app.post('/webhook/web-booking', async (req, res) => {
                     customer_name: name,
                     customer_phone: phone,
                     customer_email: email,
-                    service_name: service,
                     appointment_date: date,
-                    appointment_time: time,
-                    notes: notes,
+                    start_time: time,
+                    duration_minutes: 60, // Default 1 hour
                     status: 'confirmed',
+                    customer_notes: notes || '',
+                    booking_source: 'web_widget',
                     created_at: new Date().toISOString()
                 }
             ])
@@ -460,7 +469,11 @@ app.post('/webhook/web-booking', async (req, res) => {
         
         if (error) {
             console.error('❌ Database error:', error);
-            return res.status(500).json({ error: 'Failed to book appointment' });
+            return res.status(500).json({ 
+                error: 'Failed to book appointment', 
+                details: error.message,
+                code: error.code 
+            });
         }
         
         console.log('✅ Web booking created:', data[0]);
