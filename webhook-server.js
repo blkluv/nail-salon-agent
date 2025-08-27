@@ -642,8 +642,13 @@ app.post('/webhook/web-booking', async (req, res) => {
                     appointment_date: date,
                     start_time: time,
                     end_time: endTime.toTimeString().split(' ')[0].substring(0, 5), // HH:MM format
-                    status: 'confirmed'
-                    // notes: notes || null // Temporarily removed - column doesn't exist in deployed schema
+                    duration_minutes: existingService?.duration_minutes || 60,
+                    status: 'confirmed',
+                    customer_notes: notes || null,
+                    booking_source: 'web_widget',
+                    customer_name: name,
+                    customer_phone: phone,
+                    customer_email: email
                 }
             ])
             .select();
