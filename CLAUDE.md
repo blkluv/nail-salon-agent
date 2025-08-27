@@ -119,7 +119,7 @@ production-templates/
 ## 🎯 Current System Status
 
 ### ✅ What's Live & Working
-- **Voice AI Booking**: (424) 351-9304 - Available 24/7
+- **Voice AI Booking**: (424) 351-9304 - Available 24/7 (Voice + SMS)
 - **Webhook Server**: https://vapi-nail-salon-agent-production.up.railway.app
 - **Database**: Supabase with all tables configured
 - **Business ID**: 8424aa26-4fd5-4d4b-92aa-8a9c5ba77dad
@@ -223,7 +223,7 @@ INSTAGRAM_ACCESS_TOKEN=your-instagram-token
 ```
 
 ### System Endpoints
-- **Voice AI**: (424) 351-9304
+- **Voice AI & SMS**: (424) 351-9304
 - **Webhook**: https://vapi-nail-salon-agent-production.up.railway.app/webhook/vapi
 - **SMS Webhook**: /webhook/sms  
 - **Health Check**: /health
@@ -276,7 +276,7 @@ INSTAGRAM_ACCESS_TOKEN=your-instagram-token
 
 **🚀 Your Voice AI booking system is ready for production!** All templates are created, tested, and documented. You now have everything needed to launch, operate, and scale a successful AI-powered nail salon booking system.
 
-**📞 System Live At**: (424) 351-9304  
+**📞 System Live At**: (424) 351-9304 (Voice + SMS)  
 **🎯 Next Action**: Follow the Quick Start Checklist  
 **📊 Track Success**: Use provided analytics templates  
 

@@ -546,7 +546,7 @@ app.post('/webhook/web-booking', async (req, res) => {
             });
         }
         
-        // Use dropfly business ID
+        // Use dropfly business ID (updated to use Twilio number)
         const businessId = 'c7f6221a-f588-43fa-a095-09151fbc41e8';
         
         // Step 1: Create or find customer
