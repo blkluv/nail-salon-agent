@@ -444,31 +444,110 @@ app.post('/webhook/web-booking', async (req, res) => {
             });
         }
         
-        // Use default business ID
+        // Use dropfly business ID
         const businessId = 'c7f6221a-f588-43fa-a095-09151fbc41e8';
         
-        // Create appointment directly in database
+        // Step 1: Create or find customer
+        let customerId;
+        const { data: existingCustomer, error: customerFindError } = await supabase
+            .from('customers')
+            .select('id')
+            .eq('business_id', businessId)
+            .eq('phone', phone)
+            .single();
+            
+        if (existingCustomer) {
+            customerId = existingCustomer.id;
+            console.log('📞 Using existing customer:', customerId);
+        } else {
+            // Create new customer
+            const { data: newCustomer, error: customerCreateError } = await supabase
+                .from('customers')
+                .insert([{
+                    business_id: businessId,
+                    first_name: name.split(' ')[0] || name,
+                    last_name: name.split(' ').slice(1).join(' ') || '',
+                    email: email || null,
+                    phone: phone
+                }])
+                .select('id')
+                .single();
+                
+            if (customerCreateError) {
+                console.error('❌ Customer creation error:', customerCreateError);
+                return res.status(500).json({ 
+                    error: 'Failed to create customer', 
+                    details: customerCreateError.message 
+                });
+            }
+            
+            customerId = newCustomer.id;
+            console.log('👤 Created new customer:', customerId);
+        }
+        
+        // Step 2: Get default service (or create one if needed)
+        let serviceId;
+        const { data: existingService, error: serviceFindError } = await supabase
+            .from('services')
+            .select('id, duration_minutes')
+            .eq('business_id', businessId)
+            .eq('is_active', true)
+            .limit(1)
+            .single();
+            
+        if (existingService) {
+            serviceId = existingService.id;
+            console.log('💅 Using existing service:', serviceId);
+        } else {
+            // Create default service
+            const { data: newService, error: serviceCreateError } = await supabase
+                .from('services')
+                .insert([{
+                    business_id: businessId,
+                    name: service || 'General Service',
+                    category: 'general',
+                    duration_minutes: 60,
+                    price_cents: 5000, // $50 default
+                    is_active: true
+                }])
+                .select('id, duration_minutes')
+                .single();
+                
+            if (serviceCreateError) {
+                console.error('❌ Service creation error:', serviceCreateError);
+                return res.status(500).json({ 
+                    error: 'Failed to create service', 
+                    details: serviceCreateError.message 
+                });
+            }
+            
+            serviceId = newService.id;
+            console.log('🆕 Created new service:', serviceId);
+        }
+        
+        // Step 3: Calculate end time
+        const startTime = new Date(`${date}T${time}:00`);
+        const endTime = new Date(startTime.getTime() + (existingService?.duration_minutes || 60) * 60000);
+        
+        // Step 4: Create appointment with proper schema
         const { data, error } = await supabase
             .from('appointments')
             .insert([
                 {
                     business_id: businessId,
-                    customer_name: name,
-                    customer_phone: phone,
-                    customer_email: email,
+                    customer_id: customerId,
+                    service_id: serviceId,
                     appointment_date: date,
                     start_time: time,
-                    duration_minutes: 60, // Default 1 hour
+                    end_time: endTime.toTimeString().split(' ')[0].substring(0, 5), // HH:MM format
                     status: 'confirmed',
-                    customer_notes: notes || '',
-                    booking_source: 'web_widget',
-                    created_at: new Date().toISOString()
+                    notes: notes || ''
                 }
             ])
             .select();
         
         if (error) {
-            console.error('❌ Database error:', error);
+            console.error('❌ Appointment creation error:', error);
             return res.status(500).json({ 
                 error: 'Failed to book appointment', 
                 details: error.message,
@@ -477,7 +556,11 @@ app.post('/webhook/web-booking', async (req, res) => {
         }
         
         console.log('✅ Web booking created:', data[0]);
-        res.json({ success: true, appointment: data[0] });
+        res.json({ 
+            success: true, 
+            appointment: data[0],
+            message: 'Appointment booked successfully!' 
+        });
         
     } catch (error) {
         console.error('❌ Web booking error:', error);
