@@ -643,7 +643,7 @@ app.post('/webhook/web-booking', async (req, res) => {
                     start_time: time,
                     end_time: endTime.toTimeString().split(' ')[0].substring(0, 5), // HH:MM format
                     status: 'confirmed',
-                    notes: notes || ''
+                    notes: notes || null
                 }
             ])
             .select();
