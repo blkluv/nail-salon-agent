@@ -416,6 +416,49 @@ app.get('/', (req, res) => {
     });
 });
 
+// Web booking endpoint
+app.post('/webhook/web-booking', async (req, res) => {
+    try {
+        console.log('🌐 Web booking request:', JSON.stringify(req.body, null, 2));
+        
+        const { name, phone, email, service, date, time, notes } = req.body;
+        
+        // Use default business ID
+        const businessId = 'c7f6221a-f588-43fa-a095-09151fbc41e8';
+        
+        // Create appointment directly in database
+        const { data, error } = await supabase
+            .from('appointments')
+            .insert([
+                {
+                    business_id: businessId,
+                    customer_name: name,
+                    customer_phone: phone,
+                    customer_email: email,
+                    service_name: service,
+                    appointment_date: date,
+                    appointment_time: time,
+                    notes: notes,
+                    status: 'confirmed',
+                    created_at: new Date().toISOString()
+                }
+            ])
+            .select();
+        
+        if (error) {
+            console.error('❌ Database error:', error);
+            return res.status(500).json({ error: 'Failed to book appointment' });
+        }
+        
+        console.log('✅ Web booking created:', data[0]);
+        res.json({ success: true, appointment: data[0] });
+        
+    } catch (error) {
+        console.error('❌ Web booking error:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 // Health check
 app.get('/health', (req, res) => {
     res.json({ status: 'healthy', timestamp: new Date().toISOString() });
