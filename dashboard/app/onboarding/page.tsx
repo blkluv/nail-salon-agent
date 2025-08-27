@@ -203,7 +203,7 @@ export default function OnboardingPage() {
   })
   
   const [staff, setStaff] = useState<StaffMember[]>([
-    { first_name: '', last_name: '', email: '', phone: '', role: 'nail_technician' }
+    { first_name: '', last_name: '', email: '', phone: '', role: 'technician' }
   ])
   
   const [businessHours, setBusinessHours] = useState<BusinessHours>(DEFAULT_HOURS)
@@ -339,7 +339,7 @@ export default function OnboardingPage() {
   }
 
   const addStaffMember = () => {
-    setStaff([...staff, { first_name: '', last_name: '', email: '', phone: '', role: 'nail_technician' }])
+    setStaff([...staff, { first_name: '', last_name: '', email: '', phone: '', role: 'technician' }])
   }
 
   const updateStaffMember = (index: number, field: keyof StaffMember, value: string) => {
@@ -377,6 +377,13 @@ export default function OnboardingPage() {
     setError(null)
     
     try {
+      console.log('🔄 Starting onboarding completion...');
+      console.log('📊 Environment check:', {
+        supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL?.substring(0, 30) + '...',
+        supabaseKeySet: !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+        vapiKeySet: !!process.env.NEXT_PUBLIC_VAPI_API_KEY
+      });
+      
       // 1. Create the business with subscription info
       const slug = businessInfo.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') + '-' + Date.now()
       
@@ -387,27 +394,29 @@ export default function OnboardingPage() {
           slug: slug,
           email: businessInfo.email,
           phone: businessInfo.phone,
-          address: businessInfo.address,
+          address_line1: businessInfo.address,
           timezone: businessInfo.timezone,
-          subscription_tier: subscriptionConfig.plan?.id === 'premium' ? 'enterprise' : 
-                           subscriptionConfig.plan?.id === 'professional' ? 'professional' : 
-                           'starter',
+          plan_type: subscriptionConfig.plan?.id === 'premium' ? 'enterprise' : 
+                     subscriptionConfig.plan?.id === 'professional' ? 'professional' : 
+                     'starter',
           subscription_status: 'trialing',
-          trial_ends_at: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(), // 14 days from now
-          settings: {
-            currency: 'USD',
-            booking_buffer_minutes: 15,
-            cancellation_window_hours: 24,
-            selected_plan: subscriptionConfig.plan?.id,
-            selected_addons: subscriptionConfig.addOns.map(a => a.id),
-            monthly_price: subscriptionConfig.totalMonthly,
-            tech_calendar_count: techCalendarCount
-          }
+          trial_ends_at: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString() // 14 days from now
         })
         .select()
         .single()
 
-      if (businessError) throw businessError
+      if (businessError) {
+        console.error('❌ BUSINESS CREATION FAILED:');
+        console.error('Full error:', businessError);
+        console.error('Error message:', businessError.message);
+        console.error('Error code:', businessError.code);
+        console.error('Error details:', businessError.details);
+        console.error('Error hint:', businessError.hint);
+        console.error('Supabase URL being used:', process.env.NEXT_PUBLIC_SUPABASE_URL);
+        console.error('Supabase key set:', !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+        throw new Error('SUPABASE_BUSINESS_ERROR: ' + businessError.message);
+      }
+      console.log('✅ Business created successfully:', business.id);
       
       // Store the created business in state
       setBusiness(business)
@@ -423,12 +432,17 @@ export default function OnboardingPage() {
               name: service.name,
               category: service.category,
               duration_minutes: service.duration,
-              price: service.price,
+              price_cents: Math.round(service.price * 100),  // Convert dollars to cents
               is_active: true
             }))
           )
         
-        if (servicesError) throw servicesError
+        if (servicesError) {
+          console.error('❌ SERVICES INSERTION FAILED:');
+          console.error('Services error:', servicesError);
+          console.error('Services data being inserted:', selectedServices);
+          throw new Error('SUPABASE_SERVICES_ERROR: ' + servicesError.message);
+        }
       }
 
       // 3. Add staff members
@@ -448,7 +462,12 @@ export default function OnboardingPage() {
             }))
           )
         
-        if (staffError) throw staffError
+        if (staffError) {
+          console.error('❌ STAFF INSERTION FAILED:');
+          console.error('Staff error:', staffError);
+          console.error('Staff data being inserted:', validStaff);
+          throw new Error('SUPABASE_STAFF_ERROR: ' + staffError.message);
+        }
       }
 
       // 4. Add business hours
@@ -464,73 +483,74 @@ export default function OnboardingPage() {
           }))
         )
       
-      if (hoursError) throw hoursError
+      if (hoursError) {
+        console.error('❌ BUSINESS HOURS INSERTION FAILED:');
+        console.error('Hours error:', hoursError);
+        console.error('Hours data:', Object.entries(businessHours));
+        throw new Error('SUPABASE_HOURS_ERROR: ' + hoursError.message);
+      }
 
+      console.log('✅ All database operations completed successfully');
+      
       // 5. Handle phone setup based on strategy
       if (phonePrefs.strategy === 'new_number') {
-        console.log('🔄 Assigning new phone number...');
-        const phoneResult = await VapiPhoneService.assignPhoneToSalon(
-          business.id, 
-          business.name
-        );
-        
-        if (phoneResult.success) {
-          // Save phone number mapping to database
-          const { error: phoneError } = await supabase
-            .from('phone_numbers')
-            .insert({
-              business_id: business.id,
-              vapi_phone_id: phoneResult.vapiData.phoneNumberId,
-              phone_number: phoneResult.phoneNumber,
-              vapi_phone_number_id: phoneResult.phoneId
-            });
+        console.log('🔄 Attempting to assign new phone number with Vapi...');
+        try {
+          const phoneResult = await VapiPhoneService.assignPhoneToSalon(
+            business.id, 
+            business.name
+          );
           
-          if (phoneError) {
-            console.error('Phone mapping save failed:', phoneError);
+          if (phoneResult.success) {
+          // Save phone number mapping to database (optional - may not exist yet)
+          try {
+            const { error: phoneError } = await supabase
+              .from('phone_numbers')
+              .insert({
+                business_id: business.id,
+                vapi_phone_id: phoneResult.vapiData?.phoneNumberId || phoneResult.phoneId,
+                phone_number: phoneResult.phoneNumber,
+                vapi_phone_number_id: phoneResult.phoneId,
+                is_primary: true
+              });
+            
+            if (phoneError) {
+              console.warn('Phone mapping save failed (table may not exist):', phoneError);
+              // Don't fail onboarding for this
+            }
+          } catch (phoneMapError) {
+            console.warn('Phone numbers table not available:', phoneMapError);
           }
           
-          // Update business with new phone number
+          // Update business with new phone number (only update existing columns)
           await supabase
             .from('businesses')
             .update({ 
-              primary_phone_number: phoneResult.phoneNumber,
-              vapi_assistant_id: '8ab7e000-aea8-4141-a471-33133219a471',
-              forwarding_enabled: false,
-              forwarding_rules: {
-                sms_enabled: phonePrefs.smsEnabled,
-                voice_enabled: phonePrefs.voiceEnabled,
-                web_enabled: phonePrefs.webEnabled,
-                widget_style: phonePrefs.widgetStyle
-              }
+              phone: phoneResult.phoneNumber,
+              vapi_assistant_id: '8ab7e000-aea8-4141-a471-33133219a471'
             })
             .eq('id', business.id);
             
           setAssignedPhoneNumber(phoneResult.phoneNumber);
           console.log('✅ New phone number assigned:', phoneResult.phoneNumber);
-        } else {
-          console.warn('⚠️ Phone assignment failed:', phoneResult.error);
-          setError(`Setup completed, but phone assignment failed: ${phoneResult.error}`);
+          } else {
+            console.warn('⚠️ Phone assignment failed:', phoneResult.error);
+            setError(`Setup completed, but phone assignment failed: ${phoneResult.error}`);
+          }
+        } catch (phoneError) {
+          console.error('❌ Phone number assignment error:', phoneError);
+          setError(`Setup completed, but phone assignment failed: ${phoneError.message}`);
+          // Don't block onboarding completion for phone errors
         }
       } else if (phonePrefs.strategy === 'use_existing') {
         console.log('🔄 Configuring existing number for forwarding...');
         
-        // Save existing number with forwarding configuration
+        // Save existing number configuration
         await supabase
           .from('businesses')
           .update({ 
-            primary_phone_number: phonePrefs.existingNumber,
-            vapi_assistant_id: '8ab7e000-aea8-4141-a471-33133219a471',
-            forwarding_enabled: true,
-            forwarding_number: phonePrefs.existingNumber,
-            forwarding_rules: {
-              forward_after_hours: phonePrefs.forwardAfterHours,
-              forward_complex_calls: phonePrefs.forwardComplexCalls,
-              strategy: 'use_existing',
-              sms_enabled: phonePrefs.smsEnabled,
-              voice_enabled: phonePrefs.voiceEnabled,
-              web_enabled: phonePrefs.webEnabled,
-              widget_style: phonePrefs.widgetStyle
-            }
+            phone: phonePrefs.existingNumber,
+            vapi_assistant_id: '8ab7e000-aea8-4141-a471-33133219a471'
           })
           .eq('id', business.id);
         
@@ -545,17 +565,38 @@ export default function OnboardingPage() {
       // 6. Store business ID in localStorage for dashboard
       localStorage.setItem('demo_business_id', business.id)
       
+      // 7. Auto-login the user after successful onboarding
+      localStorage.setItem('authenticated_business_id', business.id)
+      localStorage.setItem('authenticated_business_name', business.name)
+      localStorage.setItem('authenticated_user_email', businessInfo.email)
+      console.log('✅ Auto-login completed for:', business.name)
+      
       // Success! Move to completion step
       setCurrentStep(7)
       
-      // Don't auto-redirect - let user see phone number
-      // setTimeout(() => {
-      //   router.push('/dashboard')
-      // }, 3000)
+      // Auto-redirect to dashboard after user sees completion message
+      setTimeout(() => {
+        console.log('🚀 Redirecting to dashboard...')
+        router.push('/dashboard')
+      }, 5000) // 5 seconds to see the completion message
       
     } catch (error: any) {
-      console.error('Onboarding error:', error)
-      setError(error.message || 'Failed to complete onboarding')
+      console.error('🚨 ONBOARDING FAILED - FULL ERROR DETAILS:');
+      console.error('Error object:', error);
+      console.error('Error message:', error?.message);
+      console.error('Error stack:', error?.stack);
+      console.error('Error code:', error?.code);
+      console.error('Error details:', error?.details);
+      console.error('Error hint:', error?.hint);
+      
+      // Check if this is a Supabase error
+      if (error?.message?.includes('JWT') || error?.message?.includes('auth')) {
+        setError('❌ SUPABASE AUTH ERROR: ' + error.message);
+      } else if (error?.message?.includes('API key') || error?.message?.includes('401') || error?.message?.includes('403')) {
+        setError('❌ API KEY ERROR: ' + error.message + ' - Check console for details');
+      } else {
+        setError('❌ UNKNOWN ERROR: ' + (error.message || 'Failed to complete onboarding') + ' - Check console');
+      }
     } finally {
       setIsLoading(false)
     }
@@ -992,8 +1033,9 @@ export default function OnboardingPage() {
                       onChange={(e) => updateStaffMember(index, 'role', e.target.value)}
                       className="px-3 py-2 border border-gray-300 rounded-lg"
                     >
-                      <option value="nail_technician">Nail Technician</option>
+                      <option value="technician">Nail Technician</option>
                       <option value="manager">Manager</option>
+                      <option value="owner">Owner</option>
                       <option value="receptionist">Receptionist</option>
                     </select>
                     {staff.length > 1 && (

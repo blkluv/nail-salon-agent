@@ -28,6 +28,12 @@ export class VapiPhoneService {
 
       if (!response.ok) {
         const errorData = await response.text();
+        console.error('❌ Vapi API Error Details:', {
+          status: response.status,
+          statusText: response.statusText,
+          errorData,
+          apiKey: VAPI_API_KEY ? `${VAPI_API_KEY.substring(0, 8)}...` : 'NOT SET'
+        });
         throw new Error(`Vapi API error: ${response.status} - ${errorData}`);
       }
 

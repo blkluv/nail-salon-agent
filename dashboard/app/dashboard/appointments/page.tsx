@@ -37,59 +37,7 @@ interface Appointment {
   created_at: string
 }
 
-const mockAppointments: Appointment[] = [
-  {
-    id: '1',
-    booking_id: 'BK-001',
-    customer_name: 'Sarah Johnson',
-    customer_email: 'sarah@email.com',
-    customer_phone: '(555) 123-4567',
-    service_type: 'Gel Manicure',
-    service_duration: 75,
-    service_price: 55,
-    appointment_date: new Date().toISOString().split('T')[0],
-    start_time: '10:00',
-    end_time: '11:15',
-    technician_name: 'Maya',
-    status: 'confirmed',
-    payment_status: 'paid',
-    created_at: new Date().toISOString()
-  },
-  {
-    id: '2',
-    booking_id: 'BK-002',
-    customer_name: 'Emily Chen',
-    customer_email: 'emily@email.com',
-    customer_phone: '(555) 234-5678',
-    service_type: 'Spa Pedicure',
-    service_duration: 90,
-    service_price: 65,
-    appointment_date: new Date().toISOString().split('T')[0],
-    start_time: '11:30',
-    end_time: '13:00',
-    technician_name: 'Jessica',
-    status: 'confirmed',
-    payment_status: 'pending',
-    created_at: new Date().toISOString()
-  },
-  {
-    id: '3',
-    booking_id: 'BK-003',
-    customer_name: 'Maria Rodriguez',
-    customer_email: 'maria@email.com',
-    customer_phone: '(555) 345-6789',
-    service_type: 'Mani + Pedi Combo',
-    service_duration: 120,
-    service_price: 85,
-    appointment_date: new Date(Date.now() + 24*60*60*1000).toISOString().split('T')[0],
-    start_time: '14:00',
-    end_time: '16:00',
-    technician_name: 'Sarah',
-    status: 'pending',
-    payment_status: 'pending',
-    created_at: new Date().toISOString()
-  }
-]
+// No mock data - show real appointments only
 
 export default function AppointmentsPage() {
   const [appointments, setAppointments] = useState<Appointment[]>([])
@@ -140,18 +88,14 @@ export default function AppointmentsPage() {
         created_at: apt.created_at
       }))
       
-      // If no real appointments, show mock data for demo
-      const appointmentsToShow = transformedAppointments.length > 0 
-        ? transformedAppointments 
-        : mockAppointments
-        
-      setAppointments(appointmentsToShow)
+      // Show only real appointments from database
+      setAppointments(transformedAppointments)
       
     } catch (error) {
       console.error('Error loading appointments:', error)
       setError('Failed to load appointments')
-      // Fallback to mock data on error
-      setAppointments(mockAppointments)
+      // No fallback data - show empty state
+      setAppointments([])
     } finally {
       setLoading(false)
     }
@@ -238,8 +182,8 @@ export default function AppointmentsPage() {
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Appointments</h1>
             <p className="text-gray-600 mt-1">
-              {appointments.length === mockAppointments.length && appointments[0]?.id === '1'
-                ? '📞 Showing demo data - Call +14243519304 to create real appointments!'
+              {appointments.length === 0
+                ? '📞 No appointments yet - Call +14243519304 to create your first booking!'
                 : `Managing ${appointments.length} appointments (including real phone bookings)`
               }
             </p>

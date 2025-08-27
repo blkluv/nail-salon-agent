@@ -4,6 +4,19 @@
 -- Enable UUID extension
 create extension if not exists "uuid-ossp";
 
+-- Phone numbers table for Vapi integration
+create table phone_numbers (
+    id uuid default uuid_generate_v4() primary key,
+    business_id uuid references businesses(id) on delete cascade,
+    phone_number varchar(20) not null,
+    vapi_phone_id varchar(255), -- Vapi's phone number ID
+    vapi_phone_number_id varchar(255), -- Alternative ID field
+    is_primary boolean default false,
+    is_active boolean default true,
+    created_at timestamp with time zone default now(),
+    updated_at timestamp with time zone default now()
+);
+
 -- Create custom types
 create type subscription_tier as enum ('starter', 'professional', 'enterprise');
 create type subscription_status as enum ('active', 'cancelled', 'past_due', 'trialing');

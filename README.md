@@ -1,8 +1,8 @@
-# 🎯 Vapi Nail Salon Agent - Plug & Play
+# 🎯 Vapi Nail Salon Agent - Voice & Web Booking
 
-> **The complete voice AI appointment booking system that deploys in under 5 minutes**
+> **The complete AI voice assistant & online booking system that deploys in under 5 minutes**
 
-A fully-featured voice AI receptionist for nail salons, spas, and beauty businesses. Built with Vapi, N8N, Supabase, and modern web technologies.
+A fully-featured AI receptionist and web booking platform for nail salons, spas, and beauty businesses. Built with Vapi for voice AI, Supabase for data, and modern web technologies.
 
 ## ✨ Features
 

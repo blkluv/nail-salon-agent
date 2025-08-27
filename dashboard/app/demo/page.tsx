@@ -66,6 +66,61 @@ const SCENARIOS: ScenarioConfig[] = [
   }
 ]
 
+const getScenarioSteps = (scenarioId: DemoScenario, progress: number) => {
+  if (!scenarioId) return []
+
+  switch (scenarioId) {
+    case 'busy-rush':
+      return [
+        { threshold: 20, title: "📞 AI Answers Call #1 (Ring 1)", description: "\"Hello! Thank you for calling. I'm your AI assistant. How can I help?\"", detail: "⏱️ Response time: 0.8 seconds while you focus on current client" },
+        { threshold: 30, title: "📋 AI Books Appointment", description: "Customer: \"I need a gel manicure tomorrow\" → AI finds 2:30 PM with Maria", detail: "🎯 Optimal scheduling based on staff expertise" },
+        { threshold: 40, title: "📞 AI Answers Call #2 (Ring 2)", description: "\"Hi there! Thanks for calling. What service can I book for you today?\"", detail: "💪 Still handling your nails perfectly - zero interruption" },
+        { threshold: 50, title: "💰 AI Upsells Strategically", description: "\"That pedicure sounds perfect! Add our relaxing foot mask for $10?\"", detail: "🧠 AI knows this customer's service history" },
+        { threshold: 60, title: "📞 AI Answers Call #3 (Ring 3)", description: "\"Good afternoon! I can help you schedule right now.\"", detail: "🚀 Your client doesn't even know phones are ringing" },
+        { threshold: 70, title: "📱 AI Sends All Confirmations", description: "3 customers get instant SMS + email confirmations with details", detail: "✨ Professional service without you touching your phone" },
+        { threshold: 80, title: "📊 AI Updates Your Schedule", description: "Calendar synced, staff notified, revenue tracked: $180 secured", detail: "🎉 You just earned money while doing what you love!" }
+      ]
+    
+    case 'after-hours':
+      return [
+        { threshold: 20, title: "🏠 You're Home with Family", description: "11 PM: Kids are asleep, you're watching Netflix with your partner", detail: "😴 You deserve this downtime after a long day" },
+        { threshold: 30, title: "📱 Customer Texts Emergency", description: "\"Help! I have a wedding tomorrow and my nails are a disaster!\"", detail: "😰 Without AI: You'd miss this or stress about responding" },
+        { threshold: 40, title: "🤖 AI Instantly Responds", description: "\"Oh no! Let me help you right away. I can fit you in at 9 AM with Maria.\"", detail: "⚡ AI responds in 3 seconds while you stay with family" },
+        { threshold: 50, title: "💡 AI Suggests Wedding Package", description: "\"For your wedding, I recommend our bridal package: mani + pedi + design\"", detail: "🎯 AI remembers wedding context and upsells appropriately" },
+        { threshold: 60, title: "📅 AI Checks Tomorrow's Schedule", description: "Maria available 9 AM, Ana available 10 AM, you available 11 AM", detail: "🔍 Real-time availability checking in seconds" },
+        { threshold: 70, title: "✅ AI Books Wedding Appointment", description: "\"Perfect! Maria will take amazing care of you at 9 AM ($85 total)\"", detail: "💍 Customer feels cared for and confident for wedding" },
+        { threshold: 80, title: "💤 You Never Got Disturbed", description: "Customer happy, appointment booked, you enjoyed family time", detail: "🏠 AI worked while you lived your life" }
+      ]
+    
+    case 'staff-sick':
+      return [
+        { threshold: 20, title: "☎️ Maria Calls In Sick", description: "\"I'm so sorry, I have food poisoning. Can't come in today.\"", detail: "😰 6 appointments scheduled with Maria today!" },
+        { threshold: 30, title: "🚨 AI Detects Schedule Crisis", description: "AI immediately identifies 6 affected appointments from 10 AM - 6 PM", detail: "🔍 Automatic crisis detection within 30 seconds" },
+        { threshold: 40, title: "🧠 AI Analyzes Redistribution", description: "Checking: Ana's availability, your availability, service compatibility", detail: "⚡ AI maps optimal staff reallocation in real-time" },
+        { threshold: 50, title: "📞 AI Calls Customer #1", description: "\"Hi Sarah! We need to move your 10 AM appointment with Maria to 11 AM with Ana\"", detail: "🎯 AI prioritizes by customer loyalty and flexibility" },
+        { threshold: 60, title: "📱 AI Texts Customers 2-4", description: "\"Your appointment is moving to a different time with our other expert tech\"", detail: "💡 AI customizes messaging based on customer preference" },
+        { threshold: 70, title: "📋 AI Updates All Systems", description: "Staff schedules, customer confirmations, payment processing all updated", detail: "🔄 Complete system synchronization automatically" },
+        { threshold: 80, title: "✅ Crisis Averted!", description: "All 6 customers rescheduled successfully, $420 revenue saved", detail: "🎉 What could have been chaos became seamless operation" }
+      ]
+    
+    default:
+      return []
+  }
+}
+
+const getScenarioIntroText = (scenarioId: DemoScenario) => {
+  switch (scenarioId) {
+    case 'busy-rush':
+      return "Watch your AI handle multiple phone calls while you stay focused on your current client's nails..."
+    case 'after-hours':
+      return "Watch your AI work while you're home with family - no interruptions to your personal time..."
+    case 'staff-sick':
+      return "Watch your AI automatically reschedule 6 appointments and save your day when staff calls in sick..."
+    default:
+      return "Watch your AI solve this problem step-by-step..."
+  }
+}
+
 export default function InteractiveDemoPage() {
   const [currentStep, setCurrentStep] = useState<DemoStep>('intro')
   const [selectedScenario, setSelectedScenario] = useState<DemoScenario>(null)
@@ -86,8 +141,8 @@ export default function InteractiveDemoPage() {
     let interval: NodeJS.Timeout
     if (isPlaying && progress < 100) {
       interval = setInterval(() => {
-        setProgress(prev => Math.min(prev + 0.8, 100))
-      }, 400) // Much slower: 50 seconds total for detailed steps
+        setProgress(prev => Math.min(prev + 1, 100))
+      }, 300) // 30 seconds total
     } else if (progress >= 100 && isPlaying) {
       setIsPlaying(false)
       setCurrentStep('results')
@@ -396,78 +451,20 @@ export default function InteractiveDemoPage() {
                       </div>
                       <h3 className="font-bold text-blue-800 text-lg">🤖 AI ASSISTANT TAKING CONTROL...</h3>
                     </div>
-                    <p className="text-blue-700 font-medium mb-4">Watch your AI handle this crisis step-by-step while you stay focused on your current client...</p>
+                    <p className="text-blue-700 font-medium mb-4">{getScenarioIntroText(selectedScenario)}</p>
                     <div className="space-y-3">
-                      {progress >= 20 && (
-                        <div className={`flex items-start text-blue-600 bg-white p-3 rounded-lg border border-blue-200 transition-all duration-500 ${progress >= 25 ? 'opacity-100' : 'opacity-75'}`}>
-                          {progress >= 25 ? <CheckCircleIcon className="w-5 h-5 mr-3 mt-0.5 flex-shrink-0" /> : <div className="w-5 h-5 mr-3 mt-0.5 flex-shrink-0 border-2 border-blue-300 border-t-blue-600 rounded-full animate-spin"></div>}
-                          <div>
-                            <div className="font-medium">📞 AI Picks Up Phone (Ring #1)</div>
-                            <div className="text-sm text-blue-500 mt-1">"Hello! Thank you for calling Glamour Nails & Spa. I'm your AI assistant. How can I help you today?"</div>
-                            <div className="text-xs text-blue-400 mt-1">⏱️ Response time: 0.8 seconds</div>
+                      {getScenarioSteps(selectedScenario, progress).map((step, index) => (
+                        progress >= step.threshold && (
+                          <div key={index} className={`flex items-start text-blue-600 bg-white p-3 rounded-lg border border-blue-200 transition-all duration-500 ${progress >= step.threshold + 5 ? 'opacity-100' : 'opacity-75'}`}>
+                            {progress >= step.threshold + 5 ? <CheckCircleIcon className="w-5 h-5 mr-3 mt-0.5 flex-shrink-0" /> : <div className="w-5 h-5 mr-3 mt-0.5 flex-shrink-0 border-2 border-blue-300 border-t-blue-600 rounded-full animate-spin"></div>}
+                            <div>
+                              <div className="font-medium">{step.title}</div>
+                              <div className="text-sm text-blue-500 mt-1">{step.description}</div>
+                              <div className="text-xs text-blue-400 mt-1">{step.detail}</div>
+                            </div>
                           </div>
-                        </div>
-                      )}
-                      {progress >= 30 && (
-                        <div className={`flex items-start text-blue-600 bg-white p-3 rounded-lg border border-blue-200 transition-all duration-500 ${progress >= 35 ? 'opacity-100' : 'opacity-75'}`}>
-                          {progress >= 35 ? <CheckCircleIcon className="w-5 h-5 mr-3 mt-0.5 flex-shrink-0" /> : <div className="w-5 h-5 mr-3 mt-0.5 flex-shrink-0 border-2 border-blue-300 border-t-blue-600 rounded-full animate-spin"></div>}
-                          <div>
-                            <div className="font-medium">🧠 AI Processes Natural Language</div>
-                            <div className="text-sm text-blue-500 mt-1">Customer: "Hi, I need a gel manicure for tomorrow afternoon if possible"</div>
-                            <div className="text-xs text-blue-400 mt-1">🤖 AI extracts: service="gel manicure", time="tomorrow afternoon", customer_type="new"</div>
-                          </div>
-                        </div>
-                      )}
-                      {progress >= 40 && (
-                        <div className={`flex items-start text-blue-600 bg-white p-3 rounded-lg border border-blue-200 transition-all duration-500 ${progress >= 45 ? 'opacity-100' : 'opacity-75'}`}>
-                          {progress >= 45 ? <CheckCircleIcon className="w-5 h-5 mr-3 mt-0.5 flex-shrink-0" /> : <div className="w-5 h-5 mr-3 mt-0.5 flex-shrink-0 border-2 border-blue-300 border-t-blue-600 rounded-full animate-spin"></div>}
-                          <div>
-                            <div className="font-medium">🗄️ AI Queries Your Business Database</div>
-                            <div className="text-sm text-blue-500 mt-1">Checking: Maria's schedule, Ana's schedule, gel service duration (90 mins), current bookings</div>
-                            <div className="text-xs text-blue-400 mt-1">⚡ Database response: 23ms</div>
-                          </div>
-                        </div>
-                      )}
-                      {progress >= 50 && (
-                        <div className={`flex items-start text-blue-600 bg-white p-3 rounded-lg border border-blue-200 transition-all duration-500 ${progress >= 55 ? 'opacity-100' : 'opacity-75'}`}>
-                          {progress >= 55 ? <CheckCircleIcon className="w-5 h-5 mr-3 mt-0.5 flex-shrink-0" /> : <div className="w-5 h-5 mr-3 mt-0.5 flex-shrink-0 border-2 border-blue-300 border-t-blue-600 rounded-full animate-spin"></div>}
-                          <div>
-                            <div className="font-medium">📅 AI Calculates Optimal Time Slots</div>
-                            <div className="text-sm text-blue-500 mt-1">Options: 2:00 PM (Ana), 2:30 PM (Maria), 4:00 PM (Maria)</div>
-                            <div className="text-xs text-blue-400 mt-1">🎯 AI recommends: 2:30 PM with Maria (top-rated technician)</div>
-                          </div>
-                        </div>
-                      )}
-                      {progress >= 60 && (
-                        <div className={`flex items-start text-blue-600 bg-white p-3 rounded-lg border border-blue-200 transition-all duration-500 ${progress >= 65 ? 'opacity-100' : 'opacity-75'}`}>
-                          {progress >= 65 ? <CheckCircleIcon className="w-5 h-5 mr-3 mt-0.5 flex-shrink-0" /> : <div className="w-5 h-5 mr-3 mt-0.5 flex-shrink-0 border-2 border-blue-300 border-t-blue-600 rounded-full animate-spin"></div>}
-                          <div>
-                            <div className="font-medium">💰 AI Presents Options & Smart Upsells</div>
-                            <div className="text-sm text-blue-500 mt-1">"Perfect! I have 2:30 PM tomorrow with Maria. Gel manicure is $45. Want to add our signature cuticle treatment for $15?"</div>
-                            <div className="text-xs text-blue-400 mt-1">🎯 Upsell logic: new customer + gel service = cuticle offer (78% acceptance rate)</div>
-                          </div>
-                        </div>
-                      )}
-                      {progress >= 70 && (
-                        <div className={`flex items-start text-blue-600 bg-white p-3 rounded-lg border border-blue-200 transition-all duration-500 ${progress >= 75 ? 'opacity-100' : 'opacity-75'}`}>
-                          {progress >= 75 ? <CheckCircleIcon className="w-5 h-5 mr-3 mt-0.5 flex-shrink-0" /> : <div className="w-5 h-5 mr-3 mt-0.5 flex-shrink-0 border-2 border-blue-300 border-t-blue-600 rounded-full animate-spin"></div>}
-                          <div>
-                            <div className="font-medium">📋 AI Creates Complete Booking Record</div>
-                            <div className="text-sm text-blue-500 mt-1">Saving: Customer profile, appointment details, staff assignment, service pricing ($60 total)</div>
-                            <div className="text-xs text-blue-400 mt-1">💾 Secure database transaction completed + calendar sync</div>
-                          </div>
-                        </div>
-                      )}
-                      {progress >= 80 && (
-                        <div className={`flex items-start text-blue-600 bg-white p-3 rounded-lg border border-blue-200 transition-all duration-500 ${progress >= 85 ? 'opacity-100' : 'opacity-75'}`}>
-                          {progress >= 85 ? <CheckCircleIcon className="w-5 h-5 mr-3 mt-0.5 flex-shrink-0" /> : <div className="w-5 h-5 mr-3 mt-0.5 flex-shrink-0 border-2 border-blue-300 border-t-blue-600 rounded-full animate-spin"></div>}
-                          <div>
-                            <div className="font-medium">📱 AI Sends Professional Confirmations</div>
-                            <div className="text-sm text-blue-500 mt-1">SMS: "Hi Jennifer! Your gel manicure + cuticle treatment is confirmed tomorrow at 2:30 PM with Maria ($60). See you soon!"</div>
-                            <div className="text-xs text-blue-400 mt-1">📧 Email confirmation with salon address & parking info also sent</div>
-                          </div>
-                        </div>
-                      )}
+                        )
+                      ))}
                     </div>
                   </div>
                 )}
@@ -485,12 +482,33 @@ export default function InteractiveDemoPage() {
                     <div className="bg-white rounded-lg p-4 border border-green-200 mb-4">
                       <h4 className="font-bold text-green-800 mb-2">🎯 What Just Happened Behind The Scenes:</h4>
                       <div className="text-sm text-green-700 space-y-1">
-                        <div>✅ Customer received instant, professional service (no hold time)</div>
-                        <div>✅ AI secured ${currentScenario.revenue} booking + $15 upsell = $60 total</div>
-                        <div>✅ Customer is happy and will become repeat client</div>
-                        <div>✅ You stayed 100% focused on your current client's nails</div>
-                        <div>✅ Zero stress, zero interruption, pure profit</div>
-                        <div>✅ Maria's schedule optimally filled with preferred time slot</div>
+                        {selectedScenario === 'busy-rush' && (
+                          <>
+                            <div>✅ 3 phone calls answered instantly while you worked</div>
+                            <div>✅ AI secured ${currentScenario.revenue} in bookings during 15 minutes</div>
+                            <div>✅ Zero interruptions to your current client service</div>
+                            <div>✅ All customers happy with immediate professional response</div>
+                            <div>✅ Your schedule optimized for maximum revenue</div>
+                          </>
+                        )}
+                        {selectedScenario === 'after-hours' && (
+                          <>
+                            <div>✅ Emergency wedding booking secured at 11 PM</div>
+                            <div>✅ Customer got instant help during crisis moment</div>
+                            <div>✅ You never got disturbed during family time</div>
+                            <div>✅ AI worked while you slept and relaxed</div>
+                            <div>✅ Bridal package upsold for maximum value</div>
+                          </>
+                        )}
+                        {selectedScenario === 'staff-sick' && (
+                          <>
+                            <div>✅ 6 appointments automatically rescheduled</div>
+                            <div>✅ All customers personally contacted and informed</div>
+                            <div>✅ Staff schedules rebalanced optimally</div>
+                            <div>✅ Crisis turned into smooth operation</div>
+                            <div>✅ $420 revenue saved from potential cancellations</div>
+                          </>
+                        )}
                       </div>
                     </div>
                     
@@ -521,7 +539,9 @@ export default function InteractiveDemoPage() {
                     <div className="flex items-center">
                       <div className="w-3 h-3 bg-green-400 rounded-full mr-2 animate-pulse"></div>
                       <span className="text-gray-600">
-                        <strong>Sarah in Miami</strong> just made $180 while doing a pedicure
+                        {selectedScenario === 'busy-rush' && <><strong>Sarah in Miami</strong> just made $180 while doing a pedicure</>}
+                        {selectedScenario === 'after-hours' && <><strong>Mike in Denver</strong> booked $120 at midnight from his couch</>}
+                        {selectedScenario === 'staff-sick' && <><strong>Lisa in Phoenix</strong> saved $300 when staff called out</>}
                       </span>
                     </div>
                   </div>

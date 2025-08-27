@@ -19,15 +19,14 @@ import {
   ResponsiveContainer 
 } from 'recharts'
 
-// Demo business ID - corrected to use voice AI business ID
-const BUSINESS_ID = process.env.NEXT_PUBLIC_DEMO_BUSINESS_ID || '8424aa26-4fd5-4d4b-92aa-8a9c5ba77dad'
+import { getCurrentBusinessId } from '../../../lib/auth-utils'
 
-// Mock service data for now - will be replaced with real data later
+// Use authenticated business ID
+const getBusinessId = () => getCurrentBusinessId() || '8424aa26-4fd5-4d4b-92aa-8a9c5ba77dad'
+
+// Empty service data for new business - will populate as appointments are made
 const serviceData = [
-  { name: 'Gel Manicure', value: 35, color: '#3B82F6' },
-  { name: 'Spa Pedicure', value: 28, color: '#EC4899' },
-  { name: 'Classic Manicure', value: 20, color: '#10B981' },
-  { name: 'Nail Art', value: 12, color: '#F59E0B' },
+  // No data yet - will be calculated from real appointments
   { name: 'Express Manicure', value: 5, color: '#8B5CF6' }
 ]
 
@@ -49,7 +48,8 @@ export default function AnalyticsPage() {
       setError(null)
 
       // Load business data
-      const businessData = await BusinessAPI.getBusiness(BUSINESS_ID)
+      const businessId = getBusinessId()
+      const businessData = await BusinessAPI.getBusiness(businessId)
       if (businessData) {
         setBusiness(businessData)
       }

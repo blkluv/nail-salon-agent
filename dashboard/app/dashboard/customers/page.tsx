@@ -1,6 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { BusinessAPI } from '../../../lib/supabase'
+import { getCurrentBusinessId } from '../../../lib/auth-utils'
 import Layout from '../../../components/Layout'
 import {
   UserPlusIcon,
@@ -134,7 +136,48 @@ const mockCustomers: Customer[] = [
 ]
 
 export default function CustomersPage() {
-  const [customers, setCustomers] = useState<Customer[]>(mockCustomers)
+  const [customers, setCustomers] = useState<Customer[]>([])
+  const [loading, setLoading] = useState(true)
+
+  // Load real customers from database
+  useEffect(() => {
+    loadCustomers()
+  }, [])
+
+  const loadCustomers = async () => {
+    try {
+      setLoading(true)
+      const businessId = getCurrentBusinessId()
+      if (!businessId) return
+
+      const realCustomers = await BusinessAPI.getCustomers(businessId)
+      
+      // Transform to match our interface
+      const transformedCustomers: Customer[] = realCustomers.map(customer => ({
+        id: customer.id,
+        name: `${customer.first_name} ${customer.last_name}`,
+        email: customer.email || '',
+        phone: customer.phone,
+        joinDate: customer.created_at,
+        totalVisits: customer.total_visits || 0,
+        totalSpent: customer.total_spent || 0,
+        lastVisit: customer.last_visit_date || undefined,
+        isFavorite: false,
+        notes: customer.notes || '',
+        preferences: customer.preferences || {},
+        upcomingAppointments: 0, // Would need to query
+        loyaltyPoints: 0, // Not in DB yet
+        tags: [] // Could be added later
+      }))
+      
+      setCustomers(transformedCustomers)
+    } catch (error) {
+      console.error('Error loading customers:', error)
+      setCustomers([])
+    } finally {
+      setLoading(false)
+    }
+  }
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null)

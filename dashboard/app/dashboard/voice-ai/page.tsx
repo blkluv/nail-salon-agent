@@ -30,49 +30,8 @@ interface CallLog {
   transcript?: string
 }
 
-const mockCallLogs: CallLog[] = [
-  {
-    id: '1',
-    timestamp: '2024-01-15T14:30:00Z',
-    duration: 185,
-    outcome: 'booking',
-    customerPhone: '(555) 123-4567',
-    customerName: 'Sarah Johnson',
-    serviceRequested: 'Gel Manicure',
-    appointmentBooked: true,
-    transcript: 'Customer called to book a gel manicure for tomorrow at 2 PM...'
-  },
-  {
-    id: '2',
-    timestamp: '2024-01-15T11:15:00Z',
-    duration: 92,
-    outcome: 'inquiry',
-    customerPhone: '(555) 234-5678',
-    serviceRequested: 'Pricing Information',
-    appointmentBooked: false,
-    transcript: 'Customer asked about pricing for spa pedicure...'
-  },
-  {
-    id: '3',
-    timestamp: '2024-01-15T09:45:00Z',
-    duration: 12,
-    outcome: 'hung_up',
-    customerPhone: '(555) 345-6789',
-    appointmentBooked: false,
-    transcript: 'Call disconnected after greeting'
-  },
-  {
-    id: '4',
-    timestamp: '2024-01-14T16:20:00Z',
-    duration: 156,
-    outcome: 'booking',
-    customerPhone: '(555) 456-7890',
-    customerName: 'Emily Chen',
-    serviceRequested: 'Spa Pedicure',
-    appointmentBooked: true,
-    transcript: 'Customer booked spa pedicure for Friday at 11 AM...'
-  }
-]
+// No call logs yet for new business
+const mockCallLogs: CallLog[] = []
 
 export default function VoiceAIPage() {
   const [isActive, setIsActive] = useState(true)

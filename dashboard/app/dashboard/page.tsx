@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Layout from '../../components/Layout'
+import ProtectedRoute from '../../components/ProtectedRoute'
 import { BusinessAPI, type Business, type DashboardStats, type Appointment } from '../../lib/supabase'
 import {
   CalendarIcon,
@@ -13,16 +14,15 @@ import {
 } from '@heroicons/react/24/outline'
 import { format, isToday, isTomorrow } from 'date-fns'
 
-// Get business ID from localStorage (set during onboarding) or use demo
+import { getCurrentBusinessId } from '../../lib/auth-utils'
+
+// Get business ID from authenticated user or demo
 const getBusinessId = () => {
-  if (typeof window !== 'undefined') {
-    return localStorage.getItem('demo_business_id') || process.env.NEXT_PUBLIC_DEMO_BUSINESS_ID || '8424aa26-4fd5-4d4b-92aa-8a9c5ba77dad'
-  }
-  return process.env.NEXT_PUBLIC_DEMO_BUSINESS_ID || '8424aa26-4fd5-4d4b-92aa-8a9c5ba77dad'
+  return getCurrentBusinessId() || '8424aa26-4fd5-4d4b-92aa-8a9c5ba77dad'
 }
 
 
-export default function DashboardPage() {
+function DashboardPage() {
   const [business, setBusiness] = useState<Business | null>(null)
   const [stats, setStats] = useState<DashboardStats>({
     totalAppointments: 0,
@@ -45,7 +45,9 @@ export default function DashboardPage() {
       
       // Load business data
       const businessId = getBusinessId()
+      console.log('🔍 Dashboard loading with Business ID:', businessId)
       const businessData = await BusinessAPI.getBusiness(businessId)
+      console.log('📋 Business data loaded:', businessData?.name)
       if (businessData) {
         setBusiness(businessData)
       } else {
@@ -59,6 +61,7 @@ export default function DashboardPage() {
 
       // Load upcoming appointments
       const upcomingAppts = await BusinessAPI.getUpcomingAppointments(businessId, 5)
+      console.log('📅 Upcoming appointments loaded:', upcomingAppts.length)
       setUpcomingAppointments(upcomingAppts)
 
     } catch (error) {
@@ -410,3 +413,14 @@ export default function DashboardPage() {
     </Layout>
   )
 }
+
+// Wrap the entire component with ProtectedRoute
+function ProtectedDashboardPage() {
+  return (
+    <ProtectedRoute>
+      <DashboardPage />
+    </ProtectedRoute>
+  )
+}
+
+export default ProtectedDashboardPage

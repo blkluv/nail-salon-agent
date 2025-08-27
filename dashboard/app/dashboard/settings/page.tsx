@@ -85,7 +85,7 @@ export default function SettingsPage() {
   }
 
   return (
-    <Layout business={{ name: 'Bella Nails & Spa', subscription_tier: 'professional' }}>
+    <Layout>
       <div className="p-8">
         {/* Header */}
         <div className="mb-8">
@@ -139,7 +139,7 @@ export default function SettingsPage() {
                       <input
                         type="text"
                         className="input-field"
-                        defaultValue="Bella Nails & Spa"
+                        defaultValue="dropfly"
                         disabled={!isEditingProfile}
                       />
                     </div>

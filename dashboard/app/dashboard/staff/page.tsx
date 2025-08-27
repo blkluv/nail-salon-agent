@@ -1,7 +1,9 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Layout from '../../../components/Layout'
+import { BusinessAPI } from '../../../lib/supabase'
+import { getCurrentBusinessId } from '../../../lib/auth-utils'
 import {
   UserPlusIcon,
   MagnifyingGlassIcon,
@@ -113,7 +115,48 @@ const daysOfWeek = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'sat
 const dayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
 
 export default function StaffPage() {
-  const [staff, setStaff] = useState<Staff[]>(mockStaff)
+  const [staff, setStaff] = useState<Staff[]>([])
+  const [loading, setLoading] = useState(true)
+
+  // Load real staff from database
+  useEffect(() => {
+    loadStaff()
+  }, [])
+
+  const loadStaff = async () => {
+    try {
+      setLoading(true)
+      const businessId = getCurrentBusinessId()
+      if (!businessId) return
+
+      const realStaff = await BusinessAPI.getStaff(businessId)
+      
+      // Transform to match our interface
+      const transformedStaff: Staff[] = realStaff.map(member => ({
+        id: member.id,
+        name: `${member.first_name} ${member.last_name}`,
+        email: member.email,
+        phone: member.phone || '',
+        specialties: member.specialties || [],
+        isActive: member.is_active,
+        hireDate: member.hire_date || new Date().toISOString().split('T')[0],
+        hourlyRate: member.hourly_rate || 0,
+        commissionRate: member.commission_rate || 0,
+        role: member.role,
+        totalAppointments: 0, // Would need to calculate
+        totalRevenue: 0, // Would need to calculate
+        rating: 5.0, // Would need to calculate from reviews
+        schedule: {} // Empty schedule for now - would need staff_schedules table
+      }))
+      
+      setStaff(transformedStaff)
+    } catch (error) {
+      console.error('Error loading staff:', error)
+      setStaff([])
+    } finally {
+      setLoading(false)
+    }
+  }
   const [searchTerm, setSearchTerm] = useState('')
   const [selectedStaff, setSelectedStaff] = useState<Staff | null>(null)
   const [showModal, setShowModal] = useState(false)
@@ -138,12 +181,15 @@ export default function StaffPage() {
   }
 
   const getScheduleDisplay = (schedule: Staff['schedule']) => {
-    const workingDays = daysOfWeek.filter(day => schedule[day] !== 'off').length
+    if (!schedule || Object.keys(schedule).length === 0) {
+      return 'Schedule not set'
+    }
+    const workingDays = daysOfWeek.filter(day => schedule[day] && schedule[day] !== 'off').length
     return `${workingDays} days/week`
   }
 
   return (
-    <Layout business={{ name: 'Bella Nails & Spa', subscription_tier: 'professional' }}>
+    <Layout>
       <div className="p-8">
         {/* Header */}
         <div className="sm:flex sm:items-center sm:justify-between mb-8">
