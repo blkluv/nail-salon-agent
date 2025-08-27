@@ -429,7 +429,109 @@ app.get('/', (req, res) => {
     });
 });
 
-// Web booking endpoint
+// Web booking GET endpoint - shows booking form
+app.get('/webhook/web-booking', (req, res) => {
+    res.send(`
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>Quick Booking Test</title>
+        <style>
+            body { font-family: Arial, sans-serif; padding: 20px; background: #f5f5f5; }
+            .form-container { max-width: 400px; margin: 0 auto; background: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+            h2 { color: #ff6b9d; text-align: center; }
+            label { display: block; margin: 10px 0 5px; font-weight: bold; }
+            input, textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 5px; margin-bottom: 10px; }
+            button { background: #ff6b9d; color: white; padding: 12px 20px; border: none; border-radius: 5px; cursor: pointer; width: 100%; font-size: 16px; }
+            button:hover { background: #e55a8a; }
+            .result { margin-top: 20px; padding: 10px; border-radius: 5px; }
+            .success { background: #d4edda; color: #155724; }
+            .error { background: #f8d7da; color: #721c24; }
+        </style>
+    </head>
+    <body>
+        <div class="form-container">
+            <h2>💅 Book Your Appointment</h2>
+            <form id="bookingForm">
+                <label>Full Name:</label>
+                <input type="text" id="name" required placeholder="John Doe">
+                
+                <label>Phone Number:</label>
+                <input type="tel" id="phone" required placeholder="+1-555-123-4567">
+                
+                <label>Email (optional):</label>
+                <input type="email" id="email" placeholder="john@example.com">
+                
+                <label>Service:</label>
+                <input type="text" id="service" placeholder="Manicure" value="Manicure">
+                
+                <label>Date:</label>
+                <input type="date" id="date" required>
+                
+                <label>Time:</label>
+                <input type="time" id="time" required>
+                
+                <label>Notes (optional):</label>
+                <textarea id="notes" rows="3" placeholder="Any special requests..."></textarea>
+                
+                <button type="submit">Book Appointment 💅</button>
+            </form>
+            <div id="result"></div>
+        </div>
+        
+        <script>
+            // Set default date to tomorrow
+            const tomorrow = new Date();
+            tomorrow.setDate(tomorrow.getDate() + 1);
+            document.getElementById('date').value = tomorrow.toISOString().split('T')[0];
+            document.getElementById('time').value = '14:00';
+            
+            document.getElementById('bookingForm').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                
+                const formData = {
+                    name: document.getElementById('name').value,
+                    phone: document.getElementById('phone').value,
+                    email: document.getElementById('email').value,
+                    service: document.getElementById('service').value,
+                    date: document.getElementById('date').value,
+                    time: document.getElementById('time').value,
+                    notes: document.getElementById('notes').value
+                };
+                
+                const resultDiv = document.getElementById('result');
+                resultDiv.innerHTML = 'Booking appointment...';
+                
+                try {
+                    const response = await fetch('/webhook/web-booking', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(formData)
+                    });
+                    
+                    const result = await response.json();
+                    
+                    if (response.ok && result.success) {
+                        resultDiv.className = 'result success';
+                        resultDiv.innerHTML = '✅ Appointment booked successfully!<br>Appointment ID: ' + result.appointment.id;
+                    } else {
+                        resultDiv.className = 'result error';
+                        resultDiv.innerHTML = '❌ Error: ' + (result.error || 'Unknown error');
+                    }
+                } catch (error) {
+                    resultDiv.className = 'result error';
+                    resultDiv.innerHTML = '❌ Network error: ' + error.message;
+                }
+            });
+        </script>
+    </body>
+    </html>
+    `);
+});
+
+// Web booking POST endpoint
 app.post('/webhook/web-booking', async (req, res) => {
     try {
         console.log('🌐 Web booking request:', JSON.stringify(req.body, null, 2));
