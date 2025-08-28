@@ -56,11 +56,11 @@ export default function AnalyticsPage() {
 
       // Load revenue data based on time range
       const months = timeRange === '30d' ? 6 : timeRange === '90d' ? 12 : 6
-      const revenue = await BusinessAPI.getRevenueData(BUSINESS_ID, months)
+      const revenue = await BusinessAPI.getRevenueData(businessId, months)
       setRevenueData(revenue)
 
       // Load staff performance
-      const staff = await BusinessAPI.getStaffPerformance(BUSINESS_ID)
+      const staff = await BusinessAPI.getStaffPerformance(businessId)
       setStaffPerformance(staff)
 
     } catch (error) {
