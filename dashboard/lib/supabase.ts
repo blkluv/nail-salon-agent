@@ -4,7 +4,7 @@ import {
   LoyaltyProgram, CustomerLoyaltyPoints, LoyaltyTransaction,
   LocationAPI, PaymentAPI, LoyaltyAPI,
   CreateLocationRequest, CreatePaymentRequest, ProcessPaymentResponse,
-  LoyaltyRedemptionRequest, PlanTierLimits, LoyaltyCustomer
+  LoyaltyRedemptionRequest, PlanTierLimits, LoyaltyCustomer, LoyaltyRewardTier
 } from './supabase-types-mvp'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
