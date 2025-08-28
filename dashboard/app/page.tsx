@@ -27,28 +27,6 @@ import { StarIcon as StarIconSolid } from '@heroicons/react/24/solid'
 
 export default function LandingPage() {
   const router = useRouter()
-  const [timeLeft, setTimeLeft] = useState({ hours: 23, minutes: 59, seconds: 59 })
-  const [bookingsCount, setBookingsCount] = useState(12847)
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setTimeLeft(prev => {
-        if (prev.seconds > 0) return { ...prev, seconds: prev.seconds - 1 }
-        if (prev.minutes > 0) return { ...prev, minutes: prev.minutes - 1, seconds: 59 }
-        if (prev.hours > 0) return { hours: prev.hours - 1, minutes: 59, seconds: 59 }
-        return { hours: 23, minutes: 59, seconds: 59 }
-      })
-    }, 1000)
-
-    const bookingTimer = setInterval(() => {
-      setBookingsCount(prev => prev + Math.floor(Math.random() * 3) + 1)
-    }, 5000)
-
-    return () => {
-      clearInterval(timer)
-      clearInterval(bookingTimer)
-    }
-  }, [])
 
   const handleOnboarding = () => {
     router.push('/onboarding')
@@ -130,20 +108,11 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-white">
-      {/* Urgency Banner */}
-      <div className="bg-gradient-to-r from-red-600 to-pink-600 text-white py-2 text-center relative overflow-hidden">
-        <div className="relative z-10">
-          <span className="font-bold">🔥 LIMITED TIME: 50% OFF + FREE SETUP</span>
-          <span className="mx-2">•</span>
-          <span className="font-mono">
-            {String(timeLeft.hours).padStart(2, '0')}:
-            {String(timeLeft.minutes).padStart(2, '0')}:
-            {String(timeLeft.seconds).padStart(2, '0')}
-          </span>
-          <span className="mx-2">•</span>
-          <span className="text-sm">Only 3 spots left today!</span>
-        </div>
-        <div className="absolute inset-0 bg-black/10 animate-pulse"></div>
+      {/* Announcement Banner */}
+      <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 text-center">
+        <span className="font-semibold">✨ NEW: Free setup for early adopters</span>
+        <span className="mx-2">•</span>
+        <span className="text-sm">Join salons already using AI to grow their business</span>
       </div>
 
       {/* Header */}
@@ -157,11 +126,6 @@ export default function LandingPage() {
               </span>
             </div>
             <nav className="flex items-center space-x-4">
-              <div className="hidden sm:flex items-center text-sm text-gray-600 mr-4">
-                <FireIcon className="w-4 h-4 text-red-500 mr-1" />
-                <span className="font-semibold">{bookingsCount.toLocaleString()}</span>
-                <span className="ml-1">bookings today</span>
-              </div>
               <button
                 onClick={handleDemo}
                 className="text-gray-700 hover:text-purple-600 transition font-medium"
@@ -172,7 +136,7 @@ export default function LandingPage() {
                 onClick={handleOnboarding}
                 className="px-6 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full hover:shadow-lg transition-all transform hover:scale-105 font-semibold"
               >
-                Start Free Trial
+                Get Started
               </button>
             </nav>
           </div>
@@ -184,9 +148,9 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             {/* Trust Badge */}
-            <div className="inline-flex items-center bg-green-100 text-green-800 px-4 py-2 rounded-full mb-6">
+            <div className="inline-flex items-center bg-blue-50 text-blue-800 px-4 py-2 rounded-full mb-6">
               <ShieldCheckIcon className="w-5 h-5 mr-2" />
-              <span className="text-sm font-semibold">Trusted by 500+ Nail Salons Nationwide</span>
+              <span className="text-sm font-semibold">Used by nail salons nationwide</span>
             </div>
             
             <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
@@ -212,7 +176,7 @@ export default function LandingPage() {
                 className="group px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-lg font-bold rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:scale-105 flex items-center justify-center"
               >
                 <RocketLaunchIcon className="w-6 h-6 mr-2" />
-                Claim 50% OFF Now
+                Start Free Trial
                 <ArrowRightIcon className="w-5 h-5 ml-2 group-hover:translate-x-1 transition" />
               </button>
               
@@ -346,7 +310,7 @@ export default function LandingPage() {
             <h2 className="text-4xl font-bold mb-4">
               Salon Owners <span className="text-purple-600">Love</span> The Results
             </h2>
-            <p className="text-xl text-gray-600">Join 500+ salons already using AI to grow</p>
+            <p className="text-xl text-gray-600">See what early adopters are saying</p>
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
@@ -432,22 +396,21 @@ export default function LandingPage() {
       {/* Pricing Section */}
       <section className="py-20 bg-gradient-to-br from-purple-600 to-pink-600 text-white">
         <div className="max-w-4xl mx-auto px-4 text-center">
-          <h2 className="text-4xl font-bold mb-4">Limited Time Offer</h2>
-          <p className="text-xl mb-12 text-white/90">Get started today and lock in this special rate forever</p>
+          <h2 className="text-4xl font-bold mb-4">Simple, Transparent Pricing</h2>
+          <p className="text-xl mb-12 text-white/90">Everything you need to transform your salon booking experience</p>
 
           <div className="bg-white rounded-3xl p-8 text-gray-900 relative">
             <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-              <span className="bg-gradient-to-r from-yellow-400 to-orange-400 text-white px-6 py-2 rounded-full font-bold text-sm">
-                SAVE 50% TODAY ONLY
+              <span className="bg-gradient-to-r from-green-500 to-blue-500 text-white px-6 py-2 rounded-full font-bold text-sm">
+                EARLY ADOPTER PRICING
               </span>
             </div>
 
             <div className="pt-4">
-              <div className="text-gray-500 line-through text-2xl">$194/month</div>
               <div className="text-6xl font-bold mb-2">
                 $97<span className="text-2xl text-gray-600">/month</span>
               </div>
-              <p className="text-gray-600 mb-8">Everything included. No hidden fees.</p>
+              <p className="text-gray-600 mb-8">Everything included. Cancel anytime.</p>
 
               <div className="grid md:grid-cols-2 gap-4 text-left mb-8">
                 <div className="flex items-start">
@@ -468,11 +431,11 @@ export default function LandingPage() {
                 </div>
                 <div className="flex items-start">
                   <CheckIcon className="w-5 h-5 text-green-500 mt-0.5 mr-2" />
-                  <span>Free Setup ($500 value)</span>
+                  <span>Free Setup & Training</span>
                 </div>
                 <div className="flex items-start">
                   <CheckIcon className="w-5 h-5 text-green-500 mt-0.5 mr-2" />
-                  <span>No Contracts</span>
+                  <span>Cancel Anytime</span>
                 </div>
               </div>
 
@@ -480,18 +443,11 @@ export default function LandingPage() {
                 onClick={handleOnboarding}
                 className="w-full md:w-auto px-12 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-lg font-bold rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:scale-105"
               >
-                Start Free 7-Day Trial →
+                Start Free Trial →
               </button>
 
-              <div className="mt-6 flex items-center justify-center space-x-6 text-sm text-gray-600">
-                <div className="flex items-center">
-                  <ShieldCheckIcon className="w-5 h-5 mr-1 text-green-500" />
-                  <span>30-Day Money Back</span>
-                </div>
-                <div className="flex items-center">
-                  <CurrencyDollarIcon className="w-5 h-5 mr-1 text-green-500" />
-                  <span>No Setup Fee</span>
-                </div>
+              <div className="mt-6 text-center text-sm text-gray-600">
+                <p>7-day free trial • No credit card required</p>
               </div>
             </div>
           </div>
@@ -531,34 +487,23 @@ export default function LandingPage() {
       <section className="py-20 bg-gradient-to-br from-purple-50 via-pink-50 to-white">
         <div className="max-w-4xl mx-auto text-center px-4">
           <h2 className="text-4xl md:text-5xl font-bold mb-6">
-            Every Hour You Wait =
-            <span className="text-red-600"> Lost Bookings</span>
+            Ready to Never Miss
+            <span className="text-purple-600"> Another Booking?</span>
           </h2>
           <p className="text-xl text-gray-700 mb-8">
-            Your competitors are already using AI. Don't let them steal your customers.
+            Join forward-thinking salon owners who are already using AI to grow their business.
           </p>
-
-          <div className="bg-yellow-50 border-2 border-yellow-200 rounded-xl p-6 mb-8">
-            <p className="text-lg font-semibold text-yellow-900 mb-2">
-              ⚡ Special Offer Expires In:
-            </p>
-            <div className="text-3xl font-mono font-bold text-yellow-900">
-              {String(timeLeft.hours).padStart(2, '0')}:
-              {String(timeLeft.minutes).padStart(2, '0')}:
-              {String(timeLeft.seconds).padStart(2, '0')}
-            </div>
-          </div>
 
           <button
             onClick={handleOnboarding}
-            className="group px-10 py-5 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xl font-bold rounded-full shadow-2xl hover:shadow-3xl transition-all transform hover:scale-105 animate-pulse"
+            className="group px-10 py-5 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xl font-bold rounded-full shadow-2xl hover:shadow-3xl transition-all transform hover:scale-105"
           >
-            Yes! Start My Free Trial Now
+            Start Your Free Trial
             <ArrowRightIcon className="inline-block w-6 h-6 ml-2 group-hover:translate-x-2 transition" />
           </button>
 
           <p className="mt-6 text-sm text-gray-600">
-            Join {bookingsCount.toLocaleString()}+ bookings made today • No credit card required
+            7-day free trial • No credit card required • Cancel anytime
           </p>
         </div>
       </section>
