@@ -174,4 +174,4 @@ export class AdaptedLoyaltyAPI {
 // 5. EXPORT ADAPTED TYPES FOR COMPONENTS
 // ==============================================
 
-export type { LoyaltyTier, LoyaltyProgramUI, LoyaltyCustomer }
+export type { LoyaltyProgramUI }
