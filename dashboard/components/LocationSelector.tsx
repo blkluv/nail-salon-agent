@@ -119,7 +119,7 @@ export default function LocationSelector({
                           <span className={`block truncate ${selected ? 'font-medium' : 'font-normal'}`}>
                             {option.name}
                           </span>
-                          {!option.isAllOption && option.is_primary && (
+                          {!option.isAllOption && 'is_primary' in option && option.is_primary && (
                             <span className="ml-2 inline-flex items-center px-1.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
                               Primary
                             </span>
@@ -134,7 +134,7 @@ export default function LocationSelector({
                           </span>
                         ) : null}
 
-                        {!option.isAllOption && (
+                        {!option.isAllOption && 'city' in option && 'state' in option && (
                           <div className="text-xs text-gray-500 ml-6 mt-1">
                             {option.city}, {option.state}
                           </div>
