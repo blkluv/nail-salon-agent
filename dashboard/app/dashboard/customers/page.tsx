@@ -155,19 +155,23 @@ export default function CustomersPage() {
       // Transform to match our interface
       const transformedCustomers: Customer[] = realCustomers.map(customer => ({
         id: customer.id,
-        name: `${customer.first_name} ${customer.last_name}`,
+        firstName: customer.first_name,
+        lastName: customer.last_name,
         email: customer.email || '',
         phone: customer.phone,
-        joinDate: customer.created_at,
         totalVisits: customer.total_visits || 0,
         totalSpent: customer.total_spent || 0,
-        lastVisit: customer.last_visit_date || undefined,
-        isFavorite: false,
+        lastVisitDate: customer.last_visit_date || customer.created_at,
+        firstVisitDate: customer.created_at,
+        favoriteServices: [],
+        preferredTechnician: undefined,
+        loyaltyPoints: 0,
+        status: 'active' as const,
+        rating: 5,
         notes: customer.notes || '',
-        preferences: customer.preferences || {},
-        upcomingAppointments: 0, // Would need to query
-        loyaltyPoints: 0, // Not in DB yet
-        tags: [] // Could be added later
+        upcomingAppointments: 0,
+        allergies: [],
+        birthday: customer.date_of_birth
       }))
       
       setCustomers(transformedCustomers)

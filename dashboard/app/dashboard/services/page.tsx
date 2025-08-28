@@ -75,7 +75,7 @@ export default function ServicesPage() {
         description: service.description || '',
         category: service.category || 'General',
         duration: service.duration_minutes,
-        price: service.price_cents ? service.price_cents / 100 : 0,
+        price: service.base_price || 0,
         isActive: service.is_active,
         isFeatured: false, // Could be added to DB later
         requiresDeposit: false, // Could be added to DB later
