@@ -87,29 +87,13 @@ const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 
 
 const PRICING_PLANS: PricingPlan[] = [
   {
-    id: 'starter',
-    name: 'Starter',
-    price: 59,
-    channels: ['sms', 'web'],
-    description: 'Perfect for solo entrepreneurs and small salons',
-    features: ['SMS + Web booking', 'Customer management', 'Basic analytics', 'Email notifications', 'Mobile-friendly dashboard']
-  },
-  {
-    id: 'professional',
-    name: 'Professional',
-    price: 99,
-    channels: ['sms', 'web', 'voice'],
-    description: 'Complete booking solution for growing salons',
-    features: ['All booking channels', 'AI phone receptionist', 'Advanced analytics', 'Priority support', 'Custom reminders', 'Staff management'],
+    id: 'complete',
+    name: 'Complete AI Solution',
+    price: 97,
+    channels: ['web', 'voice'],
+    description: 'Everything you need to transform your booking experience',
+    features: ['24/7 AI Receptionist', 'Web booking widget', 'Customer management', 'SMS confirmations', 'Advanced analytics', 'Staff management', 'Free setup & training'],
     popular: true
-  },
-  {
-    id: 'premium',
-    name: 'Premium',
-    price: 179,
-    channels: ['sms', 'web', 'voice'],
-    description: 'Enterprise features for established salons',
-    features: ['Everything in Professional', 'White-label booking pages', 'API access', 'Custom integrations', 'Advanced reporting', 'Dedicated support', '24/7 phone support']
   }
 ]
 
@@ -214,7 +198,7 @@ export default function OnboardingPage() {
     forwardingEnabled: true,
     forwardAfterHours: true,
     forwardComplexCalls: true,
-    smsEnabled: true,
+    smsEnabled: false,
     voiceEnabled: true,
     webEnabled: true,
     widgetStyle: 'embedded'
@@ -241,7 +225,7 @@ export default function OnboardingPage() {
     // Update phone preferences based on selected channels
     setPhonePrefs({
       ...phonePrefs,
-      smsEnabled: plan.channels.includes('sms'),
+      smsEnabled: false, // SMS booking disabled
       voiceEnabled: plan.channels.includes('voice'),
       webEnabled: plan.channels.includes('web')
     })
@@ -396,9 +380,7 @@ export default function OnboardingPage() {
           phone: businessInfo.phone,
           address_line1: businessInfo.address,
           timezone: businessInfo.timezone,
-          plan_type: subscriptionConfig.plan?.id === 'premium' ? 'enterprise' : 
-                     subscriptionConfig.plan?.id === 'professional' ? 'professional' : 
-                     'starter',
+          plan_type: 'professional',
           subscription_status: 'trialing',
           trial_ends_at: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString() // 14 days from now
         })
@@ -661,28 +643,28 @@ export default function OnboardingPage() {
         {currentStep === 1 && (
           <div className="bg-white rounded-xl shadow-lg p-8">
             <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold mb-4">Choose Your Plan</h2>
-              <p className="text-gray-600 mb-6">Select the channels that work best for your salon</p>
+              <h2 className="text-3xl font-bold mb-4">Complete AI Booking Solution</h2>
+              <p className="text-gray-600 mb-6">Everything you need to transform your booking experience</p>
               
               <div className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg p-4 mb-6">
                 <div className="flex items-center justify-center mb-3">
                   <div className="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center mr-3">
                     <span className="text-white text-sm font-bold">🎬</span>
                   </div>
-                  <span className="font-semibold text-purple-800">Not sure which plan fits your salon?</span>
+                  <span className="font-semibold text-purple-800">Want to see it in action first?</span>
                 </div>
                 <a 
                   href="/demo"
                   className="inline-flex items-center px-6 py-3 bg-purple-600 text-white font-bold rounded-full hover:bg-purple-700 transition-colors shadow-lg"
                 >
-                  Experience Interactive Demo
+                  Try Interactive Demo
                   <ArrowRightIcon className="w-5 h-5 ml-2" />
                 </a>
                 <p className="text-xs text-purple-600 mt-2">See exactly how AI booking transforms your salon • 3 minutes</p>
               </div>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            <div className="max-w-lg mx-auto mb-8">
               {PRICING_PLANS.map((plan) => (
                 <div 
                   key={plan.id}
@@ -1241,108 +1223,86 @@ export default function OnboardingPage() {
               </div>
             )}
 
-            {/* Booking Methods Selection */}
+            {/* Booking Methods Information */}
             <div className="mt-6 p-6 bg-gray-50 border border-gray-200 rounded-xl">
-              <h3 className="font-semibold mb-4">📞 Choose Booking Methods:</h3>
-              <div className="space-y-3">
-                <label className="flex items-center space-x-3">
-                  <input
-                    type="checkbox"
-                    checked={phonePrefs.voiceEnabled}
-                    onChange={(e) => setPhonePrefs({ ...phonePrefs, voiceEnabled: e.target.checked })}
-                    className="h-5 w-5 text-purple-600 rounded"
-                  />
-                  <div className="flex-1">
-                    <span className="font-medium">Voice/Call Booking</span>
-                    <p className="text-sm text-gray-600">Customers can call and speak with AI to book appointments</p>
+              <h3 className="font-semibold mb-4">📞 Your Complete Booking Solution:</h3>
+              <div className="space-y-4">
+                <div className="flex items-start space-x-3">
+                  <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <span className="text-purple-600 font-bold text-sm">📞</span>
                   </div>
-                </label>
-                
-                <label className="flex items-center space-x-3">
-                  <input
-                    type="checkbox"
-                    checked={phonePrefs.smsEnabled}
-                    onChange={(e) => setPhonePrefs({ ...phonePrefs, smsEnabled: e.target.checked })}
-                    className="h-5 w-5 text-purple-600 rounded"
-                  />
                   <div className="flex-1">
-                    <span className="font-medium">SMS/Text Booking</span>
-                    <p className="text-sm text-gray-600">Customers can text to book (e.g. "Book gel mani Friday 2pm")</p>
+                    <span className="font-medium text-gray-900">Voice/Call Booking</span>
+                    <p className="text-sm text-gray-600">Customers can call and speak with AI to book appointments 24/7</p>
                   </div>
-                </label>
+                </div>
                 
-                <label className="flex items-center space-x-3">
-                  <input
-                    type="checkbox"
-                    checked={phonePrefs.webEnabled}
-                    onChange={(e) => setPhonePrefs({ ...phonePrefs, webEnabled: e.target.checked })}
-                    className="h-5 w-5 text-purple-600 rounded"
-                  />
+                <div className="flex items-start space-x-3">
+                  <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <span className="text-green-600 font-bold text-sm">💻</span>
+                  </div>
                   <div className="flex-1">
-                    <span className="font-medium">Online/Web Booking</span>
+                    <span className="font-medium text-gray-900">Online/Web Booking</span>
                     <p className="text-sm text-gray-600">Customers can book directly from your website with our widget</p>
                   </div>
-                </label>
+                </div>
+
+                <div className="flex items-start space-x-3">
+                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                    <span className="text-blue-600 font-bold text-sm">📱</span>
+                  </div>
+                  <div className="flex-1">
+                    <span className="font-medium text-gray-900">SMS Confirmations</span>
+                    <p className="text-sm text-gray-600">Automatic appointment reminders and confirmations sent via text</p>
+                  </div>
+                </div>
               </div>
               
-              {phonePrefs.smsEnabled && (
-                <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                  <h4 className="font-medium text-blue-900 mb-2">📱 SMS Booking Examples:</h4>
-                  <div className="space-y-1 text-sm text-blue-800">
-                    <div>"Book gel mani tomorrow 2pm" → AI books appointment</div>
-                    <div>"Available Friday?" → AI shows open times</div>
-                    <div>"Cancel booking ABC123" → AI cancels appointment</div>
+              <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
+                <h4 className="font-medium text-green-900 mb-2">💻 Web Booking Widget Options:</h4>
+                <div className="space-y-2 text-sm text-green-800 mb-3">
+                  <div>• Embeds on your existing website</div>
+                  <div>• Mobile-friendly booking interface</div>
+                  <div>• Real-time availability checking</div>
+                  <div>• Automatic confirmation emails</div>
+                </div>
+                
+                <div className="mt-3">
+                  <label className="block text-sm font-medium text-green-900 mb-2">Widget Style:</label>
+                  <div className="space-y-2">
+                    <label className="flex items-center space-x-2">
+                      <input
+                        type="radio"
+                        value="embedded"
+                        checked={phonePrefs.widgetStyle === 'embedded'}
+                        onChange={(e) => setPhonePrefs({ ...phonePrefs, widgetStyle: e.target.value as any })}
+                        className="text-green-600"
+                      />
+                      <span className="text-sm">Embedded (fits in your website)</span>
+                    </label>
+                    <label className="flex items-center space-x-2">
+                      <input
+                        type="radio"
+                        value="floating"
+                        checked={phonePrefs.widgetStyle === 'floating'}
+                        onChange={(e) => setPhonePrefs({ ...phonePrefs, widgetStyle: e.target.value as any })}
+                        className="text-green-600"
+                      />
+                      <span className="text-sm">Floating button (bottom corner)</span>
+                    </label>
+                    <label className="flex items-center space-x-2">
+                      <input
+                        type="radio"
+                        value="fullpage"
+                        checked={phonePrefs.widgetStyle === 'fullpage'}
+                        onChange={(e) => setPhonePrefs({ ...phonePrefs, widgetStyle: e.target.value as any })}
+                        className="text-green-600"
+                      />
+                      <span className="text-sm">Full page (dedicated booking page)</span>
+                    </label>
                   </div>
                 </div>
-              )}
-              
-              {phonePrefs.webEnabled && (
-                <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-                  <h4 className="font-medium text-green-900 mb-2">💻 Web Booking Widget:</h4>
-                  <div className="space-y-2 text-sm text-green-800 mb-3">
-                    <div>• Embeds on your existing website</div>
-                    <div>• Mobile-friendly booking interface</div>
-                    <div>• Real-time availability checking</div>
-                    <div>• Automatic confirmation emails</div>
-                  </div>
-                  
-                  <div className="mt-3">
-                    <label className="block text-sm font-medium text-green-900 mb-2">Widget Style:</label>
-                    <div className="space-y-2">
-                      <label className="flex items-center space-x-2">
-                        <input
-                          type="radio"
-                          value="embedded"
-                          checked={phonePrefs.widgetStyle === 'embedded'}
-                          onChange={(e) => setPhonePrefs({ ...phonePrefs, widgetStyle: e.target.value as any })}
-                          className="text-green-600"
-                        />
-                        <span className="text-sm">Embedded (fits in your website)</span>
-                      </label>
-                      <label className="flex items-center space-x-2">
-                        <input
-                          type="radio"
-                          value="floating"
-                          checked={phonePrefs.widgetStyle === 'floating'}
-                          onChange={(e) => setPhonePrefs({ ...phonePrefs, widgetStyle: e.target.value as any })}
-                          className="text-green-600"
-                        />
-                        <span className="text-sm">Floating button (bottom corner)</span>
-                      </label>
-                      <label className="flex items-center space-x-2">
-                        <input
-                          type="radio"
-                          value="fullpage"
-                          checked={phonePrefs.widgetStyle === 'fullpage'}
-                          onChange={(e) => setPhonePrefs({ ...phonePrefs, widgetStyle: e.target.value as any })}
-                          className="text-green-600"
-                        />
-                        <span className="text-sm">Full page (dedicated booking page)</span>
-                      </label>
-                    </div>
-                  </div>
-                </div>
-              )}
+              </div>
             </div>
 
             {/* Call Flow Preview */}
@@ -1461,15 +1421,15 @@ export default function OnboardingPage() {
               <h3 className="font-semibold mb-2">What's Ready:</h3>
               <ul className="text-left space-y-2 text-gray-700">
                 <li>✅ Your dashboard is ready to use</li>
-                {phonePrefs.voiceEnabled && <li>✅ Voice AI booking system is configured</li>}
-                {phonePrefs.smsEnabled && <li>✅ SMS/Text booking is enabled</li>}
-                {phonePrefs.webEnabled && <li>✅ Online booking widget is ready</li>}
+                <li>✅ Voice AI booking system is configured</li>
+                <li>✅ Online booking widget is ready</li>
+                <li>✅ SMS confirmations and reminders enabled</li>
                 {assignedPhoneNumber ? (
                   <li>✅ Phone number assigned and ready for calls</li>
                 ) : (
                   <li>⚠️ Phone number assignment pending (check with support)</li>
                 )}
-                <li>📊 Start accepting bookings across all channels!</li>
+                <li>📊 Start accepting bookings 24/7!</li>
               </ul>
             </div>
             
