@@ -13,12 +13,16 @@ import {
   WrenchScrewdriverIcon,
   PhoneIcon,
   CurrencyDollarIcon,
+  BuildingStorefrontIcon,
+  CreditCardIcon,
+  GiftIcon,
 } from '@heroicons/react/24/outline'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { clsx } from 'clsx'
 
-const navigation = [
+// Base navigation items (available to all plans)
+const baseNavigation = [
   { name: 'Dashboard', href: '/dashboard', icon: HomeIcon },
   { name: 'Appointments', href: '/dashboard/appointments', icon: CalendarIcon },
   { name: 'Customers', href: '/dashboard/customers', icon: UsersIcon },
@@ -26,9 +30,46 @@ const navigation = [
   { name: 'Services', href: '/dashboard/services', icon: WrenchScrewdriverIcon },
   { name: 'Analytics', href: '/dashboard/analytics', icon: ChartBarIcon },
   { name: 'Voice AI', href: '/dashboard/voice-ai', icon: PhoneIcon },
-  { name: 'Billing', href: '/dashboard/billing', icon: CurrencyDollarIcon },
   { name: 'Settings', href: '/dashboard/settings', icon: CogIcon },
 ]
+
+// Professional+ features
+const professionalFeatures = [
+  { name: 'Payments', href: '/dashboard/payments', icon: CreditCardIcon },
+  { name: 'Loyalty Program', href: '/dashboard/loyalty', icon: GiftIcon },
+]
+
+// Business+ features
+const businessFeatures = [
+  { name: 'Locations', href: '/dashboard/locations', icon: BuildingStorefrontIcon },
+]
+
+// Function to get navigation based on plan tier
+const getNavigationForPlan = (subscriptionTier: string) => {
+  let navigation = [...baseNavigation]
+  
+  // Add professional features for Professional+ plans
+  if (['professional', 'business', 'enterprise'].includes(subscriptionTier)) {
+    // Insert professional features before Settings
+    const settingsIndex = navigation.findIndex(item => item.name === 'Settings')
+    navigation.splice(settingsIndex, 0, ...professionalFeatures)
+  }
+  
+  // Add business features for Business+ plans
+  if (['business', 'enterprise'].includes(subscriptionTier)) {
+    // Insert business features before Professional features
+    const paymentsIndex = navigation.findIndex(item => item.name === 'Payments')
+    if (paymentsIndex !== -1) {
+      navigation.splice(paymentsIndex, 0, ...businessFeatures)
+    } else {
+      // If no professional features, add before Settings
+      const settingsIndex = navigation.findIndex(item => item.name === 'Settings')
+      navigation.splice(settingsIndex, 0, ...businessFeatures)
+    }
+  }
+  
+  return navigation
+}
 
 interface LayoutProps {
   children: React.ReactNode
@@ -90,7 +131,7 @@ export default function Layout({ children, business }: LayoutProps) {
                   </div>
                 </Transition.Child>
                 <div className="flex-1 h-0 pt-5 pb-4 overflow-y-auto">
-                  <SidebarContent />
+                  <SidebarContent business={business} />
                 </div>
               </Dialog.Panel>
             </Transition.Child>
@@ -134,6 +175,7 @@ export default function Layout({ children, business }: LayoutProps) {
 
 function SidebarContent({ business }: { business?: LayoutProps['business'] }) {
   const pathname = usePathname()
+  const navigation = getNavigationForPlan(business?.subscription_tier || 'starter')
 
   return (
     <>
@@ -151,7 +193,10 @@ function SidebarContent({ business }: { business?: LayoutProps['business'] }) {
           {business && (
             <div className="mt-2">
               <p className="text-sm font-medium text-gray-900 truncate">{business.name}</p>
-              <p className="text-xs text-gray-500 capitalize">{business.subscription_tier} Plan</p>
+              <div className="flex items-center gap-2">
+                <p className="text-xs text-gray-500 capitalize">{business.subscription_tier} Plan</p>
+                {getPlanBadge(business.subscription_tier)}
+              </div>
             </div>
           )}
         </div>
@@ -161,36 +206,100 @@ function SidebarContent({ business }: { business?: LayoutProps['business'] }) {
       <nav className="mt-8 flex-1 px-2 space-y-1">
         {navigation.map((item) => {
           const isActive = pathname === item.href
+          const isUpgradeRequired = isFeatureUpgradeRequired(item.name, business?.subscription_tier || 'starter')
+          
           return (
             <Link
               key={item.name}
-              href={item.href}
+              href={isUpgradeRequired ? '/dashboard/settings?tab=billing' : item.href}
               className={clsx(
-                'nav-item',
-                isActive ? 'nav-item-active' : 'nav-item-inactive'
+                'nav-item group',
+                isActive ? 'nav-item-active' : 'nav-item-inactive',
+                isUpgradeRequired ? 'opacity-60' : ''
               )}
             >
               <item.icon className="mr-3 h-5 w-5" aria-hidden="true" />
               {item.name}
+              {isUpgradeRequired && (
+                <span className="ml-auto text-xs bg-gradient-to-r from-purple-500 to-pink-500 text-white px-2 py-0.5 rounded-full group-hover:scale-105 transition-transform">
+                  Pro
+                </span>
+              )}
             </Link>
           )
         })}
       </nav>
 
-      {/* Upgrade prompt for starter plan */}
-      {business?.subscription_tier === 'starter' && (
-        <div className="flex-shrink-0 p-4">
-          <div className="bg-gradient-to-r from-beauty-500 to-brand-600 rounded-lg p-4 text-white">
-            <h3 className="text-sm font-medium">Upgrade to Pro</h3>
-            <p className="text-xs mt-1 opacity-90">
-              Get advanced analytics and marketing tools
-            </p>
-            <button className="mt-2 bg-white text-brand-600 text-xs font-medium px-3 py-1 rounded">
-              Upgrade
-            </button>
-          </div>
-        </div>
-      )}
+      {/* Upgrade prompts based on plan */}
+      {getUpgradePrompt(business?.subscription_tier || 'starter')}
     </>
   )
+}
+
+// Helper function to determine if feature requires upgrade
+function isFeatureUpgradeRequired(featureName: string, subscriptionTier: string): boolean {
+  const professionalFeatureNames = ['Payments', 'Loyalty Program']
+  const businessFeatureNames = ['Locations']
+  
+  if (professionalFeatureNames.includes(featureName)) {
+    return !['professional', 'business', 'enterprise'].includes(subscriptionTier)
+  }
+  
+  if (businessFeatureNames.includes(featureName)) {
+    return !['business', 'enterprise'].includes(subscriptionTier)
+  }
+  
+  return false
+}
+
+// Helper function to get plan badge
+function getPlanBadge(subscriptionTier: string) {
+  const badges = {
+    starter: <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">Basic</span>,
+    professional: <span className="text-xs bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full">Pro</span>,
+    business: <span className="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full">Business</span>,
+    enterprise: <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full">Enterprise</span>
+  }
+  return badges[subscriptionTier as keyof typeof badges] || null
+}
+
+// Helper function to get upgrade prompt based on plan
+function getUpgradePrompt(subscriptionTier: string) {
+  if (subscriptionTier === 'starter') {
+    return (
+      <div className="flex-shrink-0 p-4">
+        <div className="bg-gradient-to-r from-purple-500 to-pink-600 rounded-lg p-4 text-white">
+          <h3 className="text-sm font-medium">Unlock More Features</h3>
+          <p className="text-xs mt-1 opacity-90">
+            Upgrade to Professional for payments & loyalty programs
+          </p>
+          <Link href="/dashboard/settings?tab=billing">
+            <button className="mt-2 bg-white text-purple-600 text-xs font-medium px-3 py-1 rounded hover:bg-gray-100 transition-colors">
+              View Plans
+            </button>
+          </Link>
+        </div>
+      </div>
+    )
+  }
+  
+  if (subscriptionTier === 'professional') {
+    return (
+      <div className="flex-shrink-0 p-4">
+        <div className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg p-4 text-white">
+          <h3 className="text-sm font-medium">Scale Your Business</h3>
+          <p className="text-xs mt-1 opacity-90">
+            Upgrade to Business for multi-location management
+          </p>
+          <Link href="/dashboard/settings?tab=billing">
+            <button className="mt-2 bg-white text-green-600 text-xs font-medium px-3 py-1 rounded hover:bg-gray-100 transition-colors">
+              Upgrade
+            </button>
+          </Link>
+        </div>
+      </div>
+    )
+  }
+  
+  return null
 }

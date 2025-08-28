@@ -3,7 +3,8 @@
 import { useEffect, useState } from 'react'
 import Layout from '../../components/Layout'
 import ProtectedRoute from '../../components/ProtectedRoute'
-import { BusinessAPI, type Business, type DashboardStats, type Appointment } from '../../lib/supabase'
+import { BusinessAPI, LocationAPIImpl, PaymentAPIImpl, LoyaltyAPIImpl, type Business, type DashboardStats, type Appointment } from '../../lib/supabase'
+import type { Location, PaymentWithDetails, LoyaltyCustomer } from '../../lib/supabase-types-mvp'
 import {
   CalendarIcon,
   UsersIcon,
@@ -11,7 +12,12 @@ import {
   ChartBarIcon,
   PhoneIcon,
   ClockIcon,
+  MapPinIcon,
+  CreditCardIcon,
+  GiftIcon
 } from '@heroicons/react/24/outline'
+import AppointmentLocationBadge from '../../components/AppointmentLocationBadge'
+import LocationSelector from '../../components/LocationSelector'
 import { format, isToday, isTomorrow } from 'date-fns'
 
 import { getCurrentBusinessId } from '../../lib/auth-utils'
@@ -31,12 +37,23 @@ function DashboardPage() {
     activeCustomers: 0
   })
   const [upcomingAppointments, setUpcomingAppointments] = useState<Appointment[]>([])
+  const [locations, setLocations] = useState<Location[]>([])
+  const [selectedLocationId, setSelectedLocationId] = useState<string>('all')
+  const [recentPayments, setRecentPayments] = useState<PaymentWithDetails[]>([])
+  const [loyaltyStats, setLoyaltyStats] = useState({ totalMembers: 0, pointsAwarded: 0 })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     loadDashboardData()
   }, [])
+
+  useEffect(() => {
+    // Reload appointments when location filter changes
+    if (business && selectedLocationId) {
+      loadDashboardData()
+    }
+  }, [selectedLocationId])
 
   const loadDashboardData = async () => {
     try {
@@ -55,14 +72,51 @@ function DashboardPage() {
         return
       }
 
+      // Load locations for Business tier
+      if (businessData.subscription_tier === 'business') {
+        const locationAPI = new LocationAPIImpl()
+        const locationsData = await locationAPI.getLocations(businessId)
+        setLocations(locationsData)
+      }
+
       // Load dashboard statistics
       const dashboardStats = await BusinessAPI.getDashboardStats(businessId)
       setStats(dashboardStats)
 
-      // Load upcoming appointments
-      const upcomingAppts = await BusinessAPI.getUpcomingAppointments(businessId, 5)
+      // Load upcoming appointments with location filtering
+      const appointmentFilters = selectedLocationId === 'all' ? {} : { location_id: selectedLocationId }
+      const upcomingAppts = await BusinessAPI.getUpcomingAppointments(businessId, 5, appointmentFilters)
       console.log('📅 Upcoming appointments loaded:', upcomingAppts.length)
-      setUpcomingAppointments(upcomingAppts)
+      
+      // Enhance appointments with location data
+      const enhancedAppointments = upcomingAppts.map(apt => ({
+        ...apt,
+        location: locations.find(loc => loc.id === apt.location_id) || null
+      }))
+      setUpcomingAppointments(enhancedAppointments)
+
+      // Load payment data for Professional+ tiers
+      if (['professional', 'business'].includes(businessData.subscription_tier)) {
+        const paymentAPI = new PaymentAPIImpl()
+        const paymentsData = await paymentAPI.getPayments(businessId, { limit: 3 })
+        setRecentPayments(paymentsData)
+
+        // Load loyalty stats for Professional+ tiers
+        try {
+          const loyaltyAPI = new LoyaltyAPIImpl()
+          const loyaltyProgram = await loyaltyAPI.getLoyaltyProgram(businessId)
+          if (loyaltyProgram) {
+            const loyaltyCustomers = await loyaltyAPI.getLoyaltyCustomers(loyaltyProgram.id, { limit: 100 })
+            const totalPointsAwarded = loyaltyCustomers.reduce((sum, customer) => sum + customer.points_earned, 0)
+            setLoyaltyStats({
+              totalMembers: loyaltyCustomers.length,
+              pointsAwarded: totalPointsAwarded
+            })
+          }
+        } catch (loyaltyError) {
+          console.log('Loyalty program not configured yet')
+        }
+      }
 
     } catch (error) {
       console.error('Error loading dashboard data:', error)
@@ -139,7 +193,25 @@ function DashboardPage() {
           </p>
         </div>
 
-        {/* Stats Cards */}
+        {/* Location Filter for Business Tier */}
+        {business?.subscription_tier === 'business' && locations.length > 1 && (
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-medium text-gray-900">Dashboard View</h3>
+              <div className="max-w-xs">
+                <LocationSelector
+                  locations={locations}
+                  selectedLocation={locations.find(loc => loc.id === selectedLocationId) || null}
+                  onLocationChange={(location) => setSelectedLocationId(location?.id || 'all')}
+                  placeholder="All Locations"
+                  includeAllOption={true}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Enhanced Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <div className="stat-card">
             <div className="px-4 py-5 sm:p-6">
@@ -155,6 +227,11 @@ function DashboardPage() {
                     <dd className="text-lg font-medium text-gray-900">
                       {stats.todayAppointments}
                     </dd>
+                    {selectedLocationId !== 'all' && (
+                      <dd className="text-xs text-gray-500">
+                        {locations.find(loc => loc.id === selectedLocationId)?.name || 'Selected Location'}
+                      </dd>
+                    )}
                   </dl>
                 </div>
               </div>
@@ -170,11 +247,16 @@ function DashboardPage() {
                 <div className="ml-5 w-0 flex-1">
                   <dl>
                     <dt className="text-sm font-medium text-gray-500 truncate">
-                      Monthly Revenue
+                      {['professional', 'business'].includes(business?.subscription_tier || '') ? 'Monthly Revenue' : 'Potential Revenue'}
                     </dt>
                     <dd className="text-lg font-medium text-gray-900">
                       ${stats.monthlyRevenue.toLocaleString()}
                     </dd>
+                    {['professional', 'business'].includes(business?.subscription_tier || '') && recentPayments.length > 0 && (
+                      <dd className="text-xs text-green-600">
+                        {recentPayments.length} payments today
+                      </dd>
+                    )}
                   </dl>
                 </div>
               </div>
@@ -195,6 +277,11 @@ function DashboardPage() {
                     <dd className="text-lg font-medium text-gray-900">
                       {stats.activeCustomers}
                     </dd>
+                    {['professional', 'business'].includes(business?.subscription_tier || '') && loyaltyStats.totalMembers > 0 && (
+                      <dd className="text-xs text-purple-600">
+                        {loyaltyStats.totalMembers} loyalty members
+                      </dd>
+                    )}
                   </dl>
                 </div>
               </div>
@@ -205,15 +292,33 @@ function DashboardPage() {
             <div className="px-4 py-5 sm:p-6">
               <div className="flex items-center">
                 <div className="flex-shrink-0">
-                  <ChartBarIcon className="h-8 w-8 text-indigo-600" />
+                  {['professional', 'business'].includes(business?.subscription_tier || '') && loyaltyStats.pointsAwarded > 0 ? (
+                    <GiftIcon className="h-8 w-8 text-purple-600" />
+                  ) : business?.subscription_tier === 'business' && locations.length > 0 ? (
+                    <MapPinIcon className="h-8 w-8 text-blue-600" />
+                  ) : (
+                    <ChartBarIcon className="h-8 w-8 text-indigo-600" />
+                  )}
                 </div>
                 <div className="ml-5 w-0 flex-1">
                   <dl>
                     <dt className="text-sm font-medium text-gray-500 truncate">
-                      Total Appointments
+                      {['professional', 'business'].includes(business?.subscription_tier || '') && loyaltyStats.pointsAwarded > 0 ? (
+                        'Points Awarded'
+                      ) : business?.subscription_tier === 'business' && locations.length > 0 ? (
+                        'Active Locations'
+                      ) : (
+                        'Total Appointments'
+                      )}
                     </dt>
                     <dd className="text-lg font-medium text-gray-900">
-                      {stats.totalAppointments.toLocaleString()}
+                      {['professional', 'business'].includes(business?.subscription_tier || '') && loyaltyStats.pointsAwarded > 0 ? (
+                        loyaltyStats.pointsAwarded.toLocaleString()
+                      ) : business?.subscription_tier === 'business' && locations.length > 0 ? (
+                        locations.filter(loc => loc.is_active).length
+                      ) : (
+                        stats.totalAppointments.toLocaleString()
+                      )}
                     </dd>
                   </dl>
                 </div>
@@ -251,20 +356,36 @@ function DashboardPage() {
                       </div>
                     </div>
                     <div className="ml-4 flex-1">
-                      <div className="flex items-center justify-between">
+                      <div className="flex items-center justify-between mb-1">
                         <p className="text-sm font-medium text-gray-900">
                           {appointment.customer ? `${appointment.customer.first_name} ${appointment.customer.last_name}` : 'Unknown Customer'}
                         </p>
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(appointment.status)}`}>
-                          {appointment.status}
-                        </span>
+                        <div className="flex items-center space-x-2">
+                          {business?.subscription_tier === 'business' && appointment.location && (
+                            <AppointmentLocationBadge 
+                              location={appointment.location} 
+                              size="sm" 
+                            />
+                          )}
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(appointment.status)}`}>
+                            {appointment.status}
+                          </span>
+                        </div>
                       </div>
                       <p className="text-sm text-gray-500">
                         {appointment.service?.name || 'Unknown Service'} {appointment.staff && `with ${appointment.staff.first_name} ${appointment.staff.last_name}`}
                       </p>
-                      <div className="flex items-center mt-1 text-xs text-gray-400">
-                        <ClockIcon className="h-4 w-4 mr-1" />
-                        {formatAppointmentDate(appointment.appointment_date)} at {appointment.start_time}
+                      <div className="flex items-center justify-between mt-1">
+                        <div className="flex items-center text-xs text-gray-400">
+                          <ClockIcon className="h-4 w-4 mr-1" />
+                          {formatAppointmentDate(appointment.appointment_date)} at {appointment.start_time}
+                        </div>
+                        {['professional', 'business'].includes(business?.subscription_tier || '') && appointment.status === 'completed' && (
+                          <div className="flex items-center text-xs text-green-600">
+                            <CreditCardIcon className="h-3 w-3 mr-1" />
+                            Ready for payment
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -287,9 +408,45 @@ function DashboardPage() {
                 >
                   <CalendarIcon className="h-5 w-5 text-brand-600 mr-3" />
                   <span className="text-sm font-medium text-brand-700 group-hover:text-brand-800">
-                    Add New Appointment
+                    Manage Appointments
                   </span>
                 </a>
+                
+                {business?.subscription_tier === 'business' && (
+                  <a 
+                    href="/dashboard/locations" 
+                    className="flex items-center p-3 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors group"
+                  >
+                    <MapPinIcon className="h-5 w-5 text-blue-600 mr-3" />
+                    <span className="text-sm font-medium text-blue-700 group-hover:text-blue-800">
+                      Manage Locations
+                    </span>
+                  </a>
+                )}
+                
+                {['professional', 'business'].includes(business?.subscription_tier || '') && (
+                  <a 
+                    href="/dashboard/payments" 
+                    className="flex items-center p-3 bg-green-50 rounded-lg hover:bg-green-100 transition-colors group"
+                  >
+                    <CreditCardIcon className="h-5 w-5 text-green-600 mr-3" />
+                    <span className="text-sm font-medium text-green-700 group-hover:text-green-800">
+                      Process Payments
+                    </span>
+                  </a>
+                )}
+                
+                {['professional', 'business'].includes(business?.subscription_tier || '') && (
+                  <a 
+                    href="/dashboard/loyalty" 
+                    className="flex items-center p-3 bg-purple-50 rounded-lg hover:bg-purple-100 transition-colors group"
+                  >
+                    <GiftIcon className="h-5 w-5 text-purple-600 mr-3" />
+                    <span className="text-sm font-medium text-purple-700 group-hover:text-purple-800">
+                      Loyalty Program
+                    </span>
+                  </a>
+                )}
                 
                 <a 
                   href="/dashboard/customers" 
@@ -298,16 +455,6 @@ function DashboardPage() {
                   <UsersIcon className="h-5 w-5 text-beauty-600 mr-3" />
                   <span className="text-sm font-medium text-beauty-700 group-hover:text-beauty-800">
                     View Customers
-                  </span>
-                </a>
-                
-                <a 
-                  href="/dashboard/staff" 
-                  className="flex items-center p-3 bg-green-50 rounded-lg hover:bg-green-100 transition-colors group"
-                >
-                  <UsersIcon className="h-5 w-5 text-green-600 mr-3" />
-                  <span className="text-sm font-medium text-green-700 group-hover:text-green-800">
-                    Manage Staff
                   </span>
                 </a>
               </div>

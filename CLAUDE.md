@@ -2,8 +2,8 @@
 
 ## Project: Vapi Nail Salon Agent
 **Created:** January 2025  
-**Updated:** March 26, 2025  
-**Status:** ✅ PRODUCTION READY - COMPLETE SYSTEM DELIVERED
+**Updated:** March 26, 2025 → **August 28, 2025**  
+**Status:** 🚀 MVP FEATURES IN DEVELOPMENT - Multi-Location + Payments + Loyalty
 
 ## 🏗️ ARCHITECTURAL PATTERN: Core Logic First, Automation Later
 
@@ -47,9 +47,141 @@ Vapi → n8n → Express Webhook → Supabase
      - External integrations
 ```
 
-## 🎉 PROJECT COMPLETION SUMMARY
+## 🚀 MVP FEATURES DEVELOPMENT (August 2025) - **MAJOR UPDATE COMPLETE**
 
-### What We Built (6 hours of development)
+### ✅ PHASE 1: Foundation & API Layer - COMPLETED
+1. **Type System & API Architecture**
+   - Imported comprehensive MVP types from `supabase-types-mvp.ts`
+   - Extended existing API with LocationAPI, PaymentAPI, LoyaltyAPI service classes
+   - Added plan tier configuration with PLAN_TIER_LIMITS
+   - Updated Business interface to support new 'business' tier
+
+2. **Enhanced Onboarding Flow** ✅ COMPLETED
+   - **New 3-Tier Pricing Structure:**
+     - Starter ($47): Basic AI booking, single location
+     - Professional ($97): + Payment processing + Loyalty program
+     - Business ($197): + Multi-location support (up to 3)
+   - **Dynamic Step Flow:**
+     - Location setup (Business tier only)
+     - Payment processing setup (Professional+ tiers)
+     - Loyalty program setup (Professional+ tiers)
+   - **Smart Navigation:** Steps adapt based on selected plan
+   - **Enhanced UI:** Grid layout, better feature comparison, visual hierarchy
+
+### ✅ PHASE 2: Multi-Location Management - COMPLETED
+3. **Location Management System**
+   - **Main Locations Page** (`/dashboard/locations/page.tsx`)
+     - Location listing with grid/list views
+     - Add/edit/delete location functionality
+     - Primary location designation
+     - Location limit enforcement (3 for Business tier)
+   - **Individual Location Pages** (`/dashboard/locations/[id]/page.tsx`)
+     - Detailed location information and settings
+     - Integration status (Square/Stripe connectivity)
+     - Location-specific analytics placeholder
+     - Primary location management
+   - **Reusable Components:**
+     - `LocationCard.tsx` - Visual location display
+     - `LocationForm.tsx` - Modal form for location CRUD
+     - `LocationSelector.tsx` - Dropdown for location filtering
+
+### ✅ PHASE 3: Payment Processing - COMPLETED
+4. **Payment Management System**
+   - **Payment History Page** (`/dashboard/payments/page.tsx`)
+     - Transaction listing with comprehensive filtering
+     - Revenue statistics dashboard
+     - Payment status tracking and refund functionality
+     - Multi-location payment filtering
+   - **Payment Processor Config** (`/dashboard/payments/processors/page.tsx`)
+     - Square and Stripe integration setup
+     - Per-location processor configuration
+     - Test mode vs live mode switching
+     - API key management with security features
+   - **Payment Components:**
+     - `PaymentStatusBadge.tsx` - Visual status indicators
+     - `PaymentProcessorConfig.tsx` - Configuration forms
+
+### ✅ PHASE 4: Loyalty Program - COMPLETED
+5. **Comprehensive Loyalty System**
+   - **Main Loyalty Page** (`/dashboard/loyalty/page.tsx`)
+     - Program overview with key metrics
+     - 4-tier system management (Bronze/Silver/Gold/Platinum)
+     - Program settings (points per dollar, bonuses)
+     - Location-specific program configuration
+   - **Customer Points Management** (`/dashboard/loyalty/customers/page.tsx`)
+     - Member listing with tier information
+     - Points adjustment functionality
+     - Customer analytics and engagement metrics
+     - Advanced filtering and search
+   - **Loyalty Components:**
+     - `LoyaltyTierCard.tsx` - Interactive tier management
+     - `CustomerPointsModal.tsx` - Points adjustment interface
+     - `LoyaltyPointsDisplay.tsx` - Customer points visualization
+
+### 🎯 CURRENT DEVELOPMENT STATUS
+- ✅ **API layer** with MVP types and service classes
+- ✅ **Complete onboarding flow** with new pricing tiers
+- ✅ **Dashboard navigation updates** with conditional rendering
+- ✅ **Multi-location management** pages and components
+- ✅ **Payment processing** components and configuration
+- ✅ **Loyalty program** interface and customer management
+- 🔄 **Enhanced customer/appointment** pages (in progress)
+- ⏳ **Integration testing** and lint/typecheck
+
+## 📊 TECHNICAL IMPLEMENTATION SUMMARY
+
+### Files Created/Modified (MVP Enhancement):
+```
+NEW PAGES (7 files):
+├── app/dashboard/locations/page.tsx          # Location management hub
+├── app/dashboard/locations/[id]/page.tsx     # Individual location details
+├── app/dashboard/payments/page.tsx           # Payment history & analytics
+├── app/dashboard/payments/processors/page.tsx # Payment processor config
+├── app/dashboard/loyalty/page.tsx            # Loyalty program management
+├── app/dashboard/loyalty/customers/page.tsx  # Customer points management
+└── app/onboarding/page.tsx                   # UPDATED: New pricing tiers
+
+NEW COMPONENTS (8 files):
+├── components/LocationCard.tsx               # Visual location display
+├── components/LocationForm.tsx               # Location CRUD modal
+├── components/LocationSelector.tsx           # Location dropdown
+├── components/PaymentStatusBadge.tsx         # Payment status indicators
+├── components/PaymentProcessorConfig.tsx     # Processor configuration
+├── components/LoyaltyTierCard.tsx            # Interactive tier management
+├── components/CustomerPointsModal.tsx        # Points adjustment interface
+├── components/LoyaltyPointsDisplay.tsx       # Customer points visualization
+└── components/Layout.tsx                     # UPDATED: Conditional navigation
+
+UPDATED CORE FILES (2 files):
+├── lib/supabase.ts                          # Added MVP API service classes
+└── lib/supabase-types-mvp.ts                # Comprehensive MVP type system
+```
+
+### Architecture Enhancements:
+1. **Type-Safe API Layer**: Comprehensive TypeScript interfaces for all MVP features
+2. **Service Class Pattern**: Modular API classes (LocationAPI, PaymentAPI, LoyaltyAPI)
+3. **Plan Tier Access Control**: Dynamic feature availability based on subscription
+4. **Component Reusability**: Shared components across all features
+5. **Progressive Enhancement**: Features gracefully upgrade based on plan tier
+
+### Key Technical Features:
+- **Multi-tenant Architecture**: Location-based data isolation for Business tier
+- **Form Validation**: Comprehensive error handling and user feedback
+- **State Management**: React hooks with loading/error states
+- **Responsive Design**: Mobile-first approach with Tailwind CSS
+- **Security Patterns**: API key masking, secure credential handling
+- **Data Visualization**: Charts, progress bars, and statistical displays
+
+### Business Logic Implementation:
+- **Location Limits**: 3-location maximum for Business tier with enforcement
+- **Payment Processing**: Square/Stripe integration with test/live mode support
+- **Loyalty Tiers**: 4-tier system with automatic progression and custom benefits
+- **Points Management**: Flexible earning rates with manual adjustment capability
+- **Analytics Dashboard**: Revenue tracking, customer insights, and performance metrics
+
+## 🎉 ORIGINAL PROJECT COMPLETION SUMMARY
+
+### What We Built (6 hours of development - March 2025)
 1. **Core Voice AI System** ✅
    - Advanced webhook server with all booking functions
    - Natural conversation flows with upselling

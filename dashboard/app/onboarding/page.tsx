@@ -59,6 +59,38 @@ interface PhonePreferences {
   widgetStyle: 'embedded' | 'floating' | 'fullpage'
 }
 
+interface LocationSetup {
+  name: string
+  address: string
+  city: string
+  state: string
+  postal_code: string
+  phone: string
+  email: string
+}
+
+interface PaymentSetup {
+  processor: 'square' | 'stripe' | 'both'
+  squareEnabled: boolean
+  stripeEnabled: boolean
+  squareApiKey: string
+  stripeApiKey: string
+  tipEnabled: boolean
+  tipPercentages: number[]
+}
+
+interface LoyaltySetup {
+  enabled: boolean
+  programName: string
+  pointsPerDollar: number
+  pointsPerVisit: number
+  rewardTiers: Array<{
+    points: number
+    reward: string
+    discount: number
+  }>
+}
+
 interface PricingPlan {
   id: string
   name: string
@@ -87,13 +119,29 @@ const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 
 
 const PRICING_PLANS: PricingPlan[] = [
   {
-    id: 'complete',
-    name: 'Complete AI Solution',
+    id: 'starter',
+    name: 'Starter',
+    price: 47,
+    channels: ['web', 'voice'],
+    description: 'Perfect for getting started with AI booking',
+    features: ['24/7 AI Voice booking', 'Web booking widget', 'Basic customer management', 'SMS confirmations', 'Single location', 'Free setup']
+  },
+  {
+    id: 'professional',
+    name: 'Professional',
     price: 97,
     channels: ['web', 'voice'],
-    description: 'Everything you need to transform your booking experience',
-    features: ['24/7 AI Receptionist', 'Web booking widget', 'Customer management', 'SMS confirmations', 'Advanced analytics', 'Staff management', 'Free setup & training'],
+    description: 'Advanced features for growing salons',
+    features: ['Everything in Starter', 'Payment processing (Square/Stripe)', 'Loyalty program with points', 'Advanced analytics', 'Staff management', 'Email marketing'],
     popular: true
+  },
+  {
+    id: 'business',
+    name: 'Business',
+    price: 197,
+    channels: ['web', 'voice'],
+    description: 'Multi-location management and scaling',
+    features: ['Everything in Professional', 'Multi-location support (up to 3)', 'Location-specific staff', 'Cross-location analytics', 'Advanced reporting', 'Priority support']
   }
 ]
 
@@ -204,15 +252,76 @@ export default function OnboardingPage() {
     widgetStyle: 'embedded'
   })
 
-  const steps = [
-    { id: 1, name: 'Plan Selection', icon: CurrencyDollarIcon },
-    { id: 2, name: 'Business Info', icon: BuildingStorefrontIcon },
-    { id: 3, name: 'Services', icon: ScissorsIcon },
-    { id: 4, name: 'Staff', icon: UserGroupIcon },
-    { id: 5, name: 'Hours', icon: ClockIcon },
-    { id: 6, name: 'Phone Setup', icon: PhoneIcon },
-    { id: 7, name: 'Complete', icon: CheckCircleIcon }
-  ]
+  const [locations, setLocations] = useState<LocationSetup[]>([
+    { name: '', address: '', city: '', state: '', postal_code: '', phone: '', email: '' }
+  ])
+
+  const [paymentSetup, setPaymentSetup] = useState<PaymentSetup>({
+    processor: 'square',
+    squareEnabled: true,
+    stripeEnabled: false,
+    squareApiKey: '',
+    stripeApiKey: '',
+    tipEnabled: true,
+    tipPercentages: [15, 18, 20, 25]
+  })
+
+  const [loyaltySetup, setLoyaltySetup] = useState<LoyaltySetup>({
+    enabled: true,
+    programName: 'Loyalty Rewards',
+    pointsPerDollar: 1,
+    pointsPerVisit: 0,
+    rewardTiers: [
+      { points: 100, reward: '$5 off next service', discount: 500 },
+      { points: 250, reward: '$15 off next service', discount: 1500 },
+      { points: 500, reward: '$35 off next service', discount: 3500 }
+    ]
+  })
+
+  const getSteps = () => {
+    const baseSteps = [
+      { id: 1, name: 'Plan Selection', icon: CurrencyDollarIcon },
+      { id: 2, name: 'Business Info', icon: BuildingStorefrontIcon },
+      { id: 3, name: 'Services', icon: ScissorsIcon },
+      { id: 4, name: 'Staff', icon: UserGroupIcon },
+      { id: 5, name: 'Hours', icon: ClockIcon }
+    ]
+
+    let dynamicSteps = [...baseSteps]
+    let stepCounter = 6
+
+    // Add location setup for Business tier
+    if (subscriptionConfig.plan?.id === 'business') {
+      dynamicSteps.push({ id: stepCounter++, name: 'Locations', icon: BuildingStorefrontIcon })
+    }
+
+    // Add payment setup for Professional+ tiers
+    if (subscriptionConfig.plan?.id === 'professional' || subscriptionConfig.plan?.id === 'business') {
+      dynamicSteps.push({ id: stepCounter++, name: 'Payments', icon: CurrencyDollarIcon })
+    }
+
+    // Add loyalty setup for Professional+ tiers
+    if (subscriptionConfig.plan?.id === 'professional' || subscriptionConfig.plan?.id === 'business') {
+      dynamicSteps.push({ id: stepCounter++, name: 'Loyalty', icon: CheckCircleIcon })
+    }
+
+    // Always add phone setup and complete
+    dynamicSteps.push(
+      { id: stepCounter++, name: 'Phone Setup', icon: PhoneIcon },
+      { id: stepCounter++, name: 'Complete', icon: CheckCircleIcon }
+    )
+
+    return dynamicSteps
+  }
+
+  const steps = getSteps()
+
+  // Helper functions to get dynamic step numbers
+  const getLocationStepId = () => steps.find(s => s.name === 'Locations')?.id
+  const getPaymentStepId = () => steps.find(s => s.name === 'Payments')?.id
+  const getLoyaltyStepId = () => steps.find(s => s.name === 'Loyalty')?.id
+  const getPhoneStepId = () => steps.find(s => s.name === 'Phone Setup')?.id
+  const getCompleteStepId = () => steps.find(s => s.name === 'Complete')?.id
 
   const handlePlanSelection = (plan: PricingPlan) => {
     const newConfig = {
@@ -380,7 +489,7 @@ export default function OnboardingPage() {
           phone: businessInfo.phone,
           address_line1: businessInfo.address,
           timezone: businessInfo.timezone,
-          plan_type: 'professional',
+          subscription_tier: (subscriptionConfig.plan?.id as any) || 'starter',
           subscription_status: 'trialing',
           trial_ends_at: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString() // 14 days from now
         })
@@ -554,7 +663,10 @@ export default function OnboardingPage() {
       console.log('✅ Auto-login completed for:', business.name)
       
       // Success! Move to completion step
-      setCurrentStep(7)
+      const completeStepId = getCompleteStepId()
+      if (completeStepId) {
+        setCurrentStep(completeStepId)
+      }
       
       // Auto-redirect to dashboard after user sees completion message
       setTimeout(() => {
@@ -664,13 +776,13 @@ export default function OnboardingPage() {
               </div>
             </div>
             
-            <div className="max-w-lg mx-auto mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto mb-8">
               {PRICING_PLANS.map((plan) => (
                 <div 
                   key={plan.id}
                   className={`relative border-2 rounded-xl p-6 cursor-pointer transition-all ${
                     plan.popular 
-                      ? 'border-purple-500 bg-purple-50' 
+                      ? 'border-purple-500 bg-purple-50 scale-105' 
                       : 'border-gray-200 hover:border-purple-300'
                   } ${subscriptionConfig.plan?.id === plan.id ? 'border-purple-600 bg-purple-100' : ''}`}
                   onClick={() => handlePlanSelection(plan)}
@@ -689,10 +801,10 @@ export default function OnboardingPage() {
                       <span className="text-gray-600">/month</span>
                     </div>
                     <p className="text-gray-600 mb-4">{plan.description}</p>
-                    <div className="space-y-2 text-sm">
+                    <div className="space-y-2 text-sm text-left">
                       {plan.features.map((feature, index) => (
-                        <div key={index} className="flex items-center">
-                          <CheckCircleIcon className="w-4 h-4 text-green-500 mr-2 flex-shrink-0" />
+                        <div key={index} className="flex items-start">
+                          <CheckCircleIcon className="w-4 h-4 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
                           <span>{feature}</span>
                         </div>
                       ))}
@@ -1109,7 +1221,20 @@ export default function OnboardingPage() {
                 Back
               </button>
               <button
-                onClick={() => setCurrentStep(6)}
+                onClick={() => {
+                  // Navigate to next step based on plan
+                  const locationStepId = getLocationStepId()
+                  const paymentStepId = getPaymentStepId()
+                  const phoneStepId = getPhoneStepId()
+                  
+                  if (locationStepId) {
+                    setCurrentStep(locationStepId)
+                  } else if (paymentStepId) {
+                    setCurrentStep(paymentStepId)
+                  } else if (phoneStepId) {
+                    setCurrentStep(phoneStepId)
+                  }
+                }}
                 className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center"
               >
                 Next Step
@@ -1119,8 +1244,412 @@ export default function OnboardingPage() {
           </div>
         )}
 
-        {/* Step 6: Phone Setup */}
-        {currentStep === 6 && (
+        {/* Location Setup Step (Business tier only) */}
+        {currentStep === getLocationStepId() && (
+          <div className="bg-white rounded-xl shadow-lg p-8">
+            <h2 className="text-2xl font-bold mb-6">🏢 Location Management Setup</h2>
+            <p className="text-gray-600 mb-6">
+              Set up your salon locations. You can manage up to 3 locations with the Business plan.
+            </p>
+            
+            <div className="space-y-4">
+              {locations.map((location, index) => (
+                <div key={index} className="p-6 border border-gray-200 rounded-lg">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-lg font-semibold">
+                      {index === 0 ? 'Primary Location' : `Location ${index + 1}`}
+                    </h3>
+                    {index > 0 && (
+                      <button
+                        onClick={() => setLocations(locations.filter((_, i) => i !== index))}
+                        className="text-red-600 hover:text-red-700 text-sm"
+                      >
+                        Remove
+                      </button>
+                    )}
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <input
+                      type="text"
+                      value={location.name}
+                      onChange={(e) => {
+                        const newLocations = [...locations]
+                        newLocations[index].name = e.target.value
+                        setLocations(newLocations)
+                      }}
+                      placeholder="Location Name"
+                      className="px-3 py-2 border border-gray-300 rounded-lg"
+                    />
+                    <input
+                      type="text"
+                      value={location.address}
+                      onChange={(e) => {
+                        const newLocations = [...locations]
+                        newLocations[index].address = e.target.value
+                        setLocations(newLocations)
+                      }}
+                      placeholder="Street Address"
+                      className="px-3 py-2 border border-gray-300 rounded-lg"
+                    />
+                    <input
+                      type="text"
+                      value={location.city}
+                      onChange={(e) => {
+                        const newLocations = [...locations]
+                        newLocations[index].city = e.target.value
+                        setLocations(newLocations)
+                      }}
+                      placeholder="City"
+                      className="px-3 py-2 border border-gray-300 rounded-lg"
+                    />
+                    <input
+                      type="text"
+                      value={location.state}
+                      onChange={(e) => {
+                        const newLocations = [...locations]
+                        newLocations[index].state = e.target.value
+                        setLocations(newLocations)
+                      }}
+                      placeholder="State"
+                      className="px-3 py-2 border border-gray-300 rounded-lg"
+                    />
+                    <input
+                      type="text"
+                      value={location.postal_code}
+                      onChange={(e) => {
+                        const newLocations = [...locations]
+                        newLocations[index].postal_code = e.target.value
+                        setLocations(newLocations)
+                      }}
+                      placeholder="ZIP Code"
+                      className="px-3 py-2 border border-gray-300 rounded-lg"
+                    />
+                    <input
+                      type="tel"
+                      value={location.phone}
+                      onChange={(e) => {
+                        const newLocations = [...locations]
+                        newLocations[index].phone = e.target.value
+                        setLocations(newLocations)
+                      }}
+                      placeholder="Phone (optional)"
+                      className="px-3 py-2 border border-gray-300 rounded-lg"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {locations.length < 3 && (
+              <button
+                onClick={() => setLocations([...locations, { name: '', address: '', city: '', state: '', postal_code: '', phone: '', email: '' }])}
+                className="mt-4 px-4 py-2 border border-purple-600 text-purple-600 rounded-lg hover:bg-purple-50"
+              >
+                + Add Another Location
+              </button>
+            )}
+
+            <div className="mt-8 flex justify-between">
+              <button
+                onClick={() => setCurrentStep(5)}
+                className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 flex items-center"
+              >
+                <ArrowLeftIcon className="w-5 h-5 mr-2" />
+                Back
+              </button>
+              <button
+                onClick={() => {
+                  const paymentStepId = getPaymentStepId()
+                  const phoneStepId = getPhoneStepId()
+                  
+                  if (paymentStepId) {
+                    setCurrentStep(paymentStepId)
+                  } else if (phoneStepId) {
+                    setCurrentStep(phoneStepId)
+                  }
+                }}
+                className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center"
+              >
+                Next Step
+                <ArrowRightIcon className="w-5 h-5 ml-2" />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Payment Setup Step (Professional+ tiers) */}
+        {currentStep === getPaymentStepId() && (
+          <div className="bg-white rounded-xl shadow-lg p-8">
+            <h2 className="text-2xl font-bold mb-6">💳 Payment Processing Setup</h2>
+            <p className="text-gray-600 mb-6">
+              Configure payment processing to accept payments directly through your booking system.
+            </p>
+            
+            <div className="space-y-6">
+              <div className="border border-gray-200 rounded-lg p-6">
+                <h3 className="text-lg font-semibold mb-4">Choose Payment Processor</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <label className={`flex items-center p-4 border-2 rounded-lg cursor-pointer transition ${
+                    paymentSetup.squareEnabled ? 'border-purple-500 bg-purple-50' : 'border-gray-200 hover:border-purple-300'
+                  }`}>
+                    <input
+                      type="checkbox"
+                      checked={paymentSetup.squareEnabled}
+                      onChange={(e) => setPaymentSetup({ ...paymentSetup, squareEnabled: e.target.checked })}
+                      className="mr-3 h-5 w-5 text-purple-600"
+                    />
+                    <div>
+                      <div className="font-semibold">Square</div>
+                      <div className="text-sm text-gray-600">2.6% + 10¢ per transaction</div>
+                    </div>
+                  </label>
+                  
+                  <label className={`flex items-center p-4 border-2 rounded-lg cursor-pointer transition ${
+                    paymentSetup.stripeEnabled ? 'border-purple-500 bg-purple-50' : 'border-gray-200 hover:border-purple-300'
+                  }`}>
+                    <input
+                      type="checkbox"
+                      checked={paymentSetup.stripeEnabled}
+                      onChange={(e) => setPaymentSetup({ ...paymentSetup, stripeEnabled: e.target.checked })}
+                      className="mr-3 h-5 w-5 text-purple-600"
+                    />
+                    <div>
+                      <div className="font-semibold">Stripe</div>
+                      <div className="text-sm text-gray-600">2.9% + 30¢ per transaction</div>
+                    </div>
+                  </label>
+                </div>
+              </div>
+
+              <div className="border border-gray-200 rounded-lg p-6">
+                <h3 className="text-lg font-semibold mb-4">Tip Settings</h3>
+                <label className="flex items-center mb-4">
+                  <input
+                    type="checkbox"
+                    checked={paymentSetup.tipEnabled}
+                    onChange={(e) => setPaymentSetup({ ...paymentSetup, tipEnabled: e.target.checked })}
+                    className="mr-3 h-5 w-5 text-purple-600"
+                  />
+                  <span>Enable tips during checkout</span>
+                </label>
+                
+                {paymentSetup.tipEnabled && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      Suggested tip percentages:
+                    </label>
+                    <div className="flex gap-2">
+                      {[15, 18, 20, 25].map(percentage => (
+                        <label key={percentage} className="flex items-center">
+                          <input
+                            type="checkbox"
+                            checked={paymentSetup.tipPercentages.includes(percentage)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setPaymentSetup({
+                                  ...paymentSetup,
+                                  tipPercentages: [...paymentSetup.tipPercentages, percentage].sort()
+                                })
+                              } else {
+                                setPaymentSetup({
+                                  ...paymentSetup,
+                                  tipPercentages: paymentSetup.tipPercentages.filter(p => p !== percentage)
+                                })
+                              }
+                            }}
+                            className="mr-1 h-4 w-4 text-purple-600"
+                          />
+                          <span>{percentage}%</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <h4 className="font-medium text-yellow-800 mb-2">Setup Required</h4>
+                <p className="text-sm text-yellow-700">
+                  After onboarding, you'll need to provide your payment processor API keys in the dashboard settings.
+                  Don't worry - we'll guide you through the process!
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-8 flex justify-between">
+              <button
+                onClick={() => {
+                  const locationStepId = getLocationStepId()
+                  if (locationStepId) {
+                    setCurrentStep(locationStepId)
+                  } else {
+                    setCurrentStep(5)
+                  }
+                }}
+                className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 flex items-center"
+              >
+                <ArrowLeftIcon className="w-5 h-5 mr-2" />
+                Back
+              </button>
+              <button
+                onClick={() => {
+                  const loyaltyStepId = getLoyaltyStepId()
+                  const phoneStepId = getPhoneStepId()
+                  
+                  if (loyaltyStepId) {
+                    setCurrentStep(loyaltyStepId)
+                  } else if (phoneStepId) {
+                    setCurrentStep(phoneStepId)
+                  }
+                }}
+                className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center"
+              >
+                Next Step
+                <ArrowRightIcon className="w-5 h-5 ml-2" />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Loyalty Program Setup Step (Professional+ tiers) */}
+        {currentStep === getLoyaltyStepId() && (
+          <div className="bg-white rounded-xl shadow-lg p-8">
+            <h2 className="text-2xl font-bold mb-6">🎁 Loyalty Program Setup</h2>
+            <p className="text-gray-600 mb-6">
+              Set up a points-based loyalty program to reward your regular customers and increase retention.
+            </p>
+            
+            <div className="space-y-6">
+              <div className="border border-gray-200 rounded-lg p-6">
+                <label className="flex items-center mb-4">
+                  <input
+                    type="checkbox"
+                    checked={loyaltySetup.enabled}
+                    onChange={(e) => setLoyaltySetup({ ...loyaltySetup, enabled: e.target.checked })}
+                    className="mr-3 h-5 w-5 text-purple-600"
+                  />
+                  <span className="text-lg font-semibold">Enable Loyalty Program</span>
+                </label>
+                
+                {loyaltySetup.enabled && (
+                  <div className="space-y-4 ml-8">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Program Name
+                      </label>
+                      <input
+                        type="text"
+                        value={loyaltySetup.programName}
+                        onChange={(e) => setLoyaltySetup({ ...loyaltySetup, programName: e.target.value })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                        placeholder="Loyalty Rewards"
+                      />
+                    </div>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Points per $1 spent
+                        </label>
+                        <input
+                          type="number"
+                          value={loyaltySetup.pointsPerDollar}
+                          onChange={(e) => setLoyaltySetup({ ...loyaltySetup, pointsPerDollar: parseInt(e.target.value) || 1 })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                          min="1"
+                          max="10"
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">
+                          Points per visit
+                        </label>
+                        <input
+                          type="number"
+                          value={loyaltySetup.pointsPerVisit}
+                          onChange={(e) => setLoyaltySetup({ ...loyaltySetup, pointsPerVisit: parseInt(e.target.value) || 0 })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                          min="0"
+                          max="50"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {loyaltySetup.enabled && (
+                <div className="border border-gray-200 rounded-lg p-6">
+                  <h3 className="text-lg font-semibold mb-4">Reward Tiers</h3>
+                  <div className="space-y-3">
+                    {loyaltySetup.rewardTiers.map((tier, index) => (
+                      <div key={index} className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg">
+                        <div className="text-sm">
+                          <span className="font-medium">{tier.points} points</span> = 
+                          <span className="ml-1">{tier.reward}</span>
+                        </div>
+                        <div className="text-sm text-gray-600">
+                          (${(tier.discount / 100).toFixed(2)} value)
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="text-xs text-gray-500 mt-3">
+                    You can customize these reward tiers later in your dashboard settings.
+                  </p>
+                </div>
+              )}
+
+              <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+                <h4 className="font-medium text-green-800 mb-2">How it works</h4>
+                <ul className="text-sm text-green-700 space-y-1">
+                  <li>• Customers earn points automatically when they spend money</li>
+                  <li>• Points can be redeemed for discounts on future services</li>
+                  <li>• Loyalty data integrates with your customer management system</li>
+                  <li>• Track program performance through analytics dashboard</li>
+                </ul>
+              </div>
+            </div>
+
+            <div className="mt-8 flex justify-between">
+              <button
+                onClick={() => {
+                  const paymentStepId = getPaymentStepId()
+                  const locationStepId = getLocationStepId()
+                  
+                  if (paymentStepId) {
+                    setCurrentStep(paymentStepId)
+                  } else if (locationStepId) {
+                    setCurrentStep(locationStepId)
+                  } else {
+                    setCurrentStep(5)
+                  }
+                }}
+                className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 flex items-center"
+              >
+                <ArrowLeftIcon className="w-5 h-5 mr-2" />
+                Back
+              </button>
+              <button
+                onClick={() => {
+                  const phoneStepId = getPhoneStepId()
+                  if (phoneStepId) {
+                    setCurrentStep(phoneStepId)
+                  }
+                }}
+                className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center"
+              >
+                Next Step
+                <ArrowRightIcon className="w-5 h-5 ml-2" />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Phone Setup */}
+        {currentStep === getPhoneStepId() && (
           <div className="bg-white rounded-xl shadow-lg p-8">
             <h2 className="text-2xl font-bold mb-6">📞 Phone & AI Setup</h2>
             <p className="text-gray-600 mb-6">
@@ -1345,7 +1874,21 @@ export default function OnboardingPage() {
 
             <div className="mt-8 flex justify-between">
               <button
-                onClick={() => setCurrentStep(5)}
+                onClick={() => {
+                  const loyaltyStepId = getLoyaltyStepId()
+                  const paymentStepId = getPaymentStepId()
+                  const locationStepId = getLocationStepId()
+                  
+                  if (loyaltyStepId) {
+                    setCurrentStep(loyaltyStepId)
+                  } else if (paymentStepId) {
+                    setCurrentStep(paymentStepId)
+                  } else if (locationStepId) {
+                    setCurrentStep(locationStepId)
+                  } else {
+                    setCurrentStep(5)
+                  }
+                }}
                 className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 flex items-center"
               >
                 <ArrowLeftIcon className="w-5 h-5 mr-2" />
@@ -1363,8 +1906,8 @@ export default function OnboardingPage() {
           </div>
         )}
 
-        {/* Step 7: Complete */}
-        {currentStep === 7 && (
+        {/* Complete Step */}
+        {currentStep === getCompleteStepId() && (
           <div className="bg-white rounded-xl shadow-lg p-8 text-center">
             <div className="flex justify-center mb-6">
               <div className="w-20 h-20 bg-green-100 rounded-full flex items-center justify-center">

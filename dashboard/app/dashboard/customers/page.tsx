@@ -1,9 +1,13 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { BusinessAPI } from '../../../lib/supabase'
+import { BusinessAPI, LoyaltyAPIImpl, LocationAPIImpl } from '../../../lib/supabase'
 import { getCurrentBusinessId } from '../../../lib/auth-utils'
 import Layout from '../../../components/Layout'
+import CustomerLoyaltyBadge, { getLoyaltyTier } from '../../../components/CustomerLoyaltyBadge'
+import CustomerLocationFilter from '../../../components/CustomerLocationFilter'
+import LoyaltyPointsDisplay from '../../../components/LoyaltyPointsDisplay'
+import type { Location, BusinessWithLocations, CustomerLoyaltyPoints } from '../../../lib/supabase-types-mvp'
 import {
   UserPlusIcon,
   MagnifyingGlassIcon,
@@ -15,7 +19,9 @@ import {
   StarIcon,
   ChatBubbleLeftIcon,
   XMarkIcon,
-  FunnelIcon
+  FunnelIcon,
+  GiftIcon,
+  MapPinIcon
 } from '@heroicons/react/24/outline'
 import { HeartIcon as HeartIconSolid, StarIcon as StarIconSolid } from '@heroicons/react/24/solid'
 import { format, parseISO } from 'date-fns'
@@ -40,6 +46,10 @@ interface Customer {
   upcomingAppointments: number
   allergies?: string[]
   birthday?: string
+  locationId?: string
+  locationName?: string
+  loyaltyTier?: string
+  loyaltyPointsData?: CustomerLoyaltyPoints
 }
 
 const mockCustomers: Customer[] = [
@@ -138,11 +148,80 @@ const mockCustomers: Customer[] = [
 export default function CustomersPage() {
   const [customers, setCustomers] = useState<Customer[]>([])
   const [loading, setLoading] = useState(true)
+  const [business, setBusiness] = useState<BusinessWithLocations | null>(null)
+  const [selectedLocationId, setSelectedLocationId] = useState<string>('all')
+  const [selectedLoyaltyTier, setSelectedLoyaltyTier] = useState<string>('all')
+  const [customerLoyaltyData, setCustomerLoyaltyData] = useState<Record<string, CustomerLoyaltyPoints>>({})
+  const [locations, setLocations] = useState<Location[]>([])
+  const [loyaltyStats, setLoyaltyStats] = useState({
+    totalMembers: 0,
+    totalPointsIssued: 0,
+    averageTier: 'Bronze'
+  })
 
   // Load real customers from database
   useEffect(() => {
     loadCustomers()
+    loadBusinessData()
   }, [])
+
+  useEffect(() => {
+    if (business && business.subscription_tier === 'business') {
+      loadLocations()
+    }
+  }, [business])
+
+  const loadBusinessData = async () => {
+    try {
+      const businessId = getCurrentBusinessId()
+      if (!businessId) return
+
+      const businessData = await BusinessAPI.getBusiness(businessId) as BusinessWithLocations
+      setBusiness(businessData)
+    } catch (error) {
+      console.error('Error loading business data:', error)
+    }
+  }
+
+  const loadLocations = async () => {
+    try {
+      const businessId = getCurrentBusinessId()
+      if (!businessId) return
+
+      const locationsData = await LocationAPIImpl.getLocations(businessId)
+      setLocations(locationsData)
+    } catch (error) {
+      console.error('Error loading locations:', error)
+    }
+  }
+
+  const fetchCustomerLoyalty = async (customerId: string) => {
+    try {
+      const businessId = getCurrentBusinessId()
+      if (!businessId) return null
+
+      return await LoyaltyAPIImpl.getCustomerPoints(businessId, customerId)
+    } catch (error) {
+      console.error('Error fetching customer loyalty:', error)
+      return null
+    }
+  }
+
+  const loadLoyaltyStats = async () => {
+    try {
+      const businessId = getCurrentBusinessId()
+      if (!businessId) return
+
+      const stats = await LoyaltyAPIImpl.getLoyaltyStats(businessId)
+      setLoyaltyStats({
+        totalMembers: stats.total_members,
+        totalPointsIssued: stats.total_points_issued,
+        averageTier: 'Bronze' // Calculate from data
+      })
+    } catch (error) {
+      console.error('Error loading loyalty stats:', error)
+    }
+  }
 
   const loadCustomers = async () => {
     try {
@@ -153,28 +232,50 @@ export default function CustomersPage() {
       const realCustomers = await BusinessAPI.getCustomers(businessId)
       
       // Transform to match our interface
-      const transformedCustomers: Customer[] = realCustomers.map(customer => ({
-        id: customer.id,
-        firstName: customer.first_name,
-        lastName: customer.last_name,
-        email: customer.email || '',
-        phone: customer.phone,
-        totalVisits: customer.total_visits || 0,
-        totalSpent: customer.total_spent || 0,
-        lastVisitDate: customer.last_visit_date || customer.created_at,
-        firstVisitDate: customer.created_at,
-        favoriteServices: [],
-        preferredTechnician: undefined,
-        loyaltyPoints: 0,
-        status: 'active' as const,
-        rating: 5,
-        notes: customer.notes || '',
-        upcomingAppointments: 0,
-        allergies: [],
-        birthday: customer.date_of_birth
-      }))
+      const transformedCustomers: Customer[] = await Promise.all(
+        realCustomers.map(async customer => {
+          // Fetch loyalty data for Professional+ tier businesses
+          let loyaltyData = null
+          let loyaltyTier = 'None'
+          if (business && ['professional', 'business', 'enterprise'].includes(business.subscription_tier)) {
+            loyaltyData = await fetchCustomerLoyalty(customer.id)
+            if (loyaltyData) {
+              const tierInfo = getLoyaltyTier(loyaltyData.current_balance)
+              loyaltyTier = tierInfo.current.name
+            }
+          }
+
+          return {
+            id: customer.id,
+            firstName: customer.first_name,
+            lastName: customer.last_name,
+            email: customer.email || '',
+            phone: customer.phone,
+            totalVisits: customer.total_visits || 0,
+            totalSpent: customer.total_spent || 0,
+            lastVisitDate: customer.last_visit_date || customer.created_at,
+            firstVisitDate: customer.created_at,
+            favoriteServices: [],
+            preferredTechnician: undefined,
+            loyaltyPoints: loyaltyData?.current_balance || 0,
+            status: 'active' as const,
+            rating: 5,
+            notes: customer.notes || '',
+            upcomingAppointments: 0,
+            allergies: [],
+            birthday: customer.date_of_birth,
+            loyaltyTier,
+            loyaltyPointsData: loyaltyData || undefined
+          }
+        })
+      )
       
       setCustomers(transformedCustomers)
+      
+      // Load loyalty stats if available
+      if (business && ['professional', 'business', 'enterprise'].includes(business.subscription_tier)) {
+        loadLoyaltyStats()
+      }
     } catch (error) {
       console.error('Error loading customers:', error)
       setCustomers([])
@@ -195,7 +296,13 @@ export default function CustomersPage() {
     
     const matchesStatus = statusFilter === 'all' || customer.status === statusFilter
     
-    return matchesSearch && matchesStatus
+    // Location filtering (Business tier only)
+    const matchesLocation = selectedLocationId === 'all' || customer.locationId === selectedLocationId
+    
+    // Loyalty tier filtering (Professional+ tiers)
+    const matchesLoyaltyTier = selectedLoyaltyTier === 'all' || customer.loyaltyTier === selectedLoyaltyTier
+    
+    return matchesSearch && matchesStatus && matchesLocation && matchesLoyaltyTier
   })
 
   const getStatusColor = (status: string) => {
@@ -229,9 +336,20 @@ export default function CustomersPage() {
   const activeCustomers = customers.filter(c => c.status === 'active').length
   const vipCustomers = customers.filter(c => c.status === 'vip').length
   const totalRevenue = customers.reduce((sum, c) => sum + c.totalSpent, 0)
+  
+  // Loyalty metrics
+  const loyaltyMembers = customers.filter(c => c.loyaltyPoints > 0).length
+  const averageLoyaltyPoints = loyaltyMembers > 0 
+    ? Math.round(customers.reduce((sum, c) => sum + c.loyaltyPoints, 0) / loyaltyMembers)
+    : 0
+  const topTierCustomers = customers.filter(c => c.loyaltyTier === 'Platinum' || c.loyaltyTier === 'Gold').length
+
+  // Show loyalty features for Professional+ tiers
+  const hasLoyaltyFeatures = business && ['professional', 'business', 'enterprise'].includes(business.subscription_tier)
+  const isBusinessTier = business?.subscription_tier === 'business'
 
   return (
-    <Layout business={{ name: 'Bella Nails & Spa', subscription_tier: 'professional' }}>
+    <Layout business={business}>
       <div className="p-8">
         {/* Header */}
         <div className="sm:flex sm:items-center sm:justify-between mb-8">
@@ -250,7 +368,7 @@ export default function CustomersPage() {
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className={`grid grid-cols-1 gap-6 mb-8 ${hasLoyaltyFeatures ? 'md:grid-cols-3 lg:grid-cols-6' : 'md:grid-cols-4'}`}>
           <div className="stat-card">
             <div className="px-4 py-5">
               <div className="flex items-center">
@@ -306,11 +424,44 @@ export default function CustomersPage() {
               </div>
             </div>
           </div>
+
+          {/* Loyalty Stats - Show for Professional+ tiers */}
+          {hasLoyaltyFeatures && (
+            <>
+              <div className="stat-card">
+                <div className="px-4 py-5">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0">
+                      <StarIcon className="h-8 w-8 text-purple-600" />
+                    </div>
+                    <div className="ml-5">
+                      <div className="text-sm font-medium text-gray-500">Loyalty Members</div>
+                      <div className="text-2xl font-bold text-purple-600">{loyaltyMembers}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="stat-card">
+                <div className="px-4 py-5">
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0">
+                      <GiftIcon className="h-8 w-8 text-indigo-600" />
+                    </div>
+                    <div className="ml-5">
+                      <div className="text-sm font-medium text-gray-500">Avg Points</div>
+                      <div className="text-2xl font-bold text-indigo-600">{averageLoyaltyPoints}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </>
+          )}
         </div>
 
         {/* Filters */}
         <div className="bg-white shadow rounded-lg p-6 mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className={`grid grid-cols-1 gap-4 ${isBusinessTier ? 'md:grid-cols-4' : hasLoyaltyFeatures ? 'md:grid-cols-3' : 'md:grid-cols-2'}`}>
             {/* Search */}
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -338,6 +489,36 @@ export default function CustomersPage() {
                 <option value="inactive">Inactive Customers</option>
               </select>
             </div>
+
+            {/* Loyalty Tier Filter - Professional+ tiers */}
+            {hasLoyaltyFeatures && (
+              <div>
+                <select
+                  className="input-field"
+                  value={selectedLoyaltyTier}
+                  onChange={(e) => setSelectedLoyaltyTier(e.target.value)}
+                >
+                  <option value="all">All Tiers</option>
+                  <option value="Bronze">Bronze</option>
+                  <option value="Silver">Silver</option>
+                  <option value="Gold">Gold</option>
+                  <option value="Platinum">Platinum</option>
+                  <option value="None">No Tier</option>
+                </select>
+              </div>
+            )}
+
+            {/* Location Filter - Business tier only */}
+            {isBusinessTier && (
+              <div>
+                <CustomerLocationFilter
+                  business={business}
+                  locations={locations}
+                  selectedLocationId={selectedLocationId}
+                  onLocationChange={setSelectedLocationId}
+                />
+              </div>
+            )}
           </div>
         </div>
 
@@ -388,6 +569,18 @@ export default function CustomersPage() {
                         )}
                       </div>
                       
+                      {/* Loyalty Tier Badge - Professional+ tiers */}
+                      {hasLoyaltyFeatures && customer.loyaltyPoints > 0 && (
+                        <div className="mt-1">
+                          <CustomerLoyaltyBadge
+                            points={customer.loyaltyPoints}
+                            tierName={customer.loyaltyTier}
+                            size="sm"
+                            showPoints={false}
+                          />
+                        </div>
+                      )}
+                      
                       <div className="flex items-center mt-1 space-x-4 text-sm text-gray-500">
                         <div className="flex items-center">
                           <EnvelopeIcon className="h-4 w-4 mr-1" />
@@ -412,6 +605,13 @@ export default function CustomersPage() {
                           {renderStars(customer.rating)}
                           <span className="ml-1">{customer.rating}</span>
                         </div>
+                        {/* Location Info - Business tier only */}
+                        {isBusinessTier && customer.locationName && (
+                          <div className="flex items-center">
+                            <MapPinIcon className="h-4 w-4 mr-1" />
+                            {customer.locationName}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -421,9 +621,28 @@ export default function CustomersPage() {
                       <p className="text-sm font-medium text-gray-900">
                         Last visit: {format(parseISO(customer.lastVisitDate), 'MMM d, yyyy')}
                       </p>
-                      <p className="text-xs text-gray-500">
-                        {customer.loyaltyPoints} loyalty points
-                      </p>
+                      {/* Enhanced Loyalty Points Display */}
+                      {hasLoyaltyFeatures ? (
+                        <div className="flex items-center justify-end mt-1">
+                          {customer.loyaltyPoints > 0 ? (
+                            <div className="flex items-center space-x-2">
+                              <StarIcon className="h-4 w-4 text-purple-500" />
+                              <span className="text-sm font-medium text-purple-600">
+                                {customer.loyaltyPoints} points
+                              </span>
+                              <span className="text-xs text-gray-500">
+                                ({customer.loyaltyTier})
+                              </span>
+                            </div>
+                          ) : (
+                            <span className="text-xs text-gray-400">No points yet</span>
+                          )}
+                        </div>
+                      ) : (
+                        <p className="text-xs text-gray-500">
+                          {customer.loyaltyPoints} loyalty points
+                        </p>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -521,7 +740,19 @@ export default function CustomersPage() {
                         </div>
                         <div>
                           <span className="text-gray-500">Loyalty Points:</span>
-                          <p className="font-medium">{selectedCustomer.loyaltyPoints}</p>
+                          <p className="font-medium flex items-center">
+                            {selectedCustomer.loyaltyPoints}
+                            {hasLoyaltyFeatures && selectedCustomer.loyaltyTier && (
+                              <span className="ml-2">
+                                <CustomerLoyaltyBadge
+                                  points={selectedCustomer.loyaltyPoints}
+                                  tierName={selectedCustomer.loyaltyTier}
+                                  size="sm"
+                                  showPoints={false}
+                                />
+                              </span>
+                            )}
+                          </p>
                         </div>
                         <div>
                           <span className="text-gray-500">First Visit:</span>
@@ -600,6 +831,29 @@ export default function CustomersPage() {
                   >
                     View Appointments
                   </button>
+                  
+                  {/* Loyalty Points Management - Professional+ tiers */}
+                  {hasLoyaltyFeatures && (
+                    <button
+                      type="button"
+                      className="btn-secondary mt-3 sm:mt-0 sm:mr-3"
+                    >
+                      <StarIcon className="h-4 w-4 mr-1" />
+                      Adjust Points
+                    </button>
+                  )}
+                  
+                  {/* Location-specific appointments - Business tier */}
+                  {isBusinessTier && (
+                    <button
+                      type="button"
+                      className="btn-secondary mt-3 sm:mt-0 sm:mr-3"
+                    >
+                      <MapPinIcon className="h-4 w-4 mr-1" />
+                      View by Location
+                    </button>
+                  )}
+                  
                   <button
                     type="button"
                     className="btn-secondary mt-3 sm:mt-0"

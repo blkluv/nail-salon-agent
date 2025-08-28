@@ -2,7 +2,12 @@
 
 import { useEffect, useState } from 'react'
 import Layout from '../../../components/Layout'
-import { BusinessAPI } from '../../../lib/supabase'
+import { BusinessAPI, LocationAPIImpl, PaymentAPIImpl, LoyaltyAPIImpl } from '../../../lib/supabase'
+import type { Location, PaymentWithDetails, LoyaltyCustomer } from '../../../lib/supabase-types-mvp'
+import AppointmentLocationBadge from '../../../components/AppointmentLocationBadge'
+import LocationSelector from '../../../components/LocationSelector'
+import PaymentStatusModal from '../../../components/PaymentStatusModal'
+import LoyaltyPointsEarned from '../../../components/LoyaltyPointsEarned'
 import { 
   CalendarIcon, 
   FunnelIcon, 
@@ -14,7 +19,10 @@ import {
   CurrencyDollarIcon,
   XMarkIcon,
   CheckIcon,
-  ExclamationTriangleIcon
+  ExclamationTriangleIcon,
+  MapPinIcon,
+  CreditCardIcon,
+  GiftIcon
 } from '@heroicons/react/24/outline'
 import { format, isToday, isTomorrow } from 'date-fns'
 import { clsx } from 'clsx'
@@ -42,37 +50,85 @@ interface Appointment {
 export default function AppointmentsPage() {
   const [appointments, setAppointments] = useState<Appointment[]>([])
   const [filteredAppointments, setFilteredAppointments] = useState<Appointment[]>([])
+  const [business, setBusiness] = useState<any>(null)
+  const [locations, setLocations] = useState<Location[]>([])
+  const [selectedLocation, setSelectedLocation] = useState<Location | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState('all')
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0])
   const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null)
   const [showModal, setShowModal] = useState(false)
+  const [showPaymentModal, setShowPaymentModal] = useState(false)
+  const [showLoyaltyModal, setShowLoyaltyModal] = useState(false)
+  const [loyaltyData, setLoyaltyData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   // Get business ID from demo or localStorage
   const businessId = '8424aa26-4fd5-4d4b-92aa-8a9c5ba77dad'
 
-  // Fetch real appointments from Supabase
+  // Load initial data
   useEffect(() => {
-    loadAppointments()
+    loadInitialData()
   }, [])
+
+  // Reload appointments when filters change
+  useEffect(() => {
+    if (business) {
+      loadAppointments()
+    }
+  }, [selectedLocation, business])
 
   useEffect(() => {
     filterAppointments()
   }, [searchTerm, statusFilter, selectedDate, appointments])
 
-  const loadAppointments = async () => {
+  const loadInitialData = async () => {
     try {
       setLoading(true)
       setError(null)
       
-      const realAppointments = await BusinessAPI.getAppointments(businessId)
+      // Load business info
+      const businessData = await BusinessAPI.getBusiness(businessId)
+      setBusiness(businessData)
       
-      // Transform the data to match our interface
+      // Load locations for Business tier
+      if (businessData?.subscription_tier === 'business') {
+        const locationAPI = new LocationAPIImpl()
+        const locationsData = await locationAPI.getLocations(businessId)
+        setLocations(locationsData)
+        
+        // Set primary location as default
+        const primaryLocation = locationsData.find(loc => loc.is_primary)
+        if (primaryLocation) {
+          setSelectedLocation(primaryLocation)
+        }
+      }
+      
+      // Load appointments
+      await loadAppointments()
+      
+    } catch (error) {
+      console.error('Error loading initial data:', error)
+      setError('Failed to load data')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const loadAppointments = async () => {
+    try {
+      const filters: any = {}
+      if (selectedLocation) {
+        filters.location_id = selectedLocation.id
+      }
+      
+      const realAppointments = await BusinessAPI.getAppointments(businessId, filters)
+      
+      // Transform and enhance the data
       const transformedAppointments: Appointment[] = realAppointments.map(apt => ({
         id: apt.id,
-        booking_id: apt.id.slice(0, 8), // Use first 8 chars of ID as booking ID
+        booking_id: apt.id.slice(0, 8),
         customer_name: apt.customer ? `${apt.customer.first_name} ${apt.customer.last_name}` : 'Unknown Customer',
         customer_email: apt.customer?.email || '',
         customer_phone: apt.customer?.phone || '',
@@ -80,24 +136,25 @@ export default function AppointmentsPage() {
         service_duration: apt.service?.duration_minutes || 60,
         service_price: apt.service?.base_price || 55,
         appointment_date: apt.appointment_date,
-        start_time: apt.start_time?.slice(0, 5) || '00:00', // Remove seconds
-        end_time: apt.end_time?.slice(0, 5) || '01:00', // Remove seconds
+        start_time: apt.start_time?.slice(0, 5) || '00:00',
+        end_time: apt.end_time?.slice(0, 5) || '01:00',
         technician_name: apt.staff?.first_name || 'Staff Member',
         status: apt.status || 'pending',
-        payment_status: 'pending' as const,
-        created_at: apt.created_at
+        payment_status: 'pending' as const, // This would come from payment records
+        created_at: apt.created_at,
+        // Enhanced fields
+        location: locations.find(loc => loc.id === apt.location_id) || null,
+        raw_appointment: apt // Keep reference to original data
       }))
       
-      // Show only real appointments from database
       setAppointments(transformedAppointments)
       
     } catch (error) {
       console.error('Error loading appointments:', error)
-      setError('Failed to load appointments')
-      // No fallback data - show empty state
-      setAppointments([])
-    } finally {
-      setLoading(false)
+      if (!business) {
+        setError('Failed to load appointments')
+        setAppointments([])
+      }
     }
   }
 
@@ -161,9 +218,58 @@ export default function AppointmentsPage() {
     ))
   }
 
+  const handlePaymentProcessed = async (paymentData: any) => {
+    if (!selectedAppointment) return
+    
+    // Update appointment payment status
+    setAppointments(prev => prev.map(apt => 
+      apt.id === selectedAppointment.id ? { 
+        ...apt, 
+        payment_status: 'paid' as const,
+        status: 'completed' as const
+      } : apt
+    ))
+    
+    // Award loyalty points if Professional+ tier
+    if (business && ['professional', 'business'].includes(business.subscription_tier)) {
+      try {
+        const loyaltyAPI = new LoyaltyAPIImpl()
+        const loyaltyProgram = await loyaltyAPI.getLoyaltyProgram(businessId)
+        
+        if (loyaltyProgram && (selectedAppointment as any).raw_appointment?.customer_id) {
+          // Award points based on payment amount
+          const pointsEarned = Math.floor((paymentData.total_amount / 100) * loyaltyProgram.points_per_dollar)
+          
+          await loyaltyAPI.awardPoints(
+            businessId,
+            (selectedAppointment as any).raw_appointment.customer_id,
+            selectedAppointment.id,
+            pointsEarned
+          )
+          
+          // Get updated customer data for loyalty display
+          const loyaltyCustomers = await loyaltyAPI.getLoyaltyCustomers(businessId)
+          
+          if (loyaltyCustomers.length > 0) {
+            setLoyaltyData({
+              customer: loyaltyCustomers[0],
+              pointsEarned,
+              paymentAmount: paymentData.total_amount
+            })
+            setShowLoyaltyModal(true)
+          }
+        }
+      } catch (error) {
+        console.error('Failed to award loyalty points:', error)
+      }
+    }
+    
+    setShowPaymentModal(false)
+  }
+
   if (loading) {
     return (
-      <Layout business={{ name: 'Sparkle Nails Demo', subscription_tier: 'professional' }}>
+      <Layout business={business}>
         <div className="p-8">
           <div className="flex justify-center items-center h-64">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
@@ -175,7 +281,7 @@ export default function AppointmentsPage() {
   }
 
   return (
-    <Layout business={{ name: 'Sparkle Nails Demo', subscription_tier: 'professional' }}>
+    <Layout business={business}>
       <div className="p-8">
         {/* Header */}
         <div className="sm:flex sm:items-center sm:justify-between mb-8">
@@ -202,9 +308,30 @@ export default function AppointmentsPage() {
           </div>
         </div>
 
+        {/* Location Filter for Business Tier */}
+        {business?.subscription_tier === 'business' && locations.length > 1 && (
+          <div className="bg-white shadow rounded-lg p-6 mb-6">
+            <div className="flex items-center justify-between">
+              <h3 className="text-lg font-medium text-gray-900 flex items-center">
+                <MapPinIcon className="h-5 w-5 text-blue-600 mr-2" />
+                Filter by Location
+              </h3>
+              <div className="max-w-xs">
+                <LocationSelector
+                  locations={locations}
+                  selectedLocation={selectedLocation}
+                  onLocationChange={setSelectedLocation}
+                  placeholder="All Locations"
+                  includeAllOption={true}
+                />
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* Filters */}
         <div className="bg-white shadow rounded-lg p-6 mb-6">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             {/* Search */}
             <div className="relative">
               <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -244,6 +371,18 @@ export default function AppointmentsPage() {
                 onChange={(e) => setSelectedDate(e.target.value)}
               />
             </div>
+
+            {/* Payment Status Filter for Professional+ */}
+            {['professional', 'business'].includes(business?.subscription_tier || '') && (
+              <div>
+                <select className="input-field">
+                  <option value="all">All Payments</option>
+                  <option value="pending">Payment Pending</option>
+                  <option value="paid">Paid</option>
+                  <option value="refunded">Refunded</option>
+                </select>
+              </div>
+            )}
           </div>
         </div>
 
@@ -279,27 +418,50 @@ export default function AppointmentsPage() {
                     </div>
                     
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center space-x-3">
-                        <p className="text-sm font-medium text-gray-900 truncate">
-                          {appointment.customer_name}
-                        </p>
-                        <span className={clsx(
-                          'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium',
-                          getStatusColor(appointment.status)
-                        )}>
-                          {appointment.status}
-                        </span>
+                      <div className="flex items-center justify-between mb-1">
+                        <div className="flex items-center space-x-3">
+                          <p className="text-sm font-medium text-gray-900 truncate">
+                            {appointment.customer_name}
+                          </p>
+                          <span className={clsx(
+                            'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium',
+                            getStatusColor(appointment.status)
+                          )}>
+                            {appointment.status}
+                          </span>
+                        </div>
+                        
+                        {/* Location Badge for Business Tier */}
+                        {business?.subscription_tier === 'business' && (appointment as any).location && (
+                          <AppointmentLocationBadge 
+                            location={(appointment as any).location} 
+                            size="sm" 
+                          />
+                        )}
                       </div>
                       
-                      <div className="flex items-center mt-1 space-x-4 text-sm text-gray-500">
-                        <span>{appointment.service_type}</span>
-                        <span>•</span>
-                        <span>{appointment.technician_name}</span>
-                        <span>•</span>
-                        <div className="flex items-center">
-                          <ClockIcon className="h-4 w-4 mr-1" />
-                          {appointment.start_time} - {appointment.end_time}
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center space-x-4 text-sm text-gray-500">
+                          <span>{appointment.service_type}</span>
+                          <span>•</span>
+                          <span>{appointment.technician_name}</span>
+                          <span>•</span>
+                          <div className="flex items-center">
+                            <ClockIcon className="h-4 w-4 mr-1" />
+                            {appointment.start_time} - {appointment.end_time}
+                          </div>
                         </div>
+                        
+                        {/* Payment Status for Professional+ */}
+                        {['professional', 'business'].includes(business?.subscription_tier || '') && (
+                          <div className={clsx(
+                            'flex items-center text-xs font-medium',
+                            getPaymentStatusColor(appointment.payment_status)
+                          )}>
+                            <CreditCardIcon className="h-3 w-3 mr-1" />
+                            {appointment.payment_status.replace('_', ' ')}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -354,6 +516,31 @@ export default function AppointmentsPage() {
                         >
                           <CheckIcon className="h-4 w-4" />
                         </button>
+                      )}
+                      
+                      {/* Payment Processing for Professional+ */}
+                      {['professional', 'business'].includes(business?.subscription_tier || '') && 
+                       appointment.status === 'completed' && 
+                       appointment.payment_status === 'pending' && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            setSelectedAppointment(appointment)
+                            setShowPaymentModal(true)
+                          }}
+                          className="p-1 text-purple-600 hover:text-purple-800"
+                          title="Process Payment"
+                        >
+                          <CreditCardIcon className="h-4 w-4" />
+                        </button>
+                      )}
+                      
+                      {/* Loyalty Points for Professional+ */}
+                      {['professional', 'business'].includes(business?.subscription_tier || '') && 
+                       appointment.payment_status === 'paid' && (
+                        <div className="p-1 text-green-600" title="Points Awarded">
+                          <GiftIcon className="h-4 w-4" />
+                        </div>
                       )}
                     </div>
                   </div>
@@ -434,6 +621,18 @@ export default function AppointmentsPage() {
                           <span className="text-gray-500">Price:</span>
                           <p className="font-medium">${selectedAppointment.service_price}</p>
                         </div>
+                        {business?.subscription_tier === 'business' && (selectedAppointment as any).location && (
+                          <div className="col-span-2">
+                            <span className="text-gray-500">Location:</span>
+                            <div className="mt-1">
+                              <AppointmentLocationBadge 
+                                location={(selectedAppointment as any).location} 
+                                size="sm" 
+                                showAddress={true}
+                              />
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
 
@@ -448,21 +647,40 @@ export default function AppointmentsPage() {
                             {selectedAppointment.status}
                           </span>
                         </div>
-                        <div>
-                          <span className="text-gray-500 text-sm">Payment:</span>
-                          <span className={clsx(
-                            'ml-2 text-sm font-medium',
-                            getPaymentStatusColor(selectedAppointment.payment_status)
-                          )}>
-                            {selectedAppointment.payment_status.replace('_', ' ')}
-                          </span>
-                        </div>
+                        {['professional', 'business'].includes(business?.subscription_tier || '') && (
+                          <div>
+                            <span className="text-gray-500 text-sm">Payment:</span>
+                            <span className={clsx(
+                              'ml-2 text-sm font-medium',
+                              getPaymentStatusColor(selectedAppointment.payment_status)
+                            )}>
+                              {selectedAppointment.payment_status.replace('_', ' ')}
+                            </span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
                 </div>
 
                 <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                  {/* Payment Processing Button for Professional+ */}
+                  {['professional', 'business'].includes(business?.subscription_tier || '') && 
+                   selectedAppointment.status === 'completed' && 
+                   selectedAppointment.payment_status === 'pending' && (
+                    <button
+                      type="button"
+                      className="btn-primary sm:ml-3"
+                      onClick={() => {
+                        setShowModal(false)
+                        setShowPaymentModal(true)
+                      }}
+                    >
+                      <CreditCardIcon className="h-4 w-4 mr-2" />
+                      Process Payment
+                    </button>
+                  )}
+                  
                   <button
                     type="button"
                     className="btn-primary sm:ml-3"
@@ -481,6 +699,25 @@ export default function AppointmentsPage() {
             </div>
           </div>
         )}
+        
+        {/* Payment Processing Modal */}
+        <PaymentStatusModal
+          appointment={selectedAppointment && (selectedAppointment as any).raw_appointment ? (selectedAppointment as any).raw_appointment : selectedAppointment}
+          isOpen={showPaymentModal}
+          onClose={() => setShowPaymentModal(false)}
+          onPaymentProcessed={handlePaymentProcessed}
+        />
+        
+        {/* Loyalty Points Earned Modal */}
+        <LoyaltyPointsEarned
+          customer={loyaltyData?.customer || null}
+          pointsEarned={loyaltyData?.pointsEarned || 0}
+          previousTier={null} // Would be calculated based on loyalty data
+          newTier={loyaltyData?.customer?.current_tier || null}
+          isOpen={showLoyaltyModal}
+          onClose={() => setShowLoyaltyModal(false)}
+          paymentAmount={loyaltyData?.paymentAmount || 0}
+        />
       </div>
     </Layout>
   )
