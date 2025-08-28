@@ -123,7 +123,7 @@ export default function PaymentStatusModal({
         total_amount: Math.round(paymentData.totalAmount * 100),
         currency: 'USD',
         payment_method: paymentData.paymentMethod,
-        processor_type: paymentData.paymentMethod === 'cash' ? 'cash' : paymentData.processorType,
+        processor_type: (paymentData.paymentMethod === 'cash' ? 'cash' : paymentData.processorType) as 'square' | 'stripe' | 'cash',
         description: `Payment for ${appointment.service?.name || 'Service'}`,
         payment_method_details: paymentData.paymentMethod === 'cash' ? { type: 'cash' } : undefined
       }
