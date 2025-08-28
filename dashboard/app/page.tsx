@@ -395,59 +395,171 @@ export default function LandingPage() {
 
       {/* Pricing Section */}
       <section className="py-20 bg-gradient-to-br from-purple-600 to-pink-600 text-white">
-        <div className="max-w-4xl mx-auto px-4 text-center">
+        <div className="max-w-6xl mx-auto px-4 text-center">
           <h2 className="text-4xl font-bold mb-4">Simple, Transparent Pricing</h2>
-          <p className="text-xl mb-12 text-white/90">Everything you need to transform your salon booking experience</p>
+          <p className="text-xl mb-12 text-white/90">Choose the perfect plan to transform your salon</p>
 
-          <div className="bg-white rounded-3xl p-8 text-gray-900 relative">
-            <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
-              <span className="bg-gradient-to-r from-green-500 to-blue-500 text-white px-6 py-2 rounded-full font-bold text-sm">
-                EARLY ADOPTER PRICING
-              </span>
-            </div>
-
-            <div className="pt-4">
-              <div className="text-6xl font-bold mb-2">
-                $97<span className="text-2xl text-gray-600">/month</span>
+          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            {/* Starter Plan */}
+            <div className="bg-white rounded-3xl p-6 text-gray-900 relative transform hover:scale-105 transition-all">
+              <div className="text-center mb-6">
+                <h3 className="text-xl font-bold mb-2">Starter</h3>
+                <div className="text-4xl font-bold mb-1">
+                  $39<span className="text-lg text-gray-600">/month</span>
+                </div>
+                <p className="text-gray-600 text-sm">Perfect for getting started</p>
               </div>
-              <p className="text-gray-600 mb-8">Everything included. Cancel anytime.</p>
-
-              <div className="grid md:grid-cols-2 gap-4 text-left mb-8">
-                <div className="flex items-start">
-                  <CheckIcon className="w-5 h-5 text-green-500 mt-0.5 mr-2" />
-                  <span>24/7 AI Receptionist</span>
+              
+              <div className="space-y-3 mb-8">
+                <div className="flex items-center">
+                  <CheckIcon className="w-4 h-4 text-green-500 mr-3" />
+                  <span className="text-sm">Web Booking Widget</span>
                 </div>
-                <div className="flex items-start">
-                  <CheckIcon className="w-5 h-5 text-green-500 mt-0.5 mr-2" />
-                  <span>Unlimited Bookings</span>
+                <div className="flex items-center">
+                  <CheckIcon className="w-4 h-4 text-green-500 mr-3" />
+                  <span className="text-sm">SMS Reminders</span>
                 </div>
-                <div className="flex items-start">
-                  <CheckIcon className="w-5 h-5 text-green-500 mt-0.5 mr-2" />
-                  <span>SMS Confirmations</span>
+                <div className="flex items-center">
+                  <CheckIcon className="w-4 h-4 text-green-500 mr-3" />
+                  <span className="text-sm">Customer Portal</span>
                 </div>
-                <div className="flex items-start">
-                  <CheckIcon className="w-5 h-5 text-green-500 mt-0.5 mr-2" />
-                  <span>Dashboard & Analytics</span>
+                <div className="flex items-center">
+                  <CheckIcon className="w-4 h-4 text-green-500 mr-3" />
+                  <span className="text-sm">Smart Analytics</span>
                 </div>
-                <div className="flex items-start">
-                  <CheckIcon className="w-5 h-5 text-green-500 mt-0.5 mr-2" />
-                  <span>Free Setup & Training</span>
+                <div className="flex items-center">
+                  <CheckIcon className="w-4 h-4 text-green-500 mr-3" />
+                  <span className="text-sm">Email Marketing</span>
                 </div>
-                <div className="flex items-start">
-                  <CheckIcon className="w-5 h-5 text-green-500 mt-0.5 mr-2" />
-                  <span>Cancel Anytime</span>
+                <div className="flex items-center">
+                  <CheckIcon className="w-4 h-4 text-green-500 mr-3" />
+                  <span className="text-sm">Social Media Booking</span>
                 </div>
               </div>
-
+              
               <button
                 onClick={handleOnboarding}
-                className="w-full md:w-auto px-12 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-lg font-bold rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:scale-105"
+                className="w-full px-6 py-3 bg-gray-200 text-gray-800 font-semibold rounded-full hover:bg-gray-300 transition-all"
               >
-                Start Free Trial →
+                Get Started
               </button>
+            </div>
 
-              <div className="mt-6 text-center text-sm text-gray-600">
-                <p>7-day free trial • No credit card required</p>
+            {/* Professional Plan - Most Popular */}
+            <div className="bg-white rounded-3xl p-6 text-gray-900 relative transform scale-105 border-4 border-yellow-400">
+              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                <span className="bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-4 py-1 rounded-full font-bold text-sm">
+                  MOST POPULAR
+                </span>
+              </div>
+              
+              <div className="text-center mb-6 pt-2">
+                <h3 className="text-xl font-bold mb-2">Professional</h3>
+                <div className="text-4xl font-bold mb-1">
+                  $127<span className="text-lg text-gray-600">/month</span>
+                </div>
+                <p className="text-gray-600 text-sm">Best value for most salons</p>
+              </div>
+              
+              <div className="space-y-3 mb-8">
+                <div className="flex items-center">
+                  <CheckIcon className="w-4 h-4 text-green-500 mr-3" />
+                  <span className="text-sm font-medium">24/7 Voice AI Receptionist</span>
+                </div>
+                <div className="flex items-center">
+                  <CheckIcon className="w-4 h-4 text-green-500 mr-3" />
+                  <span className="text-sm">Everything in Starter</span>
+                </div>
+                <div className="flex items-center">
+                  <CheckIcon className="w-4 h-4 text-green-500 mr-3" />
+                  <span className="text-sm">Online Payments</span>
+                </div>
+                <div className="flex items-center">
+                  <CheckIcon className="w-4 h-4 text-green-500 mr-3" />
+                  <span className="text-sm">Loyalty Program</span>
+                </div>
+                <div className="flex items-center">
+                  <CheckIcon className="w-4 h-4 text-green-500 mr-3" />
+                  <span className="text-sm">Advanced Reporting</span>
+                </div>
+                <div className="flex items-center">
+                  <CheckIcon className="w-4 h-4 text-green-500 mr-3" />
+                  <span className="text-sm">Unlimited Bookings</span>
+                </div>
+              </div>
+              
+              <button
+                onClick={handleOnboarding}
+                className="w-full px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold rounded-full shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
+              >
+                Start Free Trial
+              </button>
+            </div>
+
+            {/* Business Plan */}
+            <div className="bg-white rounded-3xl p-6 text-gray-900 relative transform hover:scale-105 transition-all">
+              <div className="text-center mb-6">
+                <h3 className="text-xl font-bold mb-2">Business</h3>
+                <div className="text-4xl font-bold mb-1">
+                  $247<span className="text-lg text-gray-600">/month</span>
+                </div>
+                <p className="text-gray-600 text-sm">For growing salon chains</p>
+              </div>
+              
+              <div className="space-y-3 mb-8">
+                <div className="flex items-center">
+                  <CheckIcon className="w-4 h-4 text-green-500 mr-3" />
+                  <span className="text-sm font-medium">Up to 3 Locations</span>
+                </div>
+                <div className="flex items-center">
+                  <CheckIcon className="w-4 h-4 text-green-500 mr-3" />
+                  <span className="text-sm">Everything in Professional</span>
+                </div>
+                <div className="flex items-center">
+                  <CheckIcon className="w-4 h-4 text-green-500 mr-3" />
+                  <span className="text-sm">Team Management</span>
+                </div>
+                <div className="flex items-center">
+                  <CheckIcon className="w-4 h-4 text-green-500 mr-3" />
+                  <span className="text-sm">Multi-Location Analytics</span>
+                </div>
+                <div className="flex items-center">
+                  <CheckIcon className="w-4 h-4 text-green-500 mr-3" />
+                  <span className="text-sm">Priority Support</span>
+                </div>
+                <div className="flex items-center">
+                  <CheckIcon className="w-4 h-4 text-green-500 mr-3" />
+                  <span className="text-sm">Custom Integrations</span>
+                </div>
+              </div>
+              
+              <button
+                onClick={handleOnboarding}
+                className="w-full px-6 py-3 bg-purple-600 text-white font-semibold rounded-full hover:bg-purple-700 transition-all"
+              >
+                Contact Sales
+              </button>
+            </div>
+          </div>
+
+          <div className="mt-12 text-center text-white/90">
+            <p className="text-lg mb-4">All plans include:</p>
+            <div className="flex flex-wrap justify-center gap-6 text-sm">
+              <div className="flex items-center">
+                <CheckIcon className="w-4 h-4 mr-2" />
+                <span>7-day free trial</span>
+              </div>
+              <div className="flex items-center">
+                <CheckIcon className="w-4 h-4 mr-2" />
+                <span>No setup fees</span>
+              </div>
+              <div className="flex items-center">
+                <CheckIcon className="w-4 h-4 mr-2" />
+                <span>Cancel anytime</span>
+              </div>
+              <div className="flex items-center">
+                <CheckIcon className="w-4 h-4 mr-2" />
+                <span>Free migration help</span>
               </div>
             </div>
           </div>

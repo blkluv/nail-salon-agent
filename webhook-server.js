@@ -9,6 +9,12 @@ const express = require('express');
 const { createClient } = require('@supabase/supabase-js');
 require('dotenv').config();
 
+// Import new services and routes
+const AnalyticsService = require('./services/AnalyticsService');
+const customerAuthRoutes = require('./routes/customerAuth');
+const customerPortalRoutes = require('./routes/customerPortal');
+const analyticsRoutes = require('./routes/analytics');
+
 // Default business ID for demo
 const DEFAULT_BUSINESS_ID = '8424aa26-4fd5-4d4b-92aa-8a9c5ba77dad';
 
@@ -78,6 +84,19 @@ app.use((req, res, next) => {
         next();
     }
 });
+
+// ============================================
+// Customer Portal & Analytics API Routes
+// ============================================
+
+// Customer authentication routes
+app.use('/api/customer/auth', customerAuthRoutes);
+
+// Customer portal routes  
+app.use('/api/customer/portal', customerPortalRoutes);
+
+// Analytics routes
+app.use('/api/analytics', analyticsRoutes);
 
 // Webhook endpoint for Vapi
 app.post('/webhook/vapi', async (req, res) => {
