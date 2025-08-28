@@ -78,7 +78,7 @@ export default function PaymentProcessorsPage() {
       setProcessors(prev => {
         const existingIndex = prev.findIndex(p => 
           p.processor_type === savedProcessor.processor_type && 
-          p.location_id === savedLocation.id
+          p.location_id === savedProcessor.location_id
         )
         
         if (existingIndex >= 0) {
@@ -227,10 +227,10 @@ export default function PaymentProcessorsPage() {
 
             {/* Square Configuration */}
             <PaymentProcessorConfig
-              processor={
+              processor={(
                 getProcessorForLocation('square', selectedLocation.id) ||
                 createDefaultProcessor('square', selectedLocation.id)
-              }
+              ) as Partial<PaymentProcessor> & { processor_type: 'square' | 'stripe' }}
               onSave={handleSaveProcessor}
               onTest={handleTestConnection}
               isLoading={isLoading}
@@ -238,10 +238,10 @@ export default function PaymentProcessorsPage() {
 
             {/* Stripe Configuration */}
             <PaymentProcessorConfig
-              processor={
+              processor={(
                 getProcessorForLocation('stripe', selectedLocation.id) ||
                 createDefaultProcessor('stripe', selectedLocation.id)
-              }
+              ) as Partial<PaymentProcessor> & { processor_type: 'square' | 'stripe' }}
               onSave={handleSaveProcessor}
               onTest={handleTestConnection}
               isLoading={isLoading}

@@ -94,7 +94,7 @@ export default function LoyaltyPage() {
     try {
       setIsLoading(true)
       
-      const defaultProgram = {
+      const defaultProgram: any = {
         business_id: DEMO_BUSINESS_ID,
         location_id: selectedLocation?.id,
         name: 'VIP Rewards',
@@ -133,7 +133,7 @@ export default function LoyaltyPage() {
         ]
       }
 
-      const program = await loyaltyAPI.createLoyaltyProgram(DEMO_BUSINESS_ID, defaultProgram)
+      const program = await loyaltyAPI.createLoyaltyProgram(DEMO_BUSINESS_ID, defaultProgram as any)
       setLoyaltyProgram(program)
       setShowCreateForm(false)
     } catch (error) {

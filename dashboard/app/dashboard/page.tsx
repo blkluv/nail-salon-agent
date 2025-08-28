@@ -85,7 +85,7 @@ function DashboardPage() {
 
       // Load upcoming appointments with location filtering
       const appointmentFilters = selectedLocationId === 'all' ? {} : { location_id: selectedLocationId }
-      const upcomingAppts = await BusinessAPI.getUpcomingAppointments(businessId, 5, appointmentFilters)
+      const upcomingAppts = await BusinessAPI.getUpcomingAppointments(businessId, 5)
       console.log('📅 Upcoming appointments loaded:', upcomingAppts.length)
       
       // Enhance appointments with location data
@@ -106,7 +106,7 @@ function DashboardPage() {
           const loyaltyAPI = new LoyaltyAPIImpl()
           const loyaltyProgram = await loyaltyAPI.getLoyaltyProgram(businessId)
           if (loyaltyProgram) {
-            const loyaltyCustomers = await loyaltyAPI.getLoyaltyCustomers(loyaltyProgram.id, { limit: 100 })
+            const loyaltyCustomers = await loyaltyAPI.getLoyaltyCustomers(businessId)
             const totalPointsAwarded = loyaltyCustomers.reduce((sum, customer) => sum + customer.points_earned, 0)
             setLoyaltyStats({
               totalMembers: loyaltyCustomers.length,
