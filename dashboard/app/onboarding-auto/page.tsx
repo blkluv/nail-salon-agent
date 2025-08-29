@@ -143,7 +143,7 @@ export default function AutomatedOnboarding() {
     try {
       console.log('🚀 Submitting automated onboarding...')
       
-      const response = await fetch('/api/onboard', {
+      const response = await fetch('/api/onboard/mock', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

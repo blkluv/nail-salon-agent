@@ -10,10 +10,11 @@ const { createClient } = require('@supabase/supabase-js');
 require('dotenv').config();
 
 // Import new services and routes
-const AnalyticsService = require('./services/AnalyticsService');
-const customerAuthRoutes = require('./routes/customerAuth');
-const customerPortalRoutes = require('./routes/customerPortal');
-const analyticsRoutes = require('./routes/analytics');
+// Temporarily commenting out to debug routing issue
+// const AnalyticsService = require('./services/AnalyticsService');
+// const customerAuthRoutes = require('./routes/customerAuth');
+// const customerPortalRoutes = require('./routes/customerPortal');
+// const analyticsRoutes = require('./routes/analytics');
 
 // Default business ID for demo
 const DEFAULT_BUSINESS_ID = '8424aa26-4fd5-4d4b-92aa-8a9c5ba77dad';
@@ -90,15 +91,74 @@ app.use((req, res, next) => {
 // ============================================
 
 // Customer authentication routes
-app.use('/api/customer/auth', customerAuthRoutes);
+// app.use('/api/customer/auth', customerAuthRoutes);
 
 // Customer portal routes  
-app.use('/api/customer/portal', customerPortalRoutes);
+// app.use('/api/customer/portal', customerPortalRoutes);
 
 // Analytics routes
-app.use('/api/analytics', analyticsRoutes);
+// app.use('/api/analytics', analyticsRoutes);
 
-// Webhook endpoint for Vapi
+// ============================================
+// Multi-Tenant Webhook Endpoints
+// ============================================
+
+// New: Business-specific webhook endpoint
+app.post('/webhook/vapi/:businessId', async (req, res) => {
+    try {
+        const { businessId } = req.params;
+        const { message } = req.body;
+        
+        console.log(`🏢 Multi-tenant webhook received for business: ${businessId}`);
+        console.log('🔔 Message:', JSON.stringify(message, null, 2));
+
+        // Validate business exists and is active
+        const { data: business, error: businessError } = await supabase
+            .from('businesses')
+            .select('id, name, status, vapi_assistant_id, vapi_phone_id')
+            .eq('id', businessId)
+            .eq('status', 'active')
+            .single();
+
+        if (businessError || !business) {
+            console.error(`❌ Invalid or inactive business: ${businessId}`, businessError);
+            return res.status(404).json({ 
+                error: 'Business not found or inactive',
+                businessId: businessId
+            });
+        }
+
+        console.log(`✅ Webhook authorized for business: ${business.name}`);
+
+        // Handle both Vapi formats with explicit business ID
+        if (message?.toolCalls) {
+            const results = [];
+            
+            for (const toolCall of message.toolCalls) {
+                const result = await handleToolCall(toolCall, businessId);
+                results.push(result);
+            }
+
+            return res.json({ results });
+        }
+        
+        if (message?.functionCall) {
+            const result = await handleToolCall({ function: message.functionCall }, businessId);
+            return res.json(result);
+        }
+
+        res.json({ status: 'received', businessId: businessId });
+        
+    } catch (error) {
+        console.error(`❌ Multi-tenant webhook error for business ${req.params.businessId}:`, error);
+        res.status(500).json({ 
+            error: error.message,
+            businessId: req.params.businessId
+        });
+    }
+});
+
+// Legacy: Original webhook endpoint (for backwards compatibility)
 app.post('/webhook/vapi', async (req, res) => {
     try {
         const { message } = req.body;
