@@ -6,7 +6,7 @@
  */
 
 require('dotenv').config();
-const fetch = require('node-fetch');
+const axios = require('axios');
 
 async function testN8NIntegration() {
     const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL;
@@ -71,18 +71,16 @@ async function testN8NIntegration() {
     try {
         console.log('🔄 Sending test booking data to N8N...');
         
-        const response = await fetch(N8N_WEBHOOK_URL, {
-            method: 'POST',
+        const response = await axios.post(N8N_WEBHOOK_URL, testBookingData, {
             headers: {
                 'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(testBookingData)
+            }
         });
         
         console.log('📊 Response Status:', response.status, response.statusText);
         
-        if (response.ok) {
-            const result = await response.text();
+        if (response.status === 200 || response.status === 201) {
+            const result = response.data;
             console.log('✅ N8N Webhook Response:', result);
             console.log('');
             console.log('🎉 SUCCESS! N8N integration is working correctly.');
@@ -94,8 +92,8 @@ async function testN8NIntegration() {
             console.log('4. Make a real booking to test end-to-end flow');
             
         } else {
-            console.error('❌ N8N Webhook Error:', response.status, response.statusText);
-            const errorText = await response.text();
+            console.error('❌ N8N Webhook Error:', response.status);
+            const errorText = response.data;
             console.error('Error details:', errorText);
             
             console.log('');
@@ -107,7 +105,7 @@ async function testN8NIntegration() {
         }
         
     } catch (error) {
-        console.error('❌ Network Error:', error.message);
+        console.error('❌ Network Error:', error.response?.data || error.message);
         console.log('');
         console.log('🔧 Troubleshooting Tips:');
         console.log('1. Check your internet connection');
