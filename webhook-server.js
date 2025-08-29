@@ -10,11 +10,10 @@ const { createClient } = require('@supabase/supabase-js');
 require('dotenv').config();
 
 // Import new services and routes
-// Temporarily commenting out to debug routing issue
-// const AnalyticsService = require('./services/AnalyticsService');
-// const customerAuthRoutes = require('./routes/customerAuth');
-// const customerPortalRoutes = require('./routes/customerPortal');
-// const analyticsRoutes = require('./routes/analytics');
+const AnalyticsService = require('./services/AnalyticsService');
+const customerAuthRoutes = require('./routes/customerAuth');
+const customerPortalRoutes = require('./routes/customerPortal');
+const analyticsRoutes = require('./routes/analytics');
 
 // Default business ID for demo
 const DEFAULT_BUSINESS_ID = '8424aa26-4fd5-4d4b-92aa-8a9c5ba77dad';
@@ -91,13 +90,13 @@ app.use((req, res, next) => {
 // ============================================
 
 // Customer authentication routes
-// app.use('/api/customer/auth', customerAuthRoutes);
+app.use('/api/customer/auth', customerAuthRoutes);
 
 // Customer portal routes  
-// app.use('/api/customer/portal', customerPortalRoutes);
+app.use('/api/customer/portal', customerPortalRoutes);
 
 // Analytics routes
-// app.use('/api/analytics', analyticsRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 // ============================================
 // Multi-Tenant Webhook Endpoints
