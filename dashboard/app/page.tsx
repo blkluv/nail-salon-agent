@@ -5,6 +5,7 @@ import { useState, useEffect } from 'react'
 import { 
   SparklesIcon,
   PhoneIcon,
+  PlayIcon,
   ChartBarIcon,
   UserGroupIcon,
   CalendarIcon,
@@ -138,7 +139,7 @@ export default function LandingPage() {
                 onClick={handleDemo}
                 className="text-gray-700 hover:text-purple-600 transition font-medium"
               >
-                Try Demo
+                See Demo
               </button>
               <button
                 onClick={handleBusinessLogin}
@@ -204,8 +205,8 @@ export default function LandingPage() {
                 onClick={handleDemo}
                 className="group px-8 py-4 bg-white border-2 border-purple-200 text-purple-600 text-lg font-semibold rounded-full hover:bg-purple-50 hover:border-purple-300 transition-all flex items-center justify-center"
               >
-                <PhoneIcon className="w-6 h-6 mr-2" />
-                Hear AI Demo
+                <PlayIcon className="w-6 h-6 mr-2" />
+                See AI in Action
               </button>
             </div>
 
@@ -676,7 +677,7 @@ export default function LandingPage() {
             <div>
               <h4 className="font-semibold mb-4">Product</h4>
               <ul className="space-y-2 text-gray-400 text-sm">
-                <li><button onClick={handleDemo} className="hover:text-white transition">Demo</button></li>
+                <li><button onClick={handleDemo} className="hover:text-white transition">Interactive Demo</button></li>
                 <li><a href="#" className="hover:text-white transition">Features</a></li>
                 <li><a href="#" className="hover:text-white transition">Pricing</a></li>
                 <li><a href="#" className="hover:text-white transition">Reviews</a></li>
