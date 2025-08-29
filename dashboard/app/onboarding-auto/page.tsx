@@ -258,7 +258,7 @@ export default function AutomatedOnboarding() {
             <div className="grid grid-cols-2 gap-3 text-sm">
               {Object.entries(setupResult.data?.setup || {}).map(([key, value]) => (
                 <div key={key} className="flex items-center">
-                  <span className="mr-2">{value}</span>
+                  <span className="mr-2">{String(value)}</span>
                 </div>
               ))}
             </div>

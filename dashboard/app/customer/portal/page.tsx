@@ -17,6 +17,8 @@ import {
   CheckCircleIcon
 } from '@heroicons/react/24/outline'
 import { BusinessAPI } from '../../../lib/supabase'
+import CustomerBookingFlow from '../../../components/CustomerBookingFlow'
+import AppointmentManager from '../../../components/AppointmentManager'
 
 interface CustomerData {
   id: string
@@ -53,6 +55,8 @@ export default function CustomerPortal() {
   const [isLoading, setIsLoading] = useState(true)
   const [activeTab, setActiveTab] = useState('appointments')
   const [showRescheduleModal, setShowRescheduleModal] = useState<string | null>(null)
+  const [showBookingFlow, setShowBookingFlow] = useState(false)
+  const [appointmentToManage, setAppointmentToManage] = useState<Appointment | null>(null)
 
   // Mock business ID - in real app this would come from the appointment/customer data
   const DEMO_BUSINESS_ID = '8424aa26-4fd5-4d4b-92aa-8a9c5ba77dad'
@@ -325,7 +329,7 @@ export default function CustomerPortal() {
                         {appointment.status === 'confirmed' && (
                           <div className="mt-4 flex space-x-2">
                             <button
-                              onClick={() => setShowRescheduleModal(appointment.id)}
+                              onClick={() => setAppointmentToManage(appointment)}
                               className="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200"
                             >
                               Reschedule
@@ -348,7 +352,10 @@ export default function CustomerPortal() {
                   </div>
 
                   <div className="mt-6 pt-6 border-t">
-                    <button className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:shadow-lg transition-all">
+                    <button 
+                      onClick={() => setShowBookingFlow(true)}
+                      className="w-full sm:w-auto px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:shadow-lg transition-all"
+                    >
                       Book New Appointment
                     </button>
                   </div>
@@ -456,6 +463,39 @@ export default function CustomerPortal() {
           </div>
         </div>
       </div>
+
+      {/* Booking Flow Modal */}
+      {showBookingFlow && (
+        <CustomerBookingFlow
+          businessId={DEMO_BUSINESS_ID}
+          onBookingComplete={(appointmentId) => {
+            setShowBookingFlow(false)
+            // Refresh appointments list
+            loadCustomerData()
+            // Show success message
+            alert(`Appointment booked successfully! Appointment ID: ${appointmentId}`)
+          }}
+          onClose={() => setShowBookingFlow(false)}
+        />
+      )}
+
+      {/* Appointment Management Modal */}
+      {appointmentToManage && (
+        <AppointmentManager
+          appointment={appointmentToManage}
+          onClose={() => setAppointmentToManage(null)}
+          onRescheduleComplete={() => {
+            setAppointmentToManage(null)
+            loadCustomerData()
+            alert('Appointment rescheduled successfully!')
+          }}
+          onCancelComplete={() => {
+            setAppointmentToManage(null)
+            loadCustomerData()
+            alert('Appointment cancelled successfully!')
+          }}
+        />
+      )}
     </div>
   )
 }

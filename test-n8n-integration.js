@@ -54,8 +54,8 @@ async function testN8NIntegration() {
             name: 'Jane Test',
             firstName: 'Jane',
             lastName: 'Test',
-            phone: '+1-555-987-6543',
-            email: 'jane.test@example.com',
+            phone: '+13232837135',
+            email: 'escott1188@gmail.com',
             totalVisits: 1,
             totalSpent: 0
         },

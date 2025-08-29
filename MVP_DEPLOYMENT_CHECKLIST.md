@@ -39,7 +39,7 @@
   JWT_SECRET ✓
   ```
 - [ ] Check Railway logs for any errors
-- [ ] Test webhook endpoint: https://vapi-nail-salon-agent-production.up.railway.app/health
+- [ ] Test webhook endpoint: https://web-production-60875.up.railway.app/health
 
 ### 🔴 3. Dashboard Deployment to Vercel (20 minutes)
 - [ ] Navigate to `vapi-nail-salon-agent/dashboard` directory
@@ -47,7 +47,7 @@
   ```env
   NEXT_PUBLIC_SUPABASE_URL=https://irvyhhkoiyzartmmvbxw.supabase.co
   NEXT_PUBLIC_SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
-  NEXT_PUBLIC_API_URL=https://vapi-nail-salon-agent-production.up.railway.app
+  NEXT_PUBLIC_API_URL=https://web-production-60875.up.railway.app
   ```
 - [ ] Deploy to Vercel:
   ```bash
