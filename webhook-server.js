@@ -191,6 +191,85 @@ app.post('/webhook/vapi', async (req, res) => {
     }
 });
 
+// N8N Post-Booking Workflow Trigger
+async function triggerPostBookingWorkflow(appointment, customer, service, businessId) {
+    try {
+        const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL;
+        if (!N8N_WEBHOOK_URL) {
+            console.log('⚠️ N8N_WEBHOOK_URL not configured, skipping automation workflow');
+            return;
+        }
+
+        // Get business details for context
+        const { data: business } = await supabase
+            .from('businesses')
+            .select('name, email, phone, address, city, state')
+            .eq('id', businessId)
+            .single();
+
+        const webhookPayload = {
+            event: 'appointment_booked',
+            timestamp: new Date().toISOString(),
+            business: {
+                id: businessId,
+                name: business?.name || 'Salon',
+                email: business?.email,
+                phone: business?.phone,
+                address: business?.address,
+                city: business?.city,
+                state: business?.state
+            },
+            appointment: {
+                id: appointment.id,
+                date: appointment.appointment_date,
+                time: appointment.start_time,
+                endTime: appointment.end_time,
+                duration: appointment.duration_minutes,
+                status: appointment.status,
+                source: appointment.booking_source,
+                notes: appointment.customer_notes
+            },
+            customer: {
+                id: customer.id,
+                name: appointment.customer_name,
+                firstName: customer.first_name,
+                lastName: customer.last_name,
+                phone: appointment.customer_phone,
+                email: appointment.customer_email,
+                totalVisits: customer.total_visits || 0,
+                totalSpent: customer.total_spent || 0
+            },
+            service: {
+                id: service?.id,
+                name: service?.name || 'General Service',
+                category: service?.category,
+                duration: service?.duration_minutes,
+                price: service?.price_cents
+            }
+        };
+
+        console.log('🔔 Triggering N8N post-booking workflow...');
+        
+        const response = await fetch(N8N_WEBHOOK_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(webhookPayload)
+        });
+
+        if (response.ok) {
+            console.log('✅ N8N workflow triggered successfully');
+        } else {
+            console.error('❌ Failed to trigger N8N workflow:', response.status, response.statusText);
+        }
+
+    } catch (error) {
+        console.error('❌ Error triggering N8N workflow:', error);
+        // Don't throw error - booking should still succeed even if N8N fails
+    }
+}
+
 async function handleToolCall(toolCall, businessId) {
     const { function: fn } = toolCall;
     
@@ -373,6 +452,9 @@ async function bookAppointment(args, businessId) {
             .single();
             
         if (error) throw error;
+        
+        // Trigger N8N post-booking workflow
+        await triggerPostBookingWorkflow(appointment, customer, service, BUSINESS_ID);
         
         return {
             success: true,

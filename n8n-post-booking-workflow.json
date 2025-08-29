@@ -1,0 +1,349 @@
+{
+  "name": "Salon Post-Booking Automation",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "booking-automation",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Booking Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "webhookId": "booking-automation"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={\n  \"status\": \"success\",\n  \"message\": \"Post-booking automation started\",\n  \"appointmentId\": \"{{ $json.appointment.id }}\"\n}"
+      },
+      "id": "webhook-response",
+      "name": "Webhook Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "string": [
+            {
+              "value1": "={{ $json.event }}",
+              "operation": "equal",
+              "value2": "appointment_booked"
+            }
+          ]
+        }
+      },
+      "id": "validate-event",
+      "name": "Validate Event Type",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "accountSid": "={{ $credentials.twilio.accountSid }}",
+        "authToken": "={{ $credentials.twilio.authToken }}",
+        "fromPhoneNumber": "={{ $credentials.twilio.phoneNumber }}",
+        "toPhoneNumber": "={{ $json.customer.phone }}",
+        "message": "=Hi {{ $json.customer.firstName }}! 💅 Your {{ $json.service.name }} appointment is confirmed for {{ $json.appointment.date }} at {{ $json.appointment.time }}. Looking forward to seeing you at {{ $json.business.name }}! Reply STOP to opt out."
+      },
+      "id": "send-sms",
+      "name": "Send SMS Confirmation",
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [900, 200],
+      "credentials": {
+        "twilioApi": {
+          "id": "1",
+          "name": "Twilio Account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "resource": "email",
+        "operation": "send",
+        "simple": false,
+        "messageUi": {
+          "to": [
+            {
+              "address": "={{ $json.customer.email }}"
+            }
+          ],
+          "from": {
+            "address": "={{ $json.business.email }}",
+            "name": "={{ $json.business.name }}"
+          },
+          "subject": "=🎉 Appointment Confirmed - {{ $json.business.name }}",
+          "body": {
+            "contentType": "html",
+            "message": "=<!DOCTYPE html>\n<html>\n<head>\n  <meta charset=\"utf-8\">\n  <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n  <title>Appointment Confirmation</title>\n  <style>\n    body { font-family: Arial, sans-serif; line-height: 1.6; margin: 0; padding: 0; background-color: #f4f4f4; }\n    .container { max-width: 600px; margin: 0 auto; background: white; padding: 20px; border-radius: 10px; margin-top: 20px; box-shadow: 0 0 10px rgba(0,0,0,0.1); }\n    .header { background: linear-gradient(135deg, #ff6b9d, #c44569); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; margin: -20px -20px 20px -20px; }\n    .appointment-card { background: #f8f9ff; border: 2px solid #e1e5ff; border-radius: 10px; padding: 20px; margin: 20px 0; }\n    .detail-row { display: flex; justify-content: space-between; margin: 10px 0; padding: 10px 0; border-bottom: 1px solid #eee; }\n    .label { font-weight: bold; color: #555; }\n    .value { color: #333; }\n    .footer { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid #eee; color: #777; font-size: 12px; }\n    .button { display: inline-block; background: #ff6b9d; color: white; padding: 12px 25px; text-decoration: none; border-radius: 5px; margin: 20px 10px; font-weight: bold; }\n  </style>\n</head>\n<body>\n  <div class=\"container\">\n    <div class=\"header\">\n      <h1>🎉 Appointment Confirmed!</h1>\n      <p>Thank you for booking with {{ $json.business.name }}</p>\n    </div>\n    \n    <div class=\"appointment-card\">\n      <h2>📅 Appointment Details</h2>\n      <div class=\"detail-row\">\n        <span class=\"label\">Service:</span>\n        <span class=\"value\">{{ $json.service.name }}</span>\n      </div>\n      <div class=\"detail-row\">\n        <span class=\"label\">Date:</span>\n        <span class=\"value\">{{ $json.appointment.date }}</span>\n      </div>\n      <div class=\"detail-row\">\n        <span class=\"label\">Time:</span>\n        <span class=\"value\">{{ $json.appointment.time }}</span>\n      </div>\n      <div class=\"detail-row\">\n        <span class=\"label\">Duration:</span>\n        <span class=\"value\">{{ $json.appointment.duration }} minutes</span>\n      </div>\n      <div class=\"detail-row\">\n        <span class=\"label\">Location:</span>\n        <span class=\"value\">{{ $json.business.address }}, {{ $json.business.city }}, {{ $json.business.state }}</span>\n      </div>\n    </div>\n    \n    <div style=\"text-align: center;\">\n      <a href=\"tel:{{ $json.business.phone }}\" class=\"button\">📞 Call Us</a>\n      <a href=\"#\" class=\"button\">📱 Add to Calendar</a>\n    </div>\n    \n    <div class=\"footer\">\n      <p><strong>Need to reschedule or cancel?</strong><br>\n      Call us at {{ $json.business.phone }} or reply to this email.</p>\n      <p>We can't wait to pamper you! 💅✨</p>\n      <p>{{ $json.business.name }} • {{ $json.business.phone }}</p>\n    </div>\n  </div>\n</body>\n</html>"
+          }
+        }
+      },
+      "id": "send-email",
+      "name": "Send Email Confirmation",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 1,
+      "position": [900, 400],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "2",
+          "name": "Gmail Account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "authentication": "serviceAccount",
+        "resource": "event",
+        "operation": "create",
+        "calendarId": "={{ $credentials.googleCalendar.calendarId }}",
+        "start": {
+          "dateTime": "={{ $json.appointment.date }}T{{ $json.appointment.time }}:00"
+        },
+        "end": {
+          "dateTime": "={{ DateTime.fromISO($json.appointment.date + 'T' + $json.appointment.time + ':00').plus({minutes: $json.appointment.duration}).toISO() }}"
+        },
+        "summary": "={{ $json.service.name }} - {{ $json.customer.name }}",
+        "description": "=Client: {{ $json.customer.name }}\\nPhone: {{ $json.customer.phone }}\\nEmail: {{ $json.customer.email }}\\nService: {{ $json.service.name }}\\nDuration: {{ $json.appointment.duration }} minutes\\nBooked via: {{ $json.appointment.source }}",
+        "attendeesUi": {
+          "attendeeValues": [
+            {
+              "email": "={{ $json.customer.email }}",
+              "displayName": "={{ $json.customer.name }}"
+            }
+          ]
+        }
+      },
+      "id": "add-calendar",
+      "name": "Add to Google Calendar",
+      "type": "n8n-nodes-base.googleCalendar",
+      "typeVersion": 1,
+      "position": [900, 600],
+      "credentials": {
+        "googleCalendarOAuth2": {
+          "id": "3",
+          "name": "Google Calendar"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 86400,
+        "unit": "seconds"
+      },
+      "id": "wait-24h",
+      "name": "Wait 24 Hours",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [1120, 200],
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "accountSid": "={{ $credentials.twilio.accountSid }}",
+        "authToken": "={{ $credentials.twilio.authToken }}",
+        "fromPhoneNumber": "={{ $credentials.twilio.phoneNumber }}",
+        "toPhoneNumber": "={{ $json.customer.phone }}",
+        "message": "=Hi {{ $json.customer.firstName }}! 🔔 Friendly reminder: You have a {{ $json.service.name }} appointment tomorrow at {{ $json.appointment.time }} at {{ $json.business.name }}. Looking forward to seeing you! 💅"
+      },
+      "id": "send-24h-reminder",
+      "name": "Send 24h Reminder SMS",
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [1340, 200],
+      "credentials": {
+        "twilioApi": {
+          "id": "1",
+          "name": "Twilio Account"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "amount": 7200,
+        "unit": "seconds"
+      },
+      "id": "wait-2h",
+      "name": "Wait 2 More Hours",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [1340, 400],
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "accountSid": "={{ $credentials.twilio.accountSid }}",
+        "authToken": "={{ $credentials.twilio.authToken }}",
+        "fromPhoneNumber": "={{ $credentials.twilio.phoneNumber }}",
+        "toPhoneNumber": "={{ $json.customer.phone }}",
+        "message": "=⏰ Last reminder {{ $json.customer.firstName }}! Your {{ $json.service.name }} appointment is in 2 hours ({{ $json.appointment.time }}) at {{ $json.business.name }}. See you soon! 💅✨"
+      },
+      "id": "send-2h-reminder",
+      "name": "Send 2h Reminder SMS",
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [1560, 400],
+      "credentials": {
+        "twilioApi": {
+          "id": "1",
+          "name": "Twilio Account"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "=UPDATE customers SET \n  total_visits = COALESCE(total_visits, 0) + 1,\n  last_visit = '{{ $json.appointment.date }}',\n  updated_at = NOW()\nWHERE id = '{{ $json.customer.id }}' AND business_id = '{{ $json.business.id }}'",
+        "options": {}
+      },
+      "id": "update-customer",
+      "name": "Update Customer Stats",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [1120, 600],
+      "credentials": {
+        "postgres": {
+          "id": "4",
+          "name": "Supabase Database"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "=INSERT INTO analytics_events (business_id, event_type, event_data, created_at)\nVALUES (\n  '{{ $json.business.id }}',\n  'appointment_confirmed',\n  '{\n    \"appointmentId\": \"{{ $json.appointment.id }}\",\n    \"customerId\": \"{{ $json.customer.id }}\",\n    \"serviceId\": \"{{ $json.service.id }}\",\n    \"source\": \"{{ $json.appointment.source }}\",\n    \"automationTriggered\": true,\n    \"timestamp\": \"{{ $json.timestamp }}\"\n  }',\n  NOW()\n)",
+        "options": {}
+      },
+      "id": "log-analytics",
+      "name": "Log Analytics Event",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 1,
+      "position": [1120, 800],
+      "credentials": {
+        "postgres": {
+          "id": "4",
+          "name": "Supabase Database"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Booking Webhook": {
+      "main": [
+        [
+          {
+            "node": "Webhook Response",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Validate Event Type",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Event Type": {
+      "main": [
+        [
+          {
+            "node": "Send SMS Confirmation",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Send Email Confirmation",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Add to Google Calendar",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Update Customer Stats",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Log Analytics Event",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send SMS Confirmation": {
+      "main": [
+        [
+          {
+            "node": "Wait 24 Hours",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 24 Hours": {
+      "main": [
+        [
+          {
+            "node": "Send 24h Reminder SMS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send 24h Reminder SMS": {
+      "main": [
+        [
+          {
+            "node": "Wait 2 More Hours",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait 2 More Hours": {
+      "main": [
+        [
+          {
+            "node": "Send 2h Reminder SMS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [
+    {
+      "createdAt": "2024-08-29T06:00:00.000Z",
+      "updatedAt": "2024-08-29T06:00:00.000Z",
+      "id": "1",
+      "name": "salon-automation"
+    }
+  ],
+  "triggerCount": 1,
+  "updatedAt": "2024-08-29T06:00:00.000Z",
+  "versionId": "1"
+}
