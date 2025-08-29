@@ -36,6 +36,14 @@ export default function LandingPage() {
     router.push('/demo')
   }
 
+  const handleBusinessLogin = () => {
+    router.push('/login')
+  }
+
+  const handleCustomerLogin = () => {
+    router.push('/customer/login')
+  }
+
   const testimonials = [
     {
       name: "Sarah Johnson",
@@ -133,6 +141,18 @@ export default function LandingPage() {
                 Try Demo
               </button>
               <button
+                onClick={handleBusinessLogin}
+                className="text-gray-700 hover:text-purple-600 transition font-medium"
+              >
+                Business Login
+              </button>
+              <button
+                onClick={handleCustomerLogin}
+                className="text-gray-700 hover:text-purple-600 transition font-medium"
+              >
+                Customer Login
+              </button>
+              <button
                 onClick={handleOnboarding}
                 className="px-6 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full hover:shadow-lg transition-all transform hover:scale-105 font-semibold"
               >
@@ -187,6 +207,25 @@ export default function LandingPage() {
                 <PhoneIcon className="w-6 h-6 mr-2" />
                 Hear AI Demo
               </button>
+            </div>
+
+            {/* Existing Users Login */}
+            <div className="text-center mb-6">
+              <p className="text-gray-600 text-sm mb-3">Already have an account?</p>
+              <div className="flex flex-col sm:flex-row gap-2 justify-center">
+                <button
+                  onClick={handleBusinessLogin}
+                  className="px-4 py-2 text-purple-600 border border-purple-200 rounded-lg hover:bg-purple-50 transition text-sm font-medium"
+                >
+                  Business Owner Login
+                </button>
+                <button
+                  onClick={handleCustomerLogin}
+                  className="px-4 py-2 text-purple-600 border border-purple-200 rounded-lg hover:bg-purple-50 transition text-sm font-medium"
+                >
+                  Customer Portal
+                </button>
+              </div>
             </div>
 
             {/* Social Proof Pills */}
