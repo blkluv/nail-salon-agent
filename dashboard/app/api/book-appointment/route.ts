@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import { BusinessDiscoveryService } from '../../../lib/business-discovery';
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -10,16 +11,31 @@ export async function POST(request: NextRequest) {
   try {
     const bookingData = await request.json();
 
-    if (!bookingData.customer_name || !bookingData.appointment_date) {
+    if (!bookingData.customer_name || !bookingData.appointment_date || !bookingData.customer_phone) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
       );
     }
 
-    // Use the demo business ID where services and data exist
-    const DEMO_BUSINESS_ID = '8424aa26-4fd5-4d4b-92aa-8a9c5ba77dad';
-    const result = await bookAppointment(bookingData, DEMO_BUSINESS_ID);
+    // Use business_id from request, or discover from phone number
+    let businessId = bookingData.business_id;
+    
+    if (!businessId) {
+      // Discover business for phone number (fallback for legacy API calls)
+      const businesses = await BusinessDiscoveryService.discoverBusinessesForPhone(bookingData.customer_phone);
+      if (businesses.length === 0) {
+        return NextResponse.json(
+          { error: 'No salon found for this phone number. Please contact your salon to register.' },
+          { status: 400 }
+        );
+      }
+      // Use preferred business or first one found
+      const preferredBusiness = businesses.find(b => b.is_preferred) || businesses[0];
+      businessId = preferredBusiness.business_id;
+    }
+
+    const result = await bookAppointment(bookingData, businessId);
 
     return NextResponse.json(result);
   } catch (error: any) {
@@ -31,46 +47,26 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// Updated function to match the ACTUAL database schema
+// Updated function to use business discovery service
 async function bookAppointment(args: any, businessId: string) {
   try {
     console.log('📝 Web booking - Booking appointment for business:', businessId, 'with args:', args);
     
-    // Create or get customer
-    let customer;
-    const { data: existingCustomer } = await supabase
-      .from('customers')
-      .select('*')
-      .eq('business_id', businessId)
-      .eq('phone', args.customer_phone)
-      .single();
-        
-    if (existingCustomer) {
-      customer = existingCustomer;
-      console.log('Found existing customer:', customer);
-    } else {
-      const [firstName, ...lastNameParts] = args.customer_name.split(' ');
-      const { data: newCustomer, error } = await supabase
-        .from('customers')
-        .insert({
-          business_id: businessId,
-          first_name: firstName,
-          last_name: lastNameParts.join(' ') || '',
-          phone: args.customer_phone,
-          email: args.customer_email || '',
-          total_visits: 0,
-          total_spent: 0
-        })
-        .select()
-        .single();
-        
-      if (error) {
-        console.error('Customer creation error:', error);
-        throw error;
+    // Use business discovery service to get or create customer
+    const customer = await BusinessDiscoveryService.getOrCreateCustomerForBusiness(
+      args.customer_phone,
+      businessId,
+      {
+        first_name: args.customer_name,
+        email: args.customer_email
       }
-      customer = newCustomer;
-      console.log('Created new customer:', customer);
+    );
+    
+    if (!customer) {
+      throw new Error('Failed to create or find customer');
     }
+    
+    console.log('Using customer:', customer);
     
     // Calculate end time
     const [hours, minutes] = args.start_time.split(':').map(Number)

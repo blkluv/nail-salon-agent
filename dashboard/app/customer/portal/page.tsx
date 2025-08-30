@@ -58,8 +58,8 @@ export default function CustomerPortal() {
   const [showBookingFlow, setShowBookingFlow] = useState(false)
   const [appointmentToManage, setAppointmentToManage] = useState<Appointment | null>(null)
 
-  // Use the demo business ID where appointments are actually being saved
-  const DEMO_BUSINESS_ID = '8424aa26-4fd5-4d4b-92aa-8a9c5ba77dad'
+  // Get business ID from session (set during login)
+  const [businessId, setBusinessId] = useState<string>('')
 
   useEffect(() => {
     loadCustomerData()
@@ -68,14 +68,20 @@ export default function CustomerPortal() {
   const loadCustomerData = async () => {
     try {
       const phone = localStorage.getItem('customer_phone')
-      if (!phone) {
+      const sessionBusinessId = localStorage.getItem('customer_business_id')
+      const businessName = localStorage.getItem('customer_business_name')
+      
+      if (!phone || !sessionBusinessId) {
         router.push('/customer/login')
         return
       }
 
-      // Fetch real customer data from database using Railway business ID
-      const realCustomer = await BusinessAPI.getCustomerByPhone(phone, DEMO_BUSINESS_ID)
-      console.log('Looking for customer with phone:', phone, 'in business:', DEMO_BUSINESS_ID)
+      setBusinessId(sessionBusinessId)
+      console.log('Using business:', businessName, 'ID:', sessionBusinessId)
+
+      // Fetch real customer data from database using session business ID
+      const realCustomer = await BusinessAPI.getCustomerByPhone(phone, sessionBusinessId)
+      console.log('Looking for customer with phone:', phone, 'in business:', sessionBusinessId)
       console.log('Found customer:', realCustomer)
       
       let customerData: CustomerData
@@ -463,9 +469,9 @@ export default function CustomerPortal() {
       </div>
 
       {/* Booking Flow Modal */}
-      {showBookingFlow && (
+      {showBookingFlow && businessId && (
         <CustomerBookingFlow
-          businessId={DEMO_BUSINESS_ID}
+          businessId={businessId}
           customerPhone={customer?.phone}
           customerName={customer ? `${customer.first_name} ${customer.last_name}` : undefined}
           customerEmail={customer?.email}
