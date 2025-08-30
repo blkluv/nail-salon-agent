@@ -64,21 +64,35 @@ async function bookAppointment(args: any, businessId: string) {
       customer = newCustomer;
     }
     
-    // Book appointment
+    // Calculate end time
+    const [hours, minutes] = args.start_time.split(':').map(Number)
+    const startDate = new Date()
+    startDate.setHours(hours, minutes, 0, 0)
+    const endDate = new Date(startDate.getTime() + (args.service_duration || 60) * 60000)
+    const endTime = `${String(endDate.getHours()).padStart(2, '0')}:${String(endDate.getMinutes()).padStart(2, '0')}:00`
+
+    // Find service ID by name (or use first available service if not found)
+    const { data: services } = await supabase
+      .from('services')
+      .select('*')
+      .eq('business_id', businessId)
+      .eq('is_active', true)
+
+    const service = services?.find(s => s.name.toLowerCase().includes(args.service_type?.toLowerCase() || 'manicure')) || services?.[0]
+
+    // Book appointment with correct schema
     const { data: appointment, error } = await supabase
       .from('appointments')
       .insert({
         business_id: businessId,
         customer_id: customer.id,
+        service_id: service?.id || null,
         appointment_date: args.appointment_date,
         start_time: args.start_time,
-        duration_minutes: args.service_duration || 60,
-        customer_name: args.customer_name,
-        customer_phone: args.customer_phone,
-        customer_email: args.customer_email,
-        booking_source: args.booking_source || 'web',
-        status: 'scheduled',
-        service_type: args.service_type || 'manicure'
+        end_time: endTime,
+        status: 'confirmed',
+        notes: `${args.service_type || 'Service'} booked via ${args.booking_source || 'web'}`,
+        reminder_sent: false
       })
       .select()
       .single();
