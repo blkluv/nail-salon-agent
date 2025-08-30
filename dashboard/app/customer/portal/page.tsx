@@ -40,6 +40,10 @@ interface CustomerData {
     notifications: boolean
     email_marketing: boolean
     sms_reminders: boolean
+    email_reminders?: boolean
+    marketing_offers?: boolean
+    birthday_rewards?: boolean
+    new_service_alerts?: boolean
   }
 }
 
