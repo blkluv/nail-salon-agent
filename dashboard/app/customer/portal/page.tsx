@@ -58,8 +58,8 @@ export default function CustomerPortal() {
   const [showBookingFlow, setShowBookingFlow] = useState(false)
   const [appointmentToManage, setAppointmentToManage] = useState<Appointment | null>(null)
 
-  // Use the same business ID that Railway webhook uses
-  const DEMO_BUSINESS_ID = 'c7f6221a-f588-43fa-a095-09151fbc41e8'
+  // Use the demo business ID where appointments are actually being saved
+  const DEMO_BUSINESS_ID = '8424aa26-4fd5-4d4b-92aa-8a9c5ba77dad'
 
   useEffect(() => {
     loadCustomerData()

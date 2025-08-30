@@ -17,9 +17,9 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Use the Railway business ID to ensure consistency
-    const RAILWAY_BUSINESS_ID = 'c7f6221a-f588-43fa-a095-09151fbc41e8';
-    const result = await bookAppointment(bookingData, RAILWAY_BUSINESS_ID);
+    // Use the demo business ID where services and data exist
+    const DEMO_BUSINESS_ID = '8424aa26-4fd5-4d4b-92aa-8a9c5ba77dad';
+    const result = await bookAppointment(bookingData, DEMO_BUSINESS_ID);
 
     return NextResponse.json(result);
   } catch (error: any) {
@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
 // Updated function to match the ACTUAL database schema
 async function bookAppointment(args: any, businessId: string) {
   try {
-    console.log('📝 Web booking - Booking appointment:', args);
+    console.log('📝 Web booking - Booking appointment for business:', businessId, 'with args:', args);
     
     // Create or get customer
     let customer;
