@@ -27,8 +27,6 @@ interface CustomerData {
   phone: string
   email?: string
   date_of_birth?: string
-  emergency_contact_name?: string
-  emergency_contact_phone?: string
   address_line1?: string
   address_line2?: string
   city?: string
@@ -74,8 +72,6 @@ export default function CustomerPortal() {
   const [profileData, setProfileData] = useState({
     email: '',
     date_of_birth: '',
-    emergency_contact_name: '',
-    emergency_contact_phone: '',
     address_line1: '',
     address_line2: '',
     city: '',
@@ -158,8 +154,6 @@ export default function CustomerPortal() {
       setProfileData({
         email: customerData.email || '',
         date_of_birth: customerData.date_of_birth || '',
-        emergency_contact_name: customerData.emergency_contact_name || '',
-        emergency_contact_phone: customerData.emergency_contact_phone || '',
         address_line1: customerData.address_line1 || '',
         address_line2: customerData.address_line2 || '',
         city: customerData.city || '',
@@ -191,8 +185,6 @@ export default function CustomerPortal() {
         preferences: {
           ...customer.preferences,
           date_of_birth: profileData.date_of_birth,
-          emergency_contact_name: profileData.emergency_contact_name,
-          emergency_contact_phone: profileData.emergency_contact_phone,
           address_line1: profileData.address_line1,
           address_line2: profileData.address_line2,
           city: profileData.city,
@@ -207,8 +199,6 @@ export default function CustomerPortal() {
           ...prev,
           email: updatedCustomer.email,
           date_of_birth: profileData.date_of_birth,
-          emergency_contact_name: profileData.emergency_contact_name,
-          emergency_contact_phone: profileData.emergency_contact_phone,
           address_line1: profileData.address_line1,
           address_line2: profileData.address_line2,
           city: profileData.city,
@@ -568,29 +558,133 @@ export default function CustomerPortal() {
                     </div>
                   </div>
 
-                  {/* Emergency Contact */}
+                  {/* Loyalty Program */}
                   <div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-4">Emergency Contact</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <h3 className="text-lg font-medium text-gray-900 mb-4">Loyalty Rewards</h3>
+                    <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-6">
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+                        <div className="text-center">
+                          <div className="text-3xl font-bold text-purple-600 mb-1">
+                            {customer.loyalty_points || 0}
+                          </div>
+                          <div className="text-sm text-gray-600">Points Available</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-2xl font-semibold text-pink-600 mb-1">
+                            {customer.loyalty_tier || 'Bronze'}
+                          </div>
+                          <div className="text-sm text-gray-600">Current Tier</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-xl font-medium text-green-600 mb-1">
+                            ${Math.floor((customer.loyalty_points || 0) / 20)}
+                          </div>
+                          <div className="text-sm text-gray-600">Reward Value</div>
+                        </div>
+                      </div>
+                      
+                      <div className="mt-4 pt-4 border-t border-purple-200">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium text-gray-700">Progress to Silver</span>
+                          <span className="text-sm text-gray-600">{customer.loyalty_points || 0}/250 pts</span>
+                        </div>
+                        <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
+                          <div 
+                            className="bg-gradient-to-r from-purple-600 to-pink-600 h-2 rounded-full transition-all duration-300"
+                            style={{ width: `${Math.min(((customer.loyalty_points || 0) / 250) * 100, 100)}%` }}
+                          ></div>
+                        </div>
+                      </div>
+
+                      {(customer.loyalty_points || 0) >= 100 && (
+                        <div className="mt-4">
+                          <button className="w-full px-4 py-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-white rounded-lg hover:shadow-md transition-all">
+                            🎁 Redeem {Math.floor((customer.loyalty_points || 0) / 100)} Available Rewards
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Referral Program */}
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-900 mb-4">Refer Friends & Earn</h3>
+                    <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-6">
+                      <div className="text-center mb-4">
+                        <div className="text-sm text-gray-600 mb-2">Your referral code:</div>
+                        <div className="text-2xl font-bold text-green-600 bg-white px-4 py-2 rounded-lg border border-green-200 inline-block">
+                          {customer.first_name?.toUpperCase().slice(0,3) || 'REF'}{customer.phone?.slice(-4) || '0000'}
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                        <div className="text-center">
+                          <div className="text-xl font-semibold text-blue-600">$10 OFF</div>
+                          <div className="text-sm text-gray-600">For your friend</div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-xl font-semibold text-green-600">50 POINTS</div>
+                          <div className="text-sm text-gray-600">For you</div>
+                        </div>
+                      </div>
+
+                      <div className="space-y-2">
+                        <button className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-all">
+                          📱 Share via SMS
+                        </button>
+                        <button className="w-full px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-all">
+                          📧 Share via Email  
+                        </button>
+                        <button className="w-full px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-all">
+                          📋 Copy Code
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Service Preferences */}
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-900 mb-4">Service Preferences</h3>
+                    <div className="space-y-4">
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Contact Name</label>
-                        <input
-                          type="text"
-                          value={profileData.emergency_contact_name}
-                          onChange={(e) => setProfileData(prev => ({ ...prev, emergency_contact_name: e.target.value }))}
-                          placeholder="Full name"
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Preferred Services</label>
+                        <textarea
+                          rows={2}
+                          placeholder="Tell us your favorite services..."
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                         />
                       </div>
                       <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Contact Phone</label>
-                        <input
-                          type="tel"
-                          value={profileData.emergency_contact_phone}
-                          onChange={(e) => setProfileData(prev => ({ ...prev, emergency_contact_phone: e.target.value }))}
-                          placeholder="Phone number"
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Special Requests & Allergies</label>
+                        <textarea
+                          rows={3}
+                          placeholder="Any allergies, sensitivities, or special requests we should know about..."
                           className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
                         />
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">Preferred Day</label>
+                          <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                            <option>No preference</option>
+                            <option>Monday</option>
+                            <option>Tuesday</option>
+                            <option>Wednesday</option>
+                            <option>Thursday</option>
+                            <option>Friday</option>
+                            <option>Saturday</option>
+                            <option>Sunday</option>
+                          </select>
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">Preferred Time</label>
+                          <select className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                            <option>No preference</option>
+                            <option>Morning (9AM-12PM)</option>
+                            <option>Afternoon (12PM-5PM)</option>
+                            <option>Evening (5PM-8PM)</option>
+                          </select>
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -610,45 +704,130 @@ export default function CustomerPortal() {
 
             {activeTab === 'preferences' && (
               <div className="bg-white rounded-xl shadow-sm p-6">
-                <h2 className="text-xl font-bold text-gray-900 mb-6">Notification Preferences</h2>
+                <h2 className="text-xl font-bold text-gray-900 mb-6">Communication Preferences</h2>
                 
-                <div className="space-y-6">
-                  {[
-                    {
-                      key: 'sms_reminders',
-                      title: 'SMS Reminders',
-                      description: 'Receive text message reminders before your appointments'
-                    },
-                    {
-                      key: 'email_marketing',
-                      title: 'Email Updates',
-                      description: 'Get special offers and salon news via email'
-                    },
-                    {
-                      key: 'notifications',
-                      title: 'Push Notifications',
-                      description: 'Receive notifications about appointment confirmations and changes'
-                    }
-                  ].map((pref) => (
-                    <div key={pref.key} className="flex items-center justify-between py-3 border-b border-gray-200">
-                      <div>
-                        <h3 className="font-medium text-gray-900">{pref.title}</h3>
-                        <p className="text-sm text-gray-600">{pref.description}</p>
+                <div className="space-y-8">
+                  {/* Appointment Reminders */}
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-900 mb-4">Appointment Reminders</h3>
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between py-3 border-b border-gray-200">
+                        <div>
+                          <h4 className="font-medium text-gray-900">SMS Reminders</h4>
+                          <p className="text-sm text-gray-600">Text message reminders before your appointments</p>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={customer.preferences?.sms_reminders || false}
+                            className="sr-only peer"
+                          />
+                          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                        </label>
                       </div>
-                      <label className="relative inline-flex items-center cursor-pointer">
-                        <input
-                          type="checkbox"
-                          checked={customer.preferences?.[pref.key as keyof typeof customer.preferences] || false}
-                          className="sr-only peer"
-                        />
-                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
-                      </label>
-                    </div>
-                  ))}
 
-                  <button className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
-                    Save Preferences
-                  </button>
+                      <div className="ml-6">
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Reminder timing:</label>
+                        <select className="w-full max-w-xs px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                          <option>2 hours before</option>
+                          <option>4 hours before</option>
+                          <option>1 day before</option>
+                          <option>2 days before</option>
+                        </select>
+                      </div>
+
+                      <div className="flex items-center justify-between py-3 border-b border-gray-200">
+                        <div>
+                          <h4 className="font-medium text-gray-900">Email Reminders</h4>
+                          <p className="text-sm text-gray-600">Email confirmations and reminders</p>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={customer.preferences?.email_reminders || false}
+                            className="sr-only peer"
+                          />
+                          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Marketing & Promotions */}
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-900 mb-4">Marketing & Promotions</h3>
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between py-3 border-b border-gray-200">
+                        <div>
+                          <h4 className="font-medium text-gray-900">Special Offers</h4>
+                          <p className="text-sm text-gray-600">Exclusive deals and seasonal promotions</p>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={customer.preferences?.marketing_offers || false}
+                            className="sr-only peer"
+                          />
+                          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                        </label>
+                      </div>
+
+                      <div className="flex items-center justify-between py-3 border-b border-gray-200">
+                        <div>
+                          <h4 className="font-medium text-gray-900">Birthday Rewards</h4>
+                          <p className="text-sm text-gray-600">Special birthday treats and discounts</p>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={customer.preferences?.birthday_rewards || false}
+                            className="sr-only peer"
+                          />
+                          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                        </label>
+                      </div>
+
+                      <div className="flex items-center justify-between py-3 border-b border-gray-200">
+                        <div>
+                          <h4 className="font-medium text-gray-900">New Service Alerts</h4>
+                          <p className="text-sm text-gray-600">Be the first to know about new services</p>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={customer.preferences?.new_service_alerts || false}
+                            className="sr-only peer"
+                          />
+                          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Communication Channels */}
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-900 mb-4">Preferred Contact Method</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      {['SMS', 'Email', 'Phone Call'].map((method) => (
+                        <label key={method} className="flex items-center space-x-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
+                          <input
+                            type="radio"
+                            name="contact_method"
+                            value={method.toLowerCase()}
+                            className="text-purple-600 focus:ring-purple-500"
+                            defaultChecked={method === 'SMS'}
+                          />
+                          <span className="font-medium text-gray-900">{method}</span>
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="pt-4 border-t">
+                    <button className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:shadow-lg transition-all">
+                      Save Communication Preferences
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
