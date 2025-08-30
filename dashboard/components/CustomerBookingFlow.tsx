@@ -11,6 +11,7 @@ import {
   PhoneIcon,
   EnvelopeIcon
 } from '@heroicons/react/24/outline'
+import { BusinessAPI } from '../lib/supabase'
 
 interface Service {
   id: string
@@ -159,30 +160,40 @@ export default function CustomerBookingFlow({
     try {
       setIsLoading(true)
       
-      const bookingPayload = {
-        name: bookingData.customerInfo!.name,
+      // Create or get customer
+      const customer = await BusinessAPI.createOrGetCustomer(businessId, {
         phone: bookingData.customerInfo!.phone,
-        email: bookingData.customerInfo!.email,
-        service: bookingData.service!.name,
-        date: bookingData.date!,
-        time: bookingData.time!,
-        business_id: businessId
-      }
-
-      const response = await fetch('https://web-production-60875.up.railway.app/webhook/web-booking', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(bookingPayload)
+        first_name: bookingData.customerInfo!.name,
+        email: bookingData.customerInfo!.email
       })
 
-      const result = await response.json()
-      
-      if (result.success) {
-        onBookingComplete?.(result.appointment.id)
+      if (!customer) {
+        throw new Error('Failed to create customer')
+      }
+
+      // Calculate end time based on service duration
+      const [hours, minutes] = bookingData.time!.split(':').map(Number)
+      const startDate = new Date()
+      startDate.setHours(hours, minutes, 0, 0)
+      const endDate = new Date(startDate.getTime() + bookingData.service!.duration_minutes * 60000)
+      const endTime = `${String(endDate.getHours()).padStart(2, '0')}:${String(endDate.getMinutes()).padStart(2, '0')}:00`
+
+      // Create appointment
+      const appointment = await BusinessAPI.createAppointment({
+        business_id: businessId,
+        customer_id: customer.id,
+        service_id: bookingData.service!.id,
+        appointment_date: bookingData.date!,
+        start_time: `${bookingData.time!}:00`,
+        end_time: endTime,
+        status: 'confirmed',
+        notes: `Booked via customer portal for ${bookingData.service!.name}`
+      })
+
+      if (appointment) {
+        onBookingComplete?.(appointment.id)
       } else {
-        throw new Error(result.error || 'Booking failed')
+        throw new Error('Failed to create appointment')
       }
     } catch (error) {
       console.error('Booking failed:', error)

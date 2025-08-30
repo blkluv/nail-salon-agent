@@ -463,6 +463,84 @@ export class BusinessAPI {
     }
     return data || []
   }
+
+  // Create or get customer
+  static async createOrGetCustomer(businessId: string, customerData: {
+    phone: string
+    first_name: string
+    last_name?: string
+    email?: string
+  }): Promise<Customer | null> {
+    // First try to find existing customer
+    const { data: existing } = await supabase
+      .from('customers')
+      .select('*')
+      .eq('business_id', businessId)
+      .eq('phone', customerData.phone)
+      .single()
+    
+    if (existing) return existing
+
+    // Create new customer
+    const nameParts = customerData.first_name.split(' ')
+    const firstName = nameParts[0]
+    const lastName = customerData.last_name || nameParts.slice(1).join(' ') || ''
+    
+    const { data: newCustomer, error } = await supabase
+      .from('customers')
+      .insert({
+        business_id: businessId,
+        first_name: firstName,
+        last_name: lastName,
+        phone: customerData.phone,
+        email: customerData.email || '',
+        total_visits: 0,
+        total_spent: 0,
+        created_at: new Date().toISOString()
+      })
+      .select()
+      .single()
+    
+    if (error) {
+      console.error('Error creating customer:', error)
+      return null
+    }
+    return newCustomer
+  }
+
+  // Create appointment directly
+  static async createAppointment(appointmentData: {
+    business_id: string
+    customer_id: string
+    service_id: string
+    appointment_date: string
+    start_time: string
+    end_time: string
+    status?: string
+    notes?: string
+  }): Promise<Appointment | null> {
+    const { data, error } = await supabase
+      .from('appointments')
+      .insert({
+        ...appointmentData,
+        status: appointmentData.status || 'confirmed',
+        reminder_sent: false,
+        created_at: new Date().toISOString()
+      })
+      .select(`
+        *,
+        customer:customers(*),
+        staff:staff(*),
+        service:services(*)
+      `)
+      .single()
+    
+    if (error) {
+      console.error('Error creating appointment:', error)
+      return null
+    }
+    return data
+  }
 }
 
 // MVP Feature API Classes  
