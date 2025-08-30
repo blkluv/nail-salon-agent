@@ -73,8 +73,14 @@ export default function CustomerPortal() {
         return
       }
 
-      // Fetch real customer data from database
-      const realCustomer = await BusinessAPI.getCustomerByPhone(phone, DEMO_BUSINESS_ID)
+      // Fetch real customer data from database - check both business IDs
+      let realCustomer = await BusinessAPI.getCustomerByPhone(phone, DEMO_BUSINESS_ID)
+      
+      // If not found, also check the Railway webhook business ID
+      if (!realCustomer) {
+        realCustomer = await BusinessAPI.getCustomerByPhone(phone, 'c7f6221a-f588-43fa-a095-09151fbc41e8')
+        console.log('Checked Railway business ID for customer:', realCustomer)
+      }
       
       let customerData: CustomerData
       if (realCustomer) {
