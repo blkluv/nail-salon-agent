@@ -79,8 +79,8 @@ export default function CustomerPortal() {
       setBusinessId(sessionBusinessId)
       console.log('Using business:', businessName, 'ID:', sessionBusinessId)
 
-      // Fetch real customer data from database using session business ID
-      const realCustomer = await BusinessAPI.getCustomerByPhone(phone, sessionBusinessId)
+      // Fetch real customer data from database (don't filter by business - multi-business support)
+      const realCustomer = await BusinessAPI.getCustomerByPhone(phone)
       console.log('Looking for customer with phone:', phone, 'in business:', sessionBusinessId)
       console.log('Found customer:', realCustomer)
       
