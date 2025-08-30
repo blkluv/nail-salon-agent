@@ -22,6 +22,9 @@ interface BusinessInfo {
   phone: string
   address: string
   timezone: string
+  website?: string
+  ownerFirstName?: string
+  ownerLastName?: string
 }
 
 interface Service {
@@ -109,6 +112,13 @@ interface AddOn {
   category: 'ai' | 'communication' | 'business'
 }
 
+interface BrandingOptions {
+  primaryColor: string
+  logo?: string
+  welcomeMessage: string
+  businessDescription: string
+}
+
 interface SubscriptionConfig {
   plan: PricingPlan | null
   addOns: AddOn[]
@@ -121,10 +131,10 @@ const PRICING_PLANS: PricingPlan[] = [
   {
     id: 'starter',
     name: 'Starter',
-    price: 47,
+    price: 0,
     channels: ['web', 'voice'],
-    description: 'Perfect for getting started with AI booking',
-    features: ['24/7 AI Voice booking', 'Web booking widget', 'Basic customer management', 'SMS confirmations', 'Single location', 'Free setup']
+    description: 'Perfect for getting started with AI booking - Free 14-day trial',
+    features: ['24/7 AI Voice booking', 'Web booking widget', 'Basic customer management', 'SMS confirmations', 'Single location', 'Free 14-day trial']
   },
   {
     id: 'professional',
@@ -477,21 +487,83 @@ export default function OnboardingPage() {
         vapiKeySet: !!process.env.NEXT_PUBLIC_VAPI_API_KEY
       });
       
-      // 1. Create the business with subscription info
+      // 1. Create the business with complete info aligned with dashboard expectations
       const slug = businessInfo.name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') + '-' + Date.now()
+      
+      // Parse address for separate fields
+      const addressParts = businessInfo.address.split(',')
+      const address_line1 = addressParts[0]?.trim() || businessInfo.address
+      const city = addressParts[1]?.trim() || ''
+      const stateZip = addressParts[2]?.split(' ')
+      const state = stateZip?.[0]?.trim() || ''
+      const postal_code = stateZip?.[1]?.trim() || ''
+      
+      // Determine subscription tier from plan selection
+      let subscriptionTier = 'starter'
+      if (subscriptionConfig.plan?.id) {
+        // Map old plan IDs to new billing system tiers
+        const tierMapping = {
+          'starter': 'starter',
+          'professional': 'professional', 
+          'business': 'business',
+          'enterprise': 'enterprise'
+        }
+        subscriptionTier = tierMapping[subscriptionConfig.plan.id as keyof typeof tierMapping] || 'starter'
+      }
+      
+      // Extract owner name from first staff member or use business name
+      const ownerStaff = staff.find(s => s.role === 'owner') || staff[0]
+      const ownerFirstName = ownerStaff?.first_name || businessInfo.name.split(' ')[0] || 'Owner'
+      const ownerLastName = ownerStaff?.last_name || ''
+      
+      // Create business settings object
+      const businessSettings = {
+        currency: 'USD',
+        booking_buffer_minutes: 15,
+        cancellation_window_hours: 24,
+        selected_plan: subscriptionTier,
+        monthly_price: subscriptionTier === 'professional' ? 97 : subscriptionTier === 'business' ? 197 : 0,
+        tech_calendar_count: staff.filter(s => s.role === 'technician').length || 1,
+        // Add plan-specific features
+        payment_processing_enabled: ['professional', 'business'].includes(subscriptionTier),
+        loyalty_program_enabled: ['professional', 'business'].includes(subscriptionTier),
+        multi_location_enabled: subscriptionTier === 'business',
+        // Communication preferences
+        email_notifications_enabled: true,
+        sms_notifications_enabled: phonePrefs.smsEnabled,
+        // Branding
+        primary_color: '#8B5CF6', // Default purple
+        business_type: 'nail_salon'
+      }
       
       const { data: business, error: businessError } = await supabase
         .from('businesses')
         .insert({
           name: businessInfo.name,
           slug: slug,
+          business_type: 'nail_salon',
           email: businessInfo.email,
           phone: businessInfo.phone,
-          address_line1: businessInfo.address,
+          website: '', // Can be added later
+          address_line1: address_line1,
+          address_line2: '',
+          city: city,
+          state: state,
+          postal_code: postal_code,
+          country: 'US',
           timezone: businessInfo.timezone,
-          subscription_tier: (subscriptionConfig.plan?.id as any) || 'starter',
+          // Owner information for login compatibility
+          owner_email: businessInfo.email,
+          owner_first_name: ownerFirstName,
+          owner_last_name: ownerLastName,
+          // Subscription configuration
+          subscription_tier: subscriptionTier,
           subscription_status: 'trialing',
-          trial_ends_at: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString() // 14 days from now
+          trial_ends_at: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString(),
+          // Business settings for dashboard
+          settings: businessSettings,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
         })
         .select()
         .single()
@@ -512,7 +584,7 @@ export default function OnboardingPage() {
       // Store the created business in state
       setBusiness(business)
 
-      // 2. Add selected services
+      // 2. Add selected services (aligned with dashboard schema)
       const selectedServices = services.filter((s: any) => s.selected)
       if (selectedServices.length > 0) {
         const { error: servicesError } = await supabase
@@ -521,10 +593,15 @@ export default function OnboardingPage() {
             selectedServices.map(service => ({
               business_id: business.id,
               name: service.name,
+              description: `Professional ${service.name.toLowerCase()} service`,
               category: service.category,
               duration_minutes: service.duration,
-              price_cents: Math.round(service.price * 100),  // Convert dollars to cents
-              is_active: true
+              base_price: service.price, // Use decimal price (not cents)
+              is_active: true,
+              requires_deposit: service.price > 50, // Require deposit for expensive services
+              deposit_amount: service.price > 50 ? Math.round(service.price * 0.2) : 0, // 20% deposit
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
             }))
           )
         
@@ -536,7 +613,7 @@ export default function OnboardingPage() {
         }
       }
 
-      // 3. Add staff members
+      // 3. Add staff members (enhanced with proper roles and default settings)
       const validStaff = staff.filter(s => s.first_name && s.last_name)
       if (validStaff.length > 0) {
         const { error: staffError } = await supabase
@@ -546,10 +623,16 @@ export default function OnboardingPage() {
               business_id: business.id,
               first_name: member.first_name,
               last_name: member.last_name,
-              email: member.email,
-              phone: member.phone,
+              email: member.email || '',
+              phone: member.phone || '',
               role: member.role,
-              is_active: true
+              specialties: member.role === 'technician' ? selectedServices.map(s => s.name) : [],
+              hourly_rate: member.role === 'technician' ? 25 : member.role === 'manager' ? 30 : 35,
+              commission_rate: member.role === 'technician' ? 0.4 : member.role === 'manager' ? 0.3 : 0.2,
+              is_active: true,
+              hire_date: new Date().toISOString().split('T')[0],
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
             }))
           )
         
@@ -581,9 +664,83 @@ export default function OnboardingPage() {
         throw new Error('SUPABASE_HOURS_ERROR: ' + hoursError.message);
       }
 
-      console.log('✅ All database operations completed successfully');
+      console.log('✅ Core database operations completed successfully');
+
+      // 5. Create primary location for Business tier
+      if (subscriptionTier === 'business') {
+        console.log('🏢 Creating primary location for Business tier...');
+        try {
+          const { error: locationError } = await supabase
+            .from('locations')
+            .insert({
+              business_id: business.id,
+              name: businessInfo.name + ' - Main Location',
+              slug: slug + '-main',
+              address_line1: address_line1,
+              address_line2: '',
+              city: city,
+              state: state,
+              postal_code: postal_code,
+              country: 'US',
+              phone: businessInfo.phone,
+              email: businessInfo.email,
+              timezone: businessInfo.timezone,
+              is_active: true,
+              is_primary: true,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            });
+          
+          if (locationError) {
+            console.error('❌ PRIMARY LOCATION CREATION FAILED:', locationError);
+            // Don't fail onboarding for location creation
+          } else {
+            console.log('✅ Primary location created successfully');
+          }
+        } catch (locationErr) {
+          console.warn('Location table may not exist yet:', locationErr);
+          // Don't fail onboarding
+        }
+      }
+
+      // 6. Initialize loyalty program for Professional+ tiers
+      if (['professional', 'business'].includes(subscriptionTier)) {
+        console.log('🎁 Setting up loyalty program for', subscriptionTier, 'tier...');
+        try {
+          const { error: loyaltyError } = await supabase
+            .from('loyalty_programs')
+            .insert({
+              business_id: business.id,
+              program_name: businessInfo.name + ' Rewards',
+              is_active: true,
+              points_per_dollar: 1,
+              points_per_visit: 0,
+              points_expire_days: 365,
+              minimum_purchase_for_points: 0,
+              reward_tiers: [
+                { points: 100, reward: '$5 off next service', discount_amount: 500 },
+                { points: 250, reward: '$15 off next service', discount_amount: 1500 },
+                { points: 500, reward: '$35 off next service', discount_amount: 3500 }
+              ],
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString()
+            });
+          
+          if (loyaltyError) {
+            console.error('❌ LOYALTY PROGRAM CREATION FAILED:', loyaltyError);
+            // Don't fail onboarding for loyalty program creation
+          } else {
+            console.log('✅ Loyalty program initialized successfully');
+          }
+        } catch (loyaltyErr) {
+          console.warn('Loyalty program table may not exist yet:', loyaltyErr);
+          // Don't fail onboarding
+        }
+      }
+
+      console.log('✅ All enhanced database operations completed');
       
-      // 5. Handle phone setup based on strategy
+      // 7. Handle phone setup based on strategy
       if (phonePrefs.strategy === 'new_number') {
         console.log('🔄 Attempting to assign new phone number with Vapi...');
         try {
