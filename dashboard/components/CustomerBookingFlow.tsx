@@ -180,22 +180,30 @@ export default function CustomerBookingFlow({
         booking_source: 'customer_portal'
       }
 
-      console.log('Calling booking API with:', bookingPayload)
+      console.log('Calling Railway webhook with:', bookingPayload)
 
-      // Call our API endpoint
-      const response = await fetch('/api/book-appointment', {
+      // Call the Railway webhook that we know works
+      const response = await fetch('https://web-production-60875.up.railway.app/webhook/web-booking', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
         },
-        body: JSON.stringify(bookingPayload)
+        body: JSON.stringify({
+          name: bookingPayload.customer_name,
+          phone: bookingPayload.customer_phone,
+          email: bookingPayload.customer_email,
+          service: bookingPayload.service_type,
+          date: bookingPayload.appointment_date,
+          time: bookingPayload.start_time.replace(':00', ''),
+          business_id: bookingPayload.business_id
+        })
       })
 
       const result = await response.json()
-      console.log('Booking API response:', result)
+      console.log('Railway webhook response:', result)
       
       if (result.success) {
-        onBookingComplete?.(result.booking_id)
+        onBookingComplete?.(result.appointment?.id || 'booked')
       } else {
         throw new Error(result.error || 'Booking failed')
       }
