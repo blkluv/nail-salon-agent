@@ -471,24 +471,30 @@ export class BusinessAPI {
     last_name?: string
     email?: string
   }): Promise<Customer | null> {
-    // First try to find existing customer
-    const { data: existing } = await supabase
-      .from('customers')
-      .select('*')
-      .eq('business_id', businessId)
-      .eq('phone', customerData.phone)
-      .single()
-    
-    if (existing) return existing
+    try {
+      console.log('Looking for existing customer...', { businessId, phone: customerData.phone })
+      
+      // First try to find existing customer
+      const { data: existing, error: searchError } = await supabase
+        .from('customers')
+        .select('*')
+        .eq('business_id', businessId)
+        .eq('phone', customerData.phone)
+        .single()
+      
+      if (existing) {
+        console.log('Found existing customer:', existing)
+        return existing
+      }
+      
+      console.log('Customer not found, creating new one...', { searchError })
 
-    // Create new customer
-    const nameParts = customerData.first_name.split(' ')
-    const firstName = nameParts[0]
-    const lastName = customerData.last_name || nameParts.slice(1).join(' ') || ''
-    
-    const { data: newCustomer, error } = await supabase
-      .from('customers')
-      .insert({
+      // Create new customer
+      const nameParts = customerData.first_name.split(' ')
+      const firstName = nameParts[0]
+      const lastName = customerData.last_name || nameParts.slice(1).join(' ') || ''
+      
+      const customerInsert = {
         business_id: businessId,
         first_name: firstName,
         last_name: lastName,
@@ -497,15 +503,27 @@ export class BusinessAPI {
         total_visits: 0,
         total_spent: 0,
         created_at: new Date().toISOString()
-      })
-      .select()
-      .single()
-    
-    if (error) {
-      console.error('Error creating customer:', error)
-      return null
+      }
+      
+      console.log('Inserting customer:', customerInsert)
+      
+      const { data: newCustomer, error } = await supabase
+        .from('customers')
+        .insert(customerInsert)
+        .select()
+        .single()
+      
+      if (error) {
+        console.error('Error creating customer:', error)
+        throw new Error(`Database error creating customer: ${error.message}`)
+      }
+      
+      console.log('Created new customer:', newCustomer)
+      return newCustomer
+    } catch (error) {
+      console.error('createOrGetCustomer failed:', error)
+      throw error
     }
-    return newCustomer
   }
 
   // Create appointment directly
@@ -519,27 +537,38 @@ export class BusinessAPI {
     status?: string
     notes?: string
   }): Promise<Appointment | null> {
-    const { data, error } = await supabase
-      .from('appointments')
-      .insert({
+    try {
+      const appointmentInsert = {
         ...appointmentData,
         status: appointmentData.status || 'confirmed',
         reminder_sent: false,
         created_at: new Date().toISOString()
-      })
-      .select(`
-        *,
-        customer:customers(*),
-        staff:staff(*),
-        service:services(*)
-      `)
-      .single()
-    
-    if (error) {
-      console.error('Error creating appointment:', error)
-      return null
+      }
+      
+      console.log('Inserting appointment:', appointmentInsert)
+      
+      const { data, error } = await supabase
+        .from('appointments')
+        .insert(appointmentInsert)
+        .select(`
+          *,
+          customer:customers(*),
+          staff:staff(*),
+          service:services(*)
+        `)
+        .single()
+      
+      if (error) {
+        console.error('Error creating appointment:', error)
+        throw new Error(`Database error creating appointment: ${error.message}`)
+      }
+      
+      console.log('Created appointment:', data)
+      return data
+    } catch (error) {
+      console.error('createAppointment failed:', error)
+      throw error
     }
-    return data
   }
 }
 

@@ -160,13 +160,23 @@ export default function CustomerBookingFlow({
     try {
       setIsLoading(true)
       
+      console.log('Starting booking process...', {
+        businessId,
+        customerInfo: bookingData.customerInfo,
+        service: bookingData.service,
+        date: bookingData.date,
+        time: bookingData.time
+      })
+      
       // Create or get customer
+      console.log('Creating/getting customer...')
       const customer = await BusinessAPI.createOrGetCustomer(businessId, {
         phone: bookingData.customerInfo!.phone,
         first_name: bookingData.customerInfo!.name,
         email: bookingData.customerInfo!.email
       })
 
+      console.log('Customer result:', customer)
       if (!customer) {
         throw new Error('Failed to create customer')
       }
@@ -177,6 +187,15 @@ export default function CustomerBookingFlow({
       startDate.setHours(hours, minutes, 0, 0)
       const endDate = new Date(startDate.getTime() + bookingData.service!.duration_minutes * 60000)
       const endTime = `${String(endDate.getHours()).padStart(2, '0')}:${String(endDate.getMinutes()).padStart(2, '0')}:00`
+
+      console.log('Creating appointment...', {
+        business_id: businessId,
+        customer_id: customer.id,
+        service_id: bookingData.service!.id,
+        appointment_date: bookingData.date!,
+        start_time: `${bookingData.time!}:00`,
+        end_time: endTime
+      })
 
       // Create appointment
       const appointment = await BusinessAPI.createAppointment({
@@ -190,14 +209,15 @@ export default function CustomerBookingFlow({
         notes: `Booked via customer portal for ${bookingData.service!.name}`
       })
 
+      console.log('Appointment result:', appointment)
       if (appointment) {
         onBookingComplete?.(appointment.id)
       } else {
         throw new Error('Failed to create appointment')
       }
     } catch (error) {
-      console.error('Booking failed:', error)
-      alert('Failed to book appointment. Please try again.')
+      console.error('Booking failed with detailed error:', error)
+      alert(`Failed to book appointment: ${error.message}. Please try again.`)
     } finally {
       setIsLoading(false)
     }
