@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// Reuse the exact same function from webhook-server.js
+// Updated function to match the ACTUAL database schema
 async function bookAppointment(args: any, businessId: string) {
   try {
     console.log('📝 Web booking - Booking appointment:', args);
@@ -46,6 +46,7 @@ async function bookAppointment(args: any, businessId: string) {
         
     if (existingCustomer) {
       customer = existingCustomer;
+      console.log('Found existing customer:', customer);
     } else {
       const [firstName, ...lastNameParts] = args.customer_name.split(' ');
       const { data: newCustomer, error } = await supabase
@@ -55,13 +56,19 @@ async function bookAppointment(args: any, businessId: string) {
           first_name: firstName,
           last_name: lastNameParts.join(' ') || '',
           phone: args.customer_phone,
-          email: args.customer_email
+          email: args.customer_email || '',
+          total_visits: 0,
+          total_spent: 0
         })
         .select()
         .single();
         
-      if (error) throw error;
+      if (error) {
+        console.error('Customer creation error:', error);
+        throw error;
+      }
       customer = newCustomer;
+      console.log('Created new customer:', customer);
     }
     
     // Calculate end time
@@ -78,26 +85,37 @@ async function bookAppointment(args: any, businessId: string) {
       .eq('business_id', businessId)
       .eq('is_active', true)
 
+    console.log('Available services:', services?.length || 0);
     const service = services?.find(s => s.name.toLowerCase().includes(args.service_type?.toLowerCase() || 'manicure')) || services?.[0]
+    console.log('Selected service:', service);
 
-    // Book appointment with correct schema
+    // Use MINIMAL schema - only fields that definitely exist
+    const appointmentData = {
+      business_id: businessId,
+      customer_id: customer.id,
+      service_id: service?.id,
+      appointment_date: args.appointment_date,
+      start_time: args.start_time,
+      end_time: endTime,
+      status: 'confirmed',
+      reminder_sent: false
+    }
+    
+    console.log('Inserting appointment:', appointmentData);
+
+    // Book appointment with minimal schema to avoid column errors
     const { data: appointment, error } = await supabase
       .from('appointments')
-      .insert({
-        business_id: businessId,
-        customer_id: customer.id,
-        service_id: service?.id || null,
-        appointment_date: args.appointment_date,
-        start_time: args.start_time,
-        end_time: endTime,
-        status: 'confirmed',
-        notes: `${args.service_type || 'Service'} booked via ${args.booking_source || 'web'}`,
-        reminder_sent: false
-      })
+      .insert(appointmentData)
       .select()
       .single();
         
-    if (error) throw error;
+    if (error) {
+      console.error('Appointment creation error:', error);
+      throw error;
+    }
+    
+    console.log('Created appointment:', appointment);
     
     return {
       success: true,
