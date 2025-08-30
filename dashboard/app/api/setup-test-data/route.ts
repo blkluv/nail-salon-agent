@@ -174,11 +174,12 @@ export async function POST(request: NextRequest) {
       const { data: relData, error: relError } = await supabase
         .from('customer_business_relationships')
         .upsert(relationships, { onConflict: 'customer_id,business_id' })
+        .select()
 
       if (relError) {
         console.error('Relationship creation error:', relError)
       } else {
-        console.log('Created relationships:', relData?.length || relationships.length)
+        console.log('Created relationships:', relData ? relData.length : relationships.length)
       }
     }
 
