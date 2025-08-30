@@ -10,15 +10,16 @@ export async function POST(request: NextRequest) {
   try {
     const bookingData = await request.json();
 
-    if (!bookingData.business_id || !bookingData.customer_name || !bookingData.appointment_date) {
+    if (!bookingData.customer_name || !bookingData.appointment_date) {
       return NextResponse.json(
         { error: 'Missing required fields' },
         { status: 400 }
       );
     }
 
-    // Use the same booking logic as voice/SMS
-    const result = await bookAppointment(bookingData, bookingData.business_id);
+    // Use the Railway business ID to ensure consistency
+    const RAILWAY_BUSINESS_ID = 'c7f6221a-f588-43fa-a095-09151fbc41e8';
+    const result = await bookAppointment(bookingData, RAILWAY_BUSINESS_ID);
 
     return NextResponse.json(result);
   } catch (error: any) {
@@ -89,21 +90,19 @@ async function bookAppointment(args: any, businessId: string) {
     const service = services?.find(s => s.name.toLowerCase().includes(args.service_type?.toLowerCase() || 'manicure')) || services?.[0]
     console.log('Selected service:', service);
 
-    // Use MINIMAL schema - only fields that definitely exist
+    // Use ULTRA MINIMAL schema - only absolutely required fields
     const appointmentData = {
       business_id: businessId,
       customer_id: customer.id,
-      service_id: service?.id,
       appointment_date: args.appointment_date,
       start_time: args.start_time,
       end_time: endTime,
-      status: 'confirmed',
-      reminder_sent: false
+      status: 'confirmed'
     }
     
-    console.log('Inserting appointment:', appointmentData);
+    console.log('Inserting appointment with minimal data:', appointmentData);
 
-    // Book appointment with minimal schema to avoid column errors
+    // Book appointment with absolute minimal schema
     const { data: appointment, error } = await supabase
       .from('appointments')
       .insert(appointmentData)

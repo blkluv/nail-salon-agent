@@ -58,8 +58,8 @@ export default function CustomerPortal() {
   const [showBookingFlow, setShowBookingFlow] = useState(false)
   const [appointmentToManage, setAppointmentToManage] = useState<Appointment | null>(null)
 
-  // Demo business ID from environment variable
-  const DEMO_BUSINESS_ID = process.env.NEXT_PUBLIC_DEMO_BUSINESS_ID || '8424aa26-4fd5-4d4b-92aa-8a9c5ba77dad'
+  // Use the same business ID that Railway webhook uses
+  const DEMO_BUSINESS_ID = 'c7f6221a-f588-43fa-a095-09151fbc41e8'
 
   useEffect(() => {
     loadCustomerData()
@@ -73,14 +73,10 @@ export default function CustomerPortal() {
         return
       }
 
-      // Fetch real customer data from database - check both business IDs
-      let realCustomer = await BusinessAPI.getCustomerByPhone(phone, DEMO_BUSINESS_ID)
-      
-      // If not found, also check the Railway webhook business ID
-      if (!realCustomer) {
-        realCustomer = await BusinessAPI.getCustomerByPhone(phone, 'c7f6221a-f588-43fa-a095-09151fbc41e8')
-        console.log('Checked Railway business ID for customer:', realCustomer)
-      }
+      // Fetch real customer data from database using Railway business ID
+      const realCustomer = await BusinessAPI.getCustomerByPhone(phone, DEMO_BUSINESS_ID)
+      console.log('Looking for customer with phone:', phone, 'in business:', DEMO_BUSINESS_ID)
+      console.log('Found customer:', realCustomer)
       
       let customerData: CustomerData
       if (realCustomer) {
