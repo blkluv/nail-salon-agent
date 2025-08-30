@@ -34,11 +34,21 @@ interface BookingData {
 
 interface CustomerBookingFlowProps {
   businessId: string
+  customerPhone?: string
+  customerName?: string
+  customerEmail?: string
   onBookingComplete?: (appointmentId: string) => void
   onClose?: () => void
 }
 
-export default function CustomerBookingFlow({ businessId, onBookingComplete, onClose }: CustomerBookingFlowProps) {
+export default function CustomerBookingFlow({ 
+  businessId, 
+  customerPhone,
+  customerName,
+  customerEmail,
+  onBookingComplete, 
+  onClose 
+}: CustomerBookingFlowProps) {
   const [currentStep, setCurrentStep] = useState<'service' | 'datetime' | 'info' | 'confirmation'>('service')
   const [bookingData, setBookingData] = useState<BookingData>({})
   const [services, setServices] = useState<Service[]>([])
@@ -363,7 +373,11 @@ export default function CustomerBookingFlow({ businessId, onBookingComplete, onC
           {currentStep === 'info' && (
             <CustomerInfoForm
               onSubmit={handleCustomerInfo}
-              initialData={bookingData.customerInfo}
+              initialData={bookingData.customerInfo || {
+                name: customerName || '',
+                phone: customerPhone || '',
+                email: customerEmail || ''
+              }}
             />
           )}
 

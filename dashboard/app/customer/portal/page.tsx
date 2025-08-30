@@ -464,12 +464,18 @@ export default function CustomerPortal() {
       {showBookingFlow && (
         <CustomerBookingFlow
           businessId={DEMO_BUSINESS_ID}
-          onBookingComplete={(appointmentId) => {
+          customerPhone={customer?.phone}
+          customerName={customer ? `${customer.first_name} ${customer.last_name}` : undefined}
+          customerEmail={customer?.email}
+          onBookingComplete={async (appointmentId) => {
             setShowBookingFlow(false)
-            // Refresh appointments list
-            loadCustomerData()
             // Show success message
             alert(`Appointment booked successfully! Appointment ID: ${appointmentId}`)
+            // Wait a moment for database to update
+            setTimeout(() => {
+              // Refresh appointments list
+              loadCustomerData()
+            }, 2000)
           }}
           onClose={() => setShowBookingFlow(false)}
         />
