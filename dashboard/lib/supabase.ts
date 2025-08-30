@@ -427,6 +427,42 @@ export class BusinessAPI {
       }
     }).slice(0, limit) || []
   }
+
+  // Customer-specific methods
+  static async getCustomerByPhone(phone: string): Promise<Customer | null> {
+    const { data, error } = await supabase
+      .from('customers')
+      .select('*')
+      .eq('phone', phone)
+      .single()
+    
+    if (error) {
+      console.error('Error fetching customer by phone:', error)
+      return null
+    }
+    return data
+  }
+
+  static async getCustomerAppointments(customerId: string, limit = 20): Promise<Appointment[]> {
+    const { data, error } = await supabase
+      .from('appointments')
+      .select(`
+        *,
+        customer:customers(*),
+        staff:staff(*),
+        service:services(*)
+      `)
+      .eq('customer_id', customerId)
+      .order('appointment_date', { ascending: false })
+      .order('start_time', { ascending: true })
+      .limit(limit)
+
+    if (error) {
+      console.error('Error fetching customer appointments:', error)
+      return []
+    }
+    return data || []
+  }
 }
 
 // MVP Feature API Classes  

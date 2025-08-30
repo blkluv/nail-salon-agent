@@ -73,60 +73,56 @@ export default function CustomerPortal() {
         return
       }
 
-      // Mock customer data - in real app this would be fetched based on phone
-      const mockCustomer: CustomerData = {
-        id: 'customer-123',
-        first_name: 'Sarah',
-        last_name: 'Johnson',
-        phone: phone,
-        email: 'sarah.johnson@email.com',
-        total_visits: 8,
-        total_spent: 650,
-        loyalty_points: 125,
-        loyalty_tier: 'Silver',
-        preferences: {
-          notifications: true,
-          email_marketing: true,
-          sms_reminders: true
+      // Fetch real customer data from database
+      const realCustomer = await BusinessAPI.getCustomerByPhone(phone)
+      
+      let customerData: CustomerData
+      if (realCustomer) {
+        // Use real customer data
+        customerData = {
+          id: realCustomer.id,
+          first_name: realCustomer.first_name,
+          last_name: realCustomer.last_name,
+          phone: realCustomer.phone,
+          email: realCustomer.email || '',
+          total_visits: realCustomer.total_visits,
+          total_spent: realCustomer.total_spent,
+          loyalty_points: 125, // Mock for now - would come from loyalty system
+          loyalty_tier: 'Silver', // Mock for now - would be calculated
+          preferences: realCustomer.preferences || {
+            notifications: true,
+            email_marketing: true,
+            sms_reminders: true
+          }
         }
+
+        // Fetch real appointments for this customer
+        const realAppointments = await BusinessAPI.getCustomerAppointments(realCustomer.id)
+        setAppointments(realAppointments)
+      } else {
+        // Customer not found in database - use mock data for demo
+        customerData = {
+          id: 'demo-customer',
+          first_name: 'Demo',
+          last_name: 'Customer',
+          phone: phone,
+          email: 'demo@example.com',
+          total_visits: 0,
+          total_spent: 0,
+          loyalty_points: 0,
+          loyalty_tier: 'Bronze',
+          preferences: {
+            notifications: true,
+            email_marketing: true,
+            sms_reminders: true
+          }
+        }
+
+        // No appointments for new customers
+        setAppointments([])
       }
 
-      // Mock appointments data
-      const mockAppointments: Appointment[] = [
-        {
-          id: 'apt-1',
-          appointment_date: '2025-01-15',
-          start_time: '14:00',
-          end_time: '15:30',
-          status: 'confirmed',
-          service: { name: 'Gel Manicure & Pedicure', duration_minutes: 90 },
-          staff: { first_name: 'Maria', last_name: 'Rodriguez' },
-          total_amount: 85
-        },
-        {
-          id: 'apt-2',
-          appointment_date: '2024-12-20',
-          start_time: '10:30',
-          end_time: '11:30',
-          status: 'completed',
-          service: { name: 'Classic Manicure', duration_minutes: 60 },
-          staff: { first_name: 'Lisa', last_name: 'Chen' },
-          total_amount: 45
-        },
-        {
-          id: 'apt-3',
-          appointment_date: '2024-11-25',
-          start_time: '15:00',
-          end_time: '16:00',
-          status: 'completed',
-          service: { name: 'Nail Art Design', duration_minutes: 60 },
-          staff: { first_name: 'Maria', last_name: 'Rodriguez' },
-          total_amount: 65
-        }
-      ]
-
-      setCustomer(mockCustomer)
-      setAppointments(mockAppointments)
+      setCustomer(customerData)
     } catch (error) {
       console.error('Failed to load customer data:', error)
     } finally {
