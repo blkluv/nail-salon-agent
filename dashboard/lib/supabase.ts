@@ -592,6 +592,41 @@ export class BusinessAPI {
       throw error
     }
   }
+
+  // Update customer profile information
+  static async updateCustomer(customerId: string, updateData: {
+    email?: string
+    first_name?: string
+    last_name?: string
+    date_of_birth?: string
+    notes?: string
+    preferences?: any
+  }): Promise<Customer | null> {
+    try {
+      console.log('Updating customer:', customerId, updateData)
+      
+      const { data, error } = await supabase
+        .from('customers')
+        .update({
+          ...updateData,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', customerId)
+        .select()
+        .single()
+      
+      if (error) {
+        console.error('Error updating customer:', error)
+        throw new Error(`Database error updating customer: ${error.message}`)
+      }
+      
+      console.log('Customer updated successfully:', data)
+      return data
+    } catch (error) {
+      console.error('updateCustomer failed:', error)
+      throw error
+    }
+  }
 }
 
 // MVP Feature API Classes  

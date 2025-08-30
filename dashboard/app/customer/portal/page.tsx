@@ -26,6 +26,14 @@ interface CustomerData {
   last_name: string
   phone: string
   email?: string
+  date_of_birth?: string
+  emergency_contact_name?: string
+  emergency_contact_phone?: string
+  address_line1?: string
+  address_line2?: string
+  city?: string
+  state?: string
+  postal_code?: string
   total_visits: number
   total_spent: number
   loyalty_points?: number
@@ -60,6 +68,20 @@ export default function CustomerPortal() {
 
   // Get business ID from session (set during login)
   const [businessId, setBusinessId] = useState<string>('')
+  
+  // Profile editing state
+  const [isEditingProfile, setIsEditingProfile] = useState(false)
+  const [profileData, setProfileData] = useState({
+    email: '',
+    date_of_birth: '',
+    emergency_contact_name: '',
+    emergency_contact_phone: '',
+    address_line1: '',
+    address_line2: '',
+    city: '',
+    state: '',
+    postal_code: ''
+  })
 
   useEffect(() => {
     loadCustomerData()
@@ -131,6 +153,19 @@ export default function CustomerPortal() {
       }
 
       setCustomer(customerData)
+      
+      // Initialize profile form data
+      setProfileData({
+        email: customerData.email || '',
+        date_of_birth: customerData.date_of_birth || '',
+        emergency_contact_name: customerData.emergency_contact_name || '',
+        emergency_contact_phone: customerData.emergency_contact_phone || '',
+        address_line1: customerData.address_line1 || '',
+        address_line2: customerData.address_line2 || '',
+        city: customerData.city || '',
+        state: customerData.state || '',
+        postal_code: customerData.postal_code || ''
+      })
     } catch (error) {
       console.error('Failed to load customer data:', error)
     } finally {
@@ -141,6 +176,55 @@ export default function CustomerPortal() {
   const handleLogout = () => {
     localStorage.removeItem('customer_phone')
     router.push('/customer/login')
+  }
+
+  const handleProfileUpdate = async () => {
+    if (!customer) return
+    
+    try {
+      setIsEditingProfile(true)
+      
+      // Update customer in database
+      const updatedCustomer = await BusinessAPI.updateCustomer(customer.id, {
+        email: profileData.email,
+        // Store additional fields in preferences for now
+        preferences: {
+          ...customer.preferences,
+          date_of_birth: profileData.date_of_birth,
+          emergency_contact_name: profileData.emergency_contact_name,
+          emergency_contact_phone: profileData.emergency_contact_phone,
+          address_line1: profileData.address_line1,
+          address_line2: profileData.address_line2,
+          city: profileData.city,
+          state: profileData.state,
+          postal_code: profileData.postal_code
+        }
+      })
+      
+      if (updatedCustomer) {
+        // Update local customer state
+        setCustomer(prev => prev ? {
+          ...prev,
+          email: updatedCustomer.email,
+          date_of_birth: profileData.date_of_birth,
+          emergency_contact_name: profileData.emergency_contact_name,
+          emergency_contact_phone: profileData.emergency_contact_phone,
+          address_line1: profileData.address_line1,
+          address_line2: profileData.address_line2,
+          city: profileData.city,
+          state: profileData.state,
+          postal_code: profileData.postal_code,
+          preferences: updatedCustomer.preferences
+        } : null)
+        
+        alert('Profile updated successfully!')
+      }
+    } catch (error) {
+      console.error('Failed to update profile:', error)
+      alert('Failed to update profile. Please try again.')
+    } finally {
+      setIsEditingProfile(false)
+    }
   }
 
   const getStatusBadge = (status: string) => {
@@ -371,51 +455,155 @@ export default function CustomerPortal() {
               <div className="bg-white rounded-xl shadow-sm p-6">
                 <h2 className="text-xl font-bold text-gray-900 mb-6">Profile Information</h2>
                 
-                <div className="space-y-6">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">First Name</label>
-                      <input
-                        type="text"
-                        value={customer.first_name}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        readOnly
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
-                      <input
-                        type="text"
-                        value={customer.last_name}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                        readOnly
-                      />
-                    </div>
-                  </div>
-
+                <div className="space-y-8">
+                  {/* Basic Information */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
-                    <input
-                      type="tel"
-                      value={customer.phone}
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                      readOnly
-                    />
+                    <h3 className="text-lg font-medium text-gray-900 mb-4">Basic Information</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">First Name</label>
+                        <input
+                          type="text"
+                          value={customer.first_name}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          readOnly
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Last Name</label>
+                        <input
+                          type="text"
+                          value={customer.last_name}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          readOnly
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number</label>
+                        <input
+                          type="tel"
+                          value={customer.phone}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          readOnly
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                        <input
+                          type="email"
+                          value={profileData.email}
+                          onChange={(e) => setProfileData(prev => ({ ...prev, email: e.target.value }))}
+                          placeholder="Add your email address"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Date of Birth</label>
+                        <input
+                          type="date"
+                          value={profileData.date_of_birth}
+                          onChange={(e) => setProfileData(prev => ({ ...prev, date_of_birth: e.target.value }))}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        />
+                      </div>
+                    </div>
                   </div>
 
+                  {/* Address Information */}
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
-                    <input
-                      type="email"
-                      value={customer.email || ''}
-                      placeholder="Add your email address"
-                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                    />
+                    <h3 className="text-lg font-medium text-gray-900 mb-4">Address</h3>
+                    <div className="space-y-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Address Line 1</label>
+                        <input
+                          type="text"
+                          value={profileData.address_line1}
+                          onChange={(e) => setProfileData(prev => ({ ...prev, address_line1: e.target.value }))}
+                          placeholder="Street address"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Address Line 2</label>
+                        <input
+                          type="text"
+                          value={profileData.address_line2}
+                          onChange={(e) => setProfileData(prev => ({ ...prev, address_line2: e.target.value }))}
+                          placeholder="Apt, suite, etc. (optional)"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        />
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">City</label>
+                          <input
+                            type="text"
+                            value={profileData.city}
+                            onChange={(e) => setProfileData(prev => ({ ...prev, city: e.target.value }))}
+                            placeholder="City"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">State</label>
+                          <input
+                            type="text"
+                            value={profileData.state}
+                            onChange={(e) => setProfileData(prev => ({ ...prev, state: e.target.value }))}
+                            placeholder="State"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-2">ZIP Code</label>
+                          <input
+                            type="text"
+                            value={profileData.postal_code}
+                            onChange={(e) => setProfileData(prev => ({ ...prev, postal_code: e.target.value }))}
+                            placeholder="ZIP Code"
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                          />
+                        </div>
+                      </div>
+                    </div>
                   </div>
 
-                  <button className="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700">
-                    Update Profile
-                  </button>
+                  {/* Emergency Contact */}
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-900 mb-4">Emergency Contact</h3>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Contact Name</label>
+                        <input
+                          type="text"
+                          value={profileData.emergency_contact_name}
+                          onChange={(e) => setProfileData(prev => ({ ...prev, emergency_contact_name: e.target.value }))}
+                          placeholder="Full name"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Contact Phone</label>
+                        <input
+                          type="tel"
+                          value={profileData.emergency_contact_phone}
+                          onChange={(e) => setProfileData(prev => ({ ...prev, emergency_contact_phone: e.target.value }))}
+                          placeholder="Phone number"
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="pt-4 border-t">
+                    <button 
+                      onClick={handleProfileUpdate}
+                      disabled={isEditingProfile}
+                      className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isEditingProfile ? 'Updating...' : 'Update Profile'}
+                    </button>
+                  </div>
                 </div>
               </div>
             )}
