@@ -58,8 +58,8 @@ export default function CustomerPortal() {
   const [showBookingFlow, setShowBookingFlow] = useState(false)
   const [appointmentToManage, setAppointmentToManage] = useState<Appointment | null>(null)
 
-  // Mock business ID - in real app this would come from the appointment/customer data
-  const DEMO_BUSINESS_ID = '8424aa26-4fd5-4d4b-92aa-8a9c5ba77dad'
+  // Demo business ID from environment variable
+  const DEMO_BUSINESS_ID = process.env.NEXT_PUBLIC_DEMO_BUSINESS_ID || '8424aa26-4fd5-4d4b-92aa-8a9c5ba77dad'
 
   useEffect(() => {
     loadCustomerData()
@@ -74,7 +74,7 @@ export default function CustomerPortal() {
       }
 
       // Fetch real customer data from database
-      const realCustomer = await BusinessAPI.getCustomerByPhone(phone)
+      const realCustomer = await BusinessAPI.getCustomerByPhone(phone, DEMO_BUSINESS_ID)
       
       let customerData: CustomerData
       if (realCustomer) {

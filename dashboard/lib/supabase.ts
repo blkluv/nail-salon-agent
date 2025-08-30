@@ -9,8 +9,20 @@ import {
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+
+// Create admin client for operations that require elevated permissions
+const createAdminClient = () => {
+  if (typeof window !== 'undefined') {
+    // Client-side: use anon key (limited permissions)
+    return createClient(supabaseUrl, supabaseAnonKey)
+  } else {
+    // Server-side: use service role key (full permissions)
+    return createClient(supabaseUrl, supabaseServiceKey)
+  }
+}
 
 // Export MVP types for easy importing
 export * from './supabase-types-mvp'
@@ -429,18 +441,28 @@ export class BusinessAPI {
   }
 
   // Customer-specific methods
-  static async getCustomerByPhone(phone: string): Promise<Customer | null> {
-    const { data, error } = await supabase
-      .from('customers')
-      .select('*')
-      .eq('phone', phone)
-      .single()
-    
-    if (error) {
-      console.error('Error fetching customer by phone:', error)
+  static async getCustomerByPhone(phone: string, businessId?: string): Promise<Customer | null> {
+    try {
+      let query = supabase
+        .from('customers')
+        .select('*')
+        .eq('phone', phone)
+      
+      if (businessId) {
+        query = query.eq('business_id', businessId)
+      }
+      
+      const { data, error } = await query.single()
+      
+      if (error) {
+        console.error('Error fetching customer by phone:', error)
+        return null
+      }
+      return data
+    } catch (error) {
+      console.error('getCustomerByPhone failed:', error)
       return null
     }
-    return data
   }
 
   static async getCustomerAppointments(customerId: string, limit = 20): Promise<Appointment[]> {

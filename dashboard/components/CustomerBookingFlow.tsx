@@ -11,7 +11,6 @@ import {
   PhoneIcon,
   EnvelopeIcon
 } from '@heroicons/react/24/outline'
-import { BusinessAPI } from '../lib/supabase'
 
 interface Service {
   id: string
@@ -168,52 +167,37 @@ export default function CustomerBookingFlow({
         time: bookingData.time
       })
       
-      // Create or get customer
-      console.log('Creating/getting customer...')
-      const customer = await BusinessAPI.createOrGetCustomer(businessId, {
-        phone: bookingData.customerInfo!.phone,
-        first_name: bookingData.customerInfo!.name,
-        email: bookingData.customerInfo!.email
-      })
-
-      console.log('Customer result:', customer)
-      if (!customer) {
-        throw new Error('Failed to create customer')
+      // Prepare booking data for API
+      const bookingPayload = {
+        business_id: businessId,
+        customer_name: bookingData.customerInfo!.name,
+        customer_phone: bookingData.customerInfo!.phone,
+        customer_email: bookingData.customerInfo!.email,
+        appointment_date: bookingData.date!,
+        start_time: `${bookingData.time!}:00`,
+        service_duration: bookingData.service!.duration_minutes,
+        service_type: bookingData.service!.name,
+        booking_source: 'customer_portal'
       }
 
-      // Calculate end time based on service duration
-      const [hours, minutes] = bookingData.time!.split(':').map(Number)
-      const startDate = new Date()
-      startDate.setHours(hours, minutes, 0, 0)
-      const endDate = new Date(startDate.getTime() + bookingData.service!.duration_minutes * 60000)
-      const endTime = `${String(endDate.getHours()).padStart(2, '0')}:${String(endDate.getMinutes()).padStart(2, '0')}:00`
+      console.log('Calling booking API with:', bookingPayload)
 
-      console.log('Creating appointment...', {
-        business_id: businessId,
-        customer_id: customer.id,
-        service_id: bookingData.service!.id,
-        appointment_date: bookingData.date!,
-        start_time: `${bookingData.time!}:00`,
-        end_time: endTime
+      // Call our API endpoint
+      const response = await fetch('/api/book-appointment', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(bookingPayload)
       })
 
-      // Create appointment
-      const appointment = await BusinessAPI.createAppointment({
-        business_id: businessId,
-        customer_id: customer.id,
-        service_id: bookingData.service!.id,
-        appointment_date: bookingData.date!,
-        start_time: `${bookingData.time!}:00`,
-        end_time: endTime,
-        status: 'confirmed',
-        notes: `Booked via customer portal for ${bookingData.service!.name}`
-      })
-
-      console.log('Appointment result:', appointment)
-      if (appointment) {
-        onBookingComplete?.(appointment.id)
+      const result = await response.json()
+      console.log('Booking API response:', result)
+      
+      if (result.success) {
+        onBookingComplete?.(result.booking_id)
       } else {
-        throw new Error('Failed to create appointment')
+        throw new Error(result.error || 'Booking failed')
       }
     } catch (error) {
       console.error('Booking failed with detailed error:', error)
