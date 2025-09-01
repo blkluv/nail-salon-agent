@@ -266,7 +266,7 @@ async function logSMS(data: {
 }
 
 // Helper function to send common SMS types
-export class SMSHelpers {
+class SMSHelpers {
   static async sendAppointmentConfirmation(appointmentId: string): Promise<boolean> {
     try {
       const { data: appointment } = await supabase
