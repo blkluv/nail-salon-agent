@@ -36,11 +36,13 @@ export interface Business {
   phone?: string
   email?: string
   website?: string
-  address_line1?: string
-  address_line2?: string
+  address?: string // Use single address field to match database
+  address_line1?: string // Optional for compatibility
+  address_line2?: string // Optional for compatibility
   city?: string
   state?: string
   postal_code?: string
+  zip_code?: string // Database uses zip_code, not postal_code
   country?: string
   timezone?: string
   subscription_tier: 'starter' | 'professional' | 'business' | 'enterprise'

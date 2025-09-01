@@ -16,10 +16,13 @@ import {
   BuildingStorefrontIcon,
   CreditCardIcon,
   GiftIcon,
+  EnvelopeIcon,
+  HeartIcon,
 } from '@heroicons/react/24/outline'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { clsx } from 'clsx'
+import MobileNavigation from './MobileNavigation'
 
 // Base navigation items (available to all plans)
 const baseNavigation = [
@@ -36,7 +39,8 @@ const baseNavigation = [
 // Professional+ features
 const professionalFeatures = [
   { name: 'Payments', href: '/dashboard/payments', icon: CreditCardIcon },
-  { name: 'Loyalty Program', href: '/dashboard/loyalty', icon: GiftIcon },
+  { name: 'Loyalty Program', href: '/dashboard/loyalty', icon: HeartIcon },
+  { name: 'Email Marketing', href: '/dashboard/marketing', icon: EnvelopeIcon },
 ]
 
 // Business+ features
@@ -169,6 +173,12 @@ export default function Layout({ children, business }: LayoutProps) {
           {children}
         </main>
       </div>
+
+      {/* Mobile Navigation */}
+      <MobileNavigation 
+        businessPlan={business?.subscription_tier as 'starter' | 'professional' | 'business'}
+        businessName={business?.name}
+      />
     </div>
   )
 }

@@ -4,6 +4,11 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { createBrowserClient } from '@supabase/ssr'
 import { VapiPhoneService } from '../../lib/vapi-phone-service'
+import SocialMediaKit from '../../components/SocialMediaKit'
+
+// Vapi configuration
+const SHARED_ASSISTANT_ID = '8ab7e000-aea8-4141-a471-33133219a471'
+
 import { 
   BuildingStorefrontIcon,
   ScissorsIcon,
@@ -13,7 +18,8 @@ import {
   CheckCircleIcon,
   CurrencyDollarIcon,
   ArrowRightIcon,
-  ArrowLeftIcon
+  ArrowLeftIcon,
+  ChatBubbleLeftRightIcon
 } from '@heroicons/react/24/outline'
 
 interface BusinessInfo {
@@ -94,6 +100,23 @@ interface LoyaltySetup {
   }>
 }
 
+interface CommunicationSetup {
+  smsEnabled: boolean
+  emailEnabled: boolean
+  reminderTiming: {
+    sms24h: boolean
+    sms2h: boolean
+    email24h: boolean
+    emailConfirmation: boolean
+  }
+  notificationTypes: {
+    confirmations: boolean
+    reminders: boolean
+    cancellations: boolean
+    promotions: boolean
+  }
+}
+
 interface PricingPlan {
   id: string
   name: string
@@ -131,27 +154,50 @@ const PRICING_PLANS: PricingPlan[] = [
   {
     id: 'starter',
     name: 'Starter',
-    price: 0,
+    price: 47,
     channels: ['web', 'voice'],
-    description: 'Perfect for getting started with AI booking - Free 14-day trial',
-    features: ['24/7 AI Voice booking', 'Web booking widget', 'Basic customer management', 'SMS confirmations', 'Single location', 'Free 14-day trial']
+    description: 'Perfect for solo techs & small salons',
+    features: [
+      '24/7 AI Voice Assistant',
+      'Smart Web Booking Widget', 
+      'Unlimited Appointments',
+      'SMS Text Confirmations',
+      'Customer Management',
+      'Single Location'
+    ]
   },
   {
     id: 'professional',
     name: 'Professional',
     price: 97,
-    channels: ['web', 'voice'],
-    description: 'Advanced features for growing salons',
-    features: ['Everything in Starter', 'Payment processing (Square/Stripe)', 'Loyalty program with points', 'Advanced analytics', 'Staff management', 'Email marketing'],
+    channels: ['web', 'voice', 'sms'],
+    description: 'Everything you need to grow',
+    features: [
+      'Everything in Starter',
+      'Square/Stripe Payments',
+      'Loyalty Points Program',
+      'Advanced Analytics',
+      'Staff Management',
+      'Email Marketing',
+      'Custom Branding'
+    ],
     popular: true
   },
   {
     id: 'business',
     name: 'Business',
     price: 197,
-    channels: ['web', 'voice'],
-    description: 'Multi-location management and scaling',
-    features: ['Everything in Professional', 'Multi-location support (up to 3)', 'Location-specific staff', 'Cross-location analytics', 'Advanced reporting', 'Priority support']
+    channels: ['web', 'voice', 'sms'],
+    description: 'Scale with multiple locations',
+    features: [
+      'Everything in Professional',
+      'Up to 3 Locations',
+      'Cross-Location Analytics',
+      'Advanced Reporting',
+      'Priority Phone Support',
+      'Custom Integrations',
+      'White-Label Options'
+    ]
   }
 ]
 
@@ -187,16 +233,29 @@ const ADD_ONS: AddOn[] = [
 ]
 
 const DEFAULT_SERVICES: Service[] = [
-  { name: 'Basic Manicure', duration: 30, price: 30, category: 'manicure' },
-  { name: 'Gel Manicure', duration: 45, price: 50, category: 'manicure' },
+  // Manicure Services
+  { name: 'Classic Manicure', duration: 30, price: 25, category: 'manicure' },
+  { name: 'Gel Manicure', duration: 45, price: 45, category: 'manicure' },
   { name: 'Dip Powder Manicure', duration: 60, price: 55, category: 'manicure' },
-  { name: 'Basic Pedicure', duration: 45, price: 40, category: 'pedicure' },
-  { name: 'Gel Pedicure', duration: 60, price: 60, category: 'pedicure' },
-  { name: 'Spa Pedicure', duration: 75, price: 75, category: 'pedicure' },
-  { name: 'Mani-Pedi Combo', duration: 90, price: 85, category: 'combo' },
+  { name: 'Acrylic Full Set', duration: 90, price: 65, category: 'manicure' },
+  { name: 'Acrylic Fill', duration: 60, price: 40, category: 'manicure' },
+  
+  // Pedicure Services
+  { name: 'Classic Pedicure', duration: 45, price: 35, category: 'pedicure' },
+  { name: 'Gel Pedicure', duration: 60, price: 55, category: 'pedicure' },
+  { name: 'Luxury Spa Pedicure', duration: 75, price: 75, category: 'pedicure' },
+  
+  // Combo Packages
+  { name: 'Classic Mani-Pedi', duration: 75, price: 55, category: 'combo' },
+  { name: 'Gel Mani-Pedi', duration: 105, price: 95, category: 'combo' },
+  { name: 'Luxury Spa Package', duration: 120, price: 125, category: 'combo' },
+  
+  // Add-on Services
   { name: 'Nail Art (per nail)', duration: 5, price: 5, category: 'addon' },
   { name: 'French Tips', duration: 15, price: 15, category: 'addon' },
-  { name: 'Paraffin Treatment', duration: 15, price: 20, category: 'addon' }
+  { name: 'Chrome/Mirror Finish', duration: 10, price: 10, category: 'addon' },
+  { name: 'Paraffin Treatment', duration: 15, price: 15, category: 'addon' },
+  { name: 'Nail Repair', duration: 10, price: 10, category: 'addon' }
 ]
 
 const DEFAULT_HOURS: BusinessHours = {
@@ -288,6 +347,23 @@ export default function OnboardingPage() {
     ]
   })
 
+  const [communicationSetup, setCommunicationSetup] = useState<CommunicationSetup>({
+    smsEnabled: true,
+    emailEnabled: true,
+    reminderTiming: {
+      sms24h: true,
+      sms2h: true,
+      email24h: true,
+      emailConfirmation: true
+    },
+    notificationTypes: {
+      confirmations: true,
+      reminders: true,
+      cancellations: true,
+      promotions: false
+    }
+  })
+
   const getSteps = () => {
     const baseSteps = [
       { id: 1, name: 'Plan Selection', icon: CurrencyDollarIcon },
@@ -300,20 +376,23 @@ export default function OnboardingPage() {
     let dynamicSteps = [...baseSteps]
     let stepCounter = 6
 
-    // Add location setup for Business tier
+    // Add location setup ONLY for Business tier (Multi-location feature)
     if (subscriptionConfig.plan?.id === 'business') {
       dynamicSteps.push({ id: stepCounter++, name: 'Locations', icon: BuildingStorefrontIcon })
     }
 
-    // Add payment setup for Professional+ tiers
+    // Add payment setup ONLY for Professional and Business tiers
     if (subscriptionConfig.plan?.id === 'professional' || subscriptionConfig.plan?.id === 'business') {
       dynamicSteps.push({ id: stepCounter++, name: 'Payments', icon: CurrencyDollarIcon })
     }
 
-    // Add loyalty setup for Professional+ tiers
+    // Add loyalty setup ONLY for Professional and Business tiers
     if (subscriptionConfig.plan?.id === 'professional' || subscriptionConfig.plan?.id === 'business') {
       dynamicSteps.push({ id: stepCounter++, name: 'Loyalty', icon: CheckCircleIcon })
     }
+
+    // Communication setup for all tiers (SMS/Email notifications)
+    dynamicSteps.push({ id: stepCounter++, name: 'Communication', icon: ChatBubbleLeftRightIcon })
 
     // Always add phone setup and complete
     dynamicSteps.push(
@@ -330,6 +409,7 @@ export default function OnboardingPage() {
   const getLocationStepId = () => steps.find(s => s.name === 'Locations')?.id
   const getPaymentStepId = () => steps.find(s => s.name === 'Payments')?.id
   const getLoyaltyStepId = () => steps.find(s => s.name === 'Loyalty')?.id
+  const getCommunicationStepId = () => steps.find(s => s.name === 'Communication')?.id
   const getPhoneStepId = () => steps.find(s => s.name === 'Phone Setup')?.id
   const getCompleteStepId = () => steps.find(s => s.name === 'Complete')?.id
 
@@ -431,6 +511,18 @@ export default function OnboardingPage() {
     setServices(newServices)
   }
 
+  const updateService = (index: number, field: 'name' | 'price' | 'duration', value: string | number) => {
+    const newServices = [...services]
+    if (field === 'name') {
+      newServices[index].name = value as string
+    } else if (field === 'price') {
+      newServices[index].price = parseFloat(value as string) || 0
+    } else if (field === 'duration') {
+      newServices[index].duration = parseInt(value as string) || 30
+    }
+    setServices(newServices)
+  }
+
   const addCustomService = () => {
     if (!customService.name || customService.price <= 0) {
       setError('Please enter a valid service name and price')
@@ -516,21 +608,33 @@ export default function OnboardingPage() {
       const ownerFirstName = ownerStaff?.first_name || businessInfo.name.split(' ')[0] || 'Owner'
       const ownerLastName = ownerStaff?.last_name || ''
       
-      // Create business settings object
+      // Create business settings object with tier-specific features
       const businessSettings = {
         currency: 'USD',
         booking_buffer_minutes: 15,
         cancellation_window_hours: 24,
         selected_plan: subscriptionTier,
-        monthly_price: subscriptionTier === 'professional' ? 97 : subscriptionTier === 'business' ? 197 : 0,
+        monthly_price: subscriptionTier === 'starter' ? 47 : subscriptionTier === 'professional' ? 97 : subscriptionTier === 'business' ? 197 : 47,
         tech_calendar_count: staff.filter(s => s.role === 'technician').length || 1,
-        // Add plan-specific features
+        // Tier-specific features (strictly enforced)
         payment_processing_enabled: ['professional', 'business'].includes(subscriptionTier),
         loyalty_program_enabled: ['professional', 'business'].includes(subscriptionTier),
         multi_location_enabled: subscriptionTier === 'business',
-        // Communication preferences
-        email_notifications_enabled: true,
-        sms_notifications_enabled: phonePrefs.smsEnabled,
+        // Communication preferences (platform handles SMS/email)
+        email_notifications_enabled: communicationSetup.emailEnabled,
+        sms_notifications_enabled: communicationSetup.smsEnabled,
+        // Notification timing preferences
+        sms_24h_reminder: communicationSetup.reminderTiming.sms24h,
+        sms_2h_reminder: communicationSetup.reminderTiming.sms2h,
+        email_24h_reminder: communicationSetup.reminderTiming.email24h,
+        email_confirmation: communicationSetup.reminderTiming.emailConfirmation,
+        // Notification types
+        send_confirmations: communicationSetup.notificationTypes.confirmations,
+        send_reminders: communicationSetup.notificationTypes.reminders,
+        send_cancellations: communicationSetup.notificationTypes.cancellations,
+        send_promotions: communicationSetup.notificationTypes.promotions,
+        // Generate webhook auth token (will add URLs after business creation)
+        webhook_auth_token: Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15),
         // Branding
         primary_color: '#8B5CF6', // Default purple
         business_type: 'nail_salon'
@@ -545,11 +649,10 @@ export default function OnboardingPage() {
           email: businessInfo.email,
           phone: businessInfo.phone,
           website: '', // Can be added later
-          address_line1: address_line1,
-          address_line2: '',
+          address: address_line1, // Use single address field from database
           city: city,
           state: state,
-          postal_code: postal_code,
+          zip_code: postal_code, // Database uses zip_code not postal_code
           country: 'US',
           timezone: businessInfo.timezone,
           // Owner information for login compatibility
@@ -583,23 +686,60 @@ export default function OnboardingPage() {
       
       // Store the created business in state
       setBusiness(business)
+      
+      // Update business settings with webhook URLs now that we have the business ID
+      const webhookBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://vapi-nail-salon-agent-production.up.railway.app'
+      const updatedSettings = {
+        ...businessSettings,
+        webhook_url: `${webhookBaseUrl}/webhook/vapi/${business.id}`,
+        vapi_webhook_url: `${webhookBaseUrl}/webhook/vapi/${business.id}`,
+        sms_webhook_url: `${webhookBaseUrl}/webhook/sms`,
+        n8n_webhook_url: process.env.NEXT_PUBLIC_N8N_WEBHOOK_URL || '',
+      }
+      
+      // Update the business with webhook URLs
+      const { error: updateError } = await supabase
+        .from('businesses')
+        .update({ 
+          settings: updatedSettings,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', business.id)
+      
+      if (updateError) {
+        console.error('❌ Failed to update business with webhook URLs:', updateError)
+      } else {
+        console.log('✅ Webhook URLs configured for business:', business.id)
+      }
 
-      // 2. Add selected services (aligned with dashboard schema)
+      // 2. Add selected services with enhanced customization support
       const selectedServices = services.filter((s: any) => s.selected)
       if (selectedServices.length > 0) {
+        console.log('💅 Saving', selectedServices.length, 'customized services...')
+        
         const { error: servicesError } = await supabase
           .from('services')
           .insert(
-            selectedServices.map(service => ({
+            selectedServices.map((service, index) => ({
               business_id: business.id,
-              name: service.name,
-              description: `Professional ${service.name.toLowerCase()} service`,
+              name: service.name, // Use exact custom name from user
+              description: service.description || `Professional ${service.name.toLowerCase()} service`,
               category: service.category,
               duration_minutes: service.duration,
-              base_price: service.price, // Use decimal price (not cents)
+              base_price: parseFloat(service.price.toString()), // Ensure proper decimal conversion
               is_active: true,
-              requires_deposit: service.price > 50, // Require deposit for expensive services
-              deposit_amount: service.price > 50 ? Math.round(service.price * 0.2) : 0, // 20% deposit
+              requires_deposit: service.price >= 75, // Require deposit for services $75+
+              deposit_amount: service.price >= 75 ? Math.round(service.price * 0.25) : 0, // 25% deposit
+              display_order: index + 1, // Set display order based on selection order
+              service_type: service.category === 'custom' ? 'custom' : 'standard',
+              is_featured: service.price >= 100, // Feature expensive services
+              max_advance_booking_days: service.category === 'combo' ? 60 : 30, // Longer booking window for combos
+              min_advance_booking_hours: service.duration >= 90 ? 4 : 2, // More notice for long services
+              settings: {
+                original_category: service.category,
+                customized_by_user: true,
+                setup_during_onboarding: true
+              },
               created_at: new Date().toISOString(),
               updated_at: new Date().toISOString()
             }))
@@ -770,12 +910,21 @@ export default function OnboardingPage() {
             console.warn('Phone numbers table not available:', phoneMapError);
           }
           
-          // Update business with new phone number (only update existing columns)
+          // Update business with new phone number and Vapi configuration
+          const vapiSettings = {
+            ...updatedSettings,
+            vapi_assistant_id: SHARED_ASSISTANT_ID,
+            vapi_phone_number_id: phoneResult.vapiData?.phoneNumberId || phoneResult.phoneId,
+            vapi_phone_number: phoneResult.phoneNumber,
+            vapi_configured: true
+          }
+          
           await supabase
             .from('businesses')
             .update({ 
               phone: phoneResult.phoneNumber,
-              vapi_assistant_id: '8ab7e000-aea8-4141-a471-33133219a471'
+              vapi_assistant_id: SHARED_ASSISTANT_ID,
+              settings: vapiSettings
             })
             .eq('id', business.id);
             
@@ -793,21 +942,31 @@ export default function OnboardingPage() {
       } else if (phonePrefs.strategy === 'use_existing') {
         console.log('🔄 Configuring existing number for forwarding...');
         
-        // Save existing number configuration
+        // Save existing number configuration with forwarding setup
+        const forwardingSettings = {
+          ...updatedSettings,
+          existing_phone_number: phonePrefs.existingNumber,
+          forwarding_enabled: true,
+          forwarding_method: 'carrier_forwarding',
+          forward_after_hours: phonePrefs.forwardAfterHours,
+          forward_complex_calls: phonePrefs.forwardComplexCalls,
+          ai_phone_number: assignedPhoneNumber,
+          vapi_assistant_id: SHARED_ASSISTANT_ID,
+          vapi_configured: true,
+          forwarding_instructions: `Forward busy/no-answer calls from ${phonePrefs.existingNumber} to ${assignedPhoneNumber}`
+        }
+        
         await supabase
           .from('businesses')
           .update({ 
             phone: phonePrefs.existingNumber,
-            vapi_assistant_id: '8ab7e000-aea8-4141-a471-33133219a471'
+            vapi_assistant_id: SHARED_ASSISTANT_ID,
+            settings: forwardingSettings
           })
           .eq('id', business.id);
         
         setAssignedPhoneNumber(phonePrefs.existingNumber);
-        console.log('✅ Existing number configured for AI:', phonePrefs.existingNumber);
-        
-        // Note: Actual phone system integration would happen here
-        // This might require manual coordination with phone provider
-        setError('Phone configuration saved. Manual setup with your phone provider may be required.');
+        console.log('✅ Existing number configured with forwarding to AI:', phonePrefs.existingNumber, '→', assignedPhoneNumber);
       }
 
       // 6. Store business ID in localStorage for dashboard
@@ -908,12 +1067,13 @@ export default function OnboardingPage() {
           </div>
         )}
 
-        {/* Step 1: Business Info */}
+        {/* Step 1: Plan Selection */}
         {currentStep === 1 && (
           <div className="bg-white rounded-xl shadow-lg p-8">
             <div className="text-center mb-8">
-              <h2 className="text-3xl font-bold mb-4">Complete AI Booking Solution</h2>
-              <p className="text-gray-600 mb-6">Everything you need to transform your booking experience</p>
+              <h2 className="text-3xl font-bold mb-4">Choose Your AI Booking Plan</h2>
+              <p className="text-lg text-gray-600 mb-2">Transform your salon with 24/7 AI-powered booking</p>
+              <p className="text-sm text-gray-500 mb-6">All plans include a 14-day free trial • No credit card required</p>
               
               <div className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg p-4 mb-6">
                 <div className="flex items-center justify-center mb-3">
@@ -933,39 +1093,44 @@ export default function OnboardingPage() {
               </div>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-6xl mx-auto mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-7xl mx-auto mb-8 px-4">
               {PRICING_PLANS.map((plan) => (
                 <div 
                   key={plan.id}
-                  className={`relative border-2 rounded-xl p-6 cursor-pointer transition-all ${
+                  className={`relative border-2 rounded-xl p-6 cursor-pointer transition-all transform hover:scale-105 ${
                     plan.popular 
-                      ? 'border-purple-500 bg-purple-50 scale-105' 
-                      : 'border-gray-200 hover:border-purple-300'
-                  } ${subscriptionConfig.plan?.id === plan.id ? 'border-purple-600 bg-purple-100' : ''}`}
+                      ? 'border-purple-500 bg-gradient-to-br from-purple-50 to-blue-50 shadow-xl md:scale-105' 
+                      : 'border-gray-200 hover:border-purple-300 bg-white'
+                  } ${subscriptionConfig.plan?.id === plan.id ? 'border-purple-600 bg-purple-100 ring-2 ring-purple-400' : ''}`}
                   onClick={() => handlePlanSelection(plan)}
                 >
                   {plan.popular && (
-                    <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                      <span className="bg-purple-600 text-white px-4 py-1 rounded-full text-sm font-medium">
-                        Most Popular
+                    <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
+                      <span className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-2 rounded-full text-sm font-bold shadow-lg whitespace-nowrap">
+                        🔥 MOST POPULAR
                       </span>
                     </div>
                   )}
                   <div className="text-center">
-                    <h3 className="text-xl font-bold mb-2">{plan.name}</h3>
-                    <div className="mb-3">
-                      <span className="text-3xl font-bold">${plan.price}</span>
-                      <span className="text-gray-600">/month</span>
+                    <h3 className="text-2xl font-bold mb-2 mt-2">{plan.name}</h3>
+                    <div className="mb-4">
+                      <span className="text-4xl font-bold">${plan.price}</span>
+                      <span className="text-gray-600 text-lg">/month</span>
                     </div>
-                    <p className="text-gray-600 mb-4">{plan.description}</p>
-                    <div className="space-y-2 text-sm text-left">
+                    <p className="text-gray-600 mb-6 text-sm font-medium min-h-[40px]">{plan.description}</p>
+                    <div className="space-y-3 text-sm text-left">
                       {plan.features.map((feature, index) => (
                         <div key={index} className="flex items-start">
-                          <CheckCircleIcon className="w-4 h-4 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
-                          <span>{feature}</span>
+                          <CheckCircleIcon className="w-5 h-5 text-green-500 mr-2 flex-shrink-0 mt-0.5" />
+                          <span className="text-gray-700">{feature}</span>
                         </div>
                       ))}
                     </div>
+                    {subscriptionConfig.plan?.id === plan.id && (
+                      <div className="mt-4 pt-4 border-t border-purple-300">
+                        <span className="text-purple-600 font-semibold">✓ Selected</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               ))}
@@ -973,6 +1138,50 @@ export default function OnboardingPage() {
 
             {subscriptionConfig.plan && (
               <div className="border-t pt-6">
+                {/* Show what's included in their selected plan */}
+                <div className="bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg p-4 mb-6">
+                  <h3 className="font-semibold text-purple-800 mb-2">✨ Your {subscriptionConfig.plan.name} Plan Includes:</h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
+                    <div className="flex items-center">
+                      <CheckCircleIcon className="w-4 h-4 text-green-500 mr-2" />
+                      <span>24/7 AI Voice Assistant</span>
+                    </div>
+                    <div className="flex items-center">
+                      <CheckCircleIcon className="w-4 h-4 text-green-500 mr-2" />
+                      <span>Web Booking Widget</span>
+                    </div>
+                    {subscriptionConfig.plan.id === 'professional' || subscriptionConfig.plan.id === 'business' ? (
+                      <>
+                        <div className="flex items-center">
+                          <CheckCircleIcon className="w-4 h-4 text-green-500 mr-2" />
+                          <span>Payment Processing (Square/Stripe)</span>
+                        </div>
+                        <div className="flex items-center">
+                          <CheckCircleIcon className="w-4 h-4 text-green-500 mr-2" />
+                          <span>Loyalty Points Program</span>
+                        </div>
+                      </>
+                    ) : null}
+                    {subscriptionConfig.plan.id === 'business' ? (
+                      <>
+                        <div className="flex items-center">
+                          <CheckCircleIcon className="w-4 h-4 text-green-500 mr-2" />
+                          <span>Multi-Location Support (up to 3)</span>
+                        </div>
+                        <div className="flex items-center">
+                          <CheckCircleIcon className="w-4 h-4 text-green-500 mr-2" />
+                          <span>Priority Support</span>
+                        </div>
+                      </>
+                    ) : null}
+                  </div>
+                  {subscriptionConfig.plan.id === 'starter' && (
+                    <div className="mt-3 text-xs text-purple-600">
+                      💡 Upgrade to Professional to unlock Payment Processing & Loyalty Program
+                    </div>
+                  )}
+                </div>
+                
                 <h3 className="text-lg font-semibold mb-4">Add-On Features (Optional)</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {ADD_ONS.map((addon) => {
@@ -1160,66 +1369,145 @@ export default function OnboardingPage() {
         {/* Step 3: Services */}
         {currentStep === 3 && (
           <div className="bg-white rounded-xl shadow-lg p-8">
-            <h2 className="text-2xl font-bold mb-6">Select your services</h2>
-            <p className="text-gray-600 mb-4">Choose from our suggested services or add your own</p>
+            <h2 className="text-2xl font-bold mb-6">Customize Your Services</h2>
+            <p className="text-gray-600 mb-2">Select services and customize names, prices, and duration to match your salon</p>
+            <p className="text-sm text-purple-600 mb-4">💡 Tip: Click on a service to select it, then edit the details as needed</p>
             
-            <div className="space-y-2 max-h-96 overflow-y-auto">
+            <div className="space-y-3 max-h-[500px] overflow-y-auto pr-2">
               {services.map((service, index) => (
                 <div
                   key={index}
-                  onClick={() => toggleService(index)}
-                  className={`p-4 rounded-lg border cursor-pointer transition ${
+                  className={`p-4 rounded-lg border transition-all ${
                     (service as any).selected
                       ? 'border-purple-500 bg-purple-50'
                       : 'border-gray-200 hover:border-gray-300'
                   }`}
                 >
-                  <div className="flex justify-between items-center">
-                    <div>
-                      <h3 className="font-semibold">{service.name}</h3>
-                      <p className="text-sm text-gray-600">
-                        {service.duration} min • ${service.price}
-                      </p>
+                  <div className="flex items-start gap-3">
+                    {/* Checkbox */}
+                    <div 
+                      onClick={() => toggleService(index)}
+                      className="pt-1 cursor-pointer"
+                    >
+                      {(service as any).selected ? (
+                        <CheckCircleIcon className="w-6 h-6 text-purple-600" />
+                      ) : (
+                        <div className="w-6 h-6 border-2 border-gray-300 rounded-full" />
+                      )}
                     </div>
-                    {(service as any).selected && (
-                      <CheckCircleIcon className="w-6 h-6 text-purple-600" />
-                    )}
+                    
+                    {/* Editable Service Details */}
+                    <div className="flex-1">
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                        {/* Service Name */}
+                        <div className="md:col-span-1">
+                          <label className="text-xs text-gray-500 mb-1 block">Service Name</label>
+                          <input
+                            type="text"
+                            value={service.name}
+                            onChange={(e) => updateService(index, 'name', e.target.value)}
+                            onClick={(e) => e.stopPropagation()}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500 text-sm"
+                            placeholder="Service name"
+                          />
+                        </div>
+                        
+                        {/* Price */}
+                        <div>
+                          <label className="text-xs text-gray-500 mb-1 block">Price ($)</label>
+                          <input
+                            type="number"
+                            value={service.price}
+                            onChange={(e) => updateService(index, 'price', e.target.value)}
+                            onClick={(e) => e.stopPropagation()}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500 text-sm"
+                            placeholder="Price"
+                            min="0"
+                            step="5"
+                          />
+                        </div>
+                        
+                        {/* Duration */}
+                        <div>
+                          <label className="text-xs text-gray-500 mb-1 block">Duration (min)</label>
+                          <input
+                            type="number"
+                            value={service.duration}
+                            onChange={(e) => updateService(index, 'duration', e.target.value)}
+                            onClick={(e) => e.stopPropagation()}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500 text-sm"
+                            placeholder="Minutes"
+                            min="5"
+                            step="5"
+                          />
+                        </div>
+                      </div>
+                      
+                      {/* Category Badge */}
+                      <div className="mt-2">
+                        <span className={`inline-block px-2 py-1 text-xs rounded-full ${
+                          service.category === 'manicure' ? 'bg-pink-100 text-pink-700' :
+                          service.category === 'pedicure' ? 'bg-blue-100 text-blue-700' :
+                          service.category === 'combo' ? 'bg-purple-100 text-purple-700' :
+                          service.category === 'addon' ? 'bg-green-100 text-green-700' :
+                          'bg-gray-100 text-gray-700'
+                        }`}>
+                          {service.category}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
 
-            <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-              <h3 className="font-semibold mb-3">Add Custom Service</h3>
-              <div className="flex gap-2">
+            <div className="mt-6 p-4 bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200 rounded-lg">
+              <h3 className="font-semibold mb-3">➕ Add Custom Service</h3>
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
                 <input
                   type="text"
                   value={customService.name}
                   onChange={(e) => setCustomService({ ...customService, name: e.target.value })}
                   placeholder="Service name"
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-lg"
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500"
+                />
+                <input
+                  type="number"
+                  value={customService.price || ''}
+                  onChange={(e) => setCustomService({ ...customService, price: parseFloat(e.target.value) || 0 })}
+                  placeholder="Price ($)"
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500"
+                  min="0"
+                  step="5"
                 />
                 <input
                   type="number"
                   value={customService.duration}
                   onChange={(e) => setCustomService({ ...customService, duration: parseInt(e.target.value) || 30 })}
-                  placeholder="Min"
-                  className="w-20 px-3 py-2 border border-gray-300 rounded-lg"
-                />
-                <input
-                  type="number"
-                  value={customService.price}
-                  onChange={(e) => setCustomService({ ...customService, price: parseFloat(e.target.value) || 0 })}
-                  placeholder="Price"
-                  className="w-24 px-3 py-2 border border-gray-300 rounded-lg"
+                  placeholder="Duration (min)"
+                  className="px-3 py-2 border border-gray-300 rounded-lg focus:ring-purple-500 focus:border-purple-500"
+                  min="5"
+                  step="5"
                 />
                 <button
                   onClick={addCustomService}
-                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 font-medium transition-colors"
                 >
-                  Add
+                  ➕ Add Service
                 </button>
               </div>
+            </div>
+            
+            {/* Selected Services Summary */}
+            <div className="mt-4 p-3 bg-green-50 border border-green-200 rounded-lg">
+              <p className="text-sm text-green-800">
+                <strong>✅ {services.filter((s: any) => s.selected).length} services selected</strong>
+                {services.filter((s: any) => s.selected).length > 0 && (
+                  <span className="ml-2 text-green-600">
+                    (Total value: ${services.filter((s: any) => s.selected).reduce((sum, s) => sum + s.price, 0)})
+                  </span>
+                )}
+              </p>
             </div>
 
             <div className="mt-8 flex justify-between">
@@ -1805,6 +2093,260 @@ export default function OnboardingPage() {
           </div>
         )}
 
+        {/* Communication Setup Step */}
+        {currentStep === getCommunicationStepId() && (
+          <div className="bg-white rounded-xl shadow-lg p-8">
+            <h2 className="text-2xl font-bold mb-6">💬 Customer Communication Preferences</h2>
+            <p className="text-gray-600 mb-6">
+              Choose how you'd like to communicate with your customers. We handle all the technical setup - you just choose what and when to send.
+            </p>
+
+            {/* Communication Channels */}
+            <div className="mb-8">
+              <h3 className="text-lg font-semibold mb-4">📞 Communication Channels</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="flex items-center justify-between p-4 border-2 border-green-200 bg-green-50 rounded-lg">
+                  <div>
+                    <h4 className="font-medium text-green-800">📱 SMS Notifications</h4>
+                    <p className="text-sm text-green-600">Fast, direct customer communication</p>
+                  </div>
+                  <label className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={communicationSetup.smsEnabled}
+                      onChange={(e) => setCommunicationSetup({
+                        ...communicationSetup,
+                        smsEnabled: e.target.checked
+                      })}
+                      className="h-5 w-5 text-green-600 rounded"
+                    />
+                  </label>
+                </div>
+
+                <div className="flex items-center justify-between p-4 border-2 border-blue-200 bg-blue-50 rounded-lg">
+                  <div>
+                    <h4 className="font-medium text-blue-800">📧 Email Notifications</h4>
+                    <p className="text-sm text-blue-600">Professional, detailed confirmations</p>
+                  </div>
+                  <label className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={communicationSetup.emailEnabled}
+                      onChange={(e) => setCommunicationSetup({
+                        ...communicationSetup,
+                        emailEnabled: e.target.checked
+                      })}
+                      className="h-5 w-5 text-blue-600 rounded"
+                    />
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            {/* Notification Timing */}
+            <div className="mb-8">
+              <h3 className="text-lg font-semibold mb-4">⏰ When to Send Notifications</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-3">
+                  <h4 className="font-medium text-gray-700">📱 SMS Timing</h4>
+                  <label className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={communicationSetup.reminderTiming.sms24h}
+                      onChange={(e) => setCommunicationSetup({
+                        ...communicationSetup,
+                        reminderTiming: {
+                          ...communicationSetup.reminderTiming,
+                          sms24h: e.target.checked
+                        }
+                      })}
+                      disabled={!communicationSetup.smsEnabled}
+                      className="h-4 w-4 text-purple-600 rounded mr-3"
+                    />
+                    <span className={!communicationSetup.smsEnabled ? 'text-gray-400' : ''}>24-hour reminder</span>
+                  </label>
+                  <label className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={communicationSetup.reminderTiming.sms2h}
+                      onChange={(e) => setCommunicationSetup({
+                        ...communicationSetup,
+                        reminderTiming: {
+                          ...communicationSetup.reminderTiming,
+                          sms2h: e.target.checked
+                        }
+                      })}
+                      disabled={!communicationSetup.smsEnabled}
+                      className="h-4 w-4 text-purple-600 rounded mr-3"
+                    />
+                    <span className={!communicationSetup.smsEnabled ? 'text-gray-400' : ''}>2-hour reminder</span>
+                  </label>
+                </div>
+                <div className="space-y-3">
+                  <h4 className="font-medium text-gray-700">📧 Email Timing</h4>
+                  <label className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={communicationSetup.reminderTiming.emailConfirmation}
+                      onChange={(e) => setCommunicationSetup({
+                        ...communicationSetup,
+                        reminderTiming: {
+                          ...communicationSetup.reminderTiming,
+                          emailConfirmation: e.target.checked
+                        }
+                      })}
+                      disabled={!communicationSetup.emailEnabled}
+                      className="h-4 w-4 text-purple-600 rounded mr-3"
+                    />
+                    <span className={!communicationSetup.emailEnabled ? 'text-gray-400' : ''}>Instant confirmation</span>
+                  </label>
+                  <label className="flex items-center">
+                    <input
+                      type="checkbox"
+                      checked={communicationSetup.reminderTiming.email24h}
+                      onChange={(e) => setCommunicationSetup({
+                        ...communicationSetup,
+                        reminderTiming: {
+                          ...communicationSetup.reminderTiming,
+                          email24h: e.target.checked
+                        }
+                      })}
+                      disabled={!communicationSetup.emailEnabled}
+                      className="h-4 w-4 text-purple-600 rounded mr-3"
+                    />
+                    <span className={!communicationSetup.emailEnabled ? 'text-gray-400' : ''}>24-hour reminder</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            {/* Notification Types */}
+            <div className="mb-8">
+              <h3 className="text-lg font-semibold mb-4">📋 What to Send</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <label className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50">
+                  <div>
+                    <span className="font-medium">✅ Booking Confirmations</span>
+                    <p className="text-sm text-gray-600">When customer books an appointment</p>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={communicationSetup.notificationTypes.confirmations}
+                    onChange={(e) => setCommunicationSetup({
+                      ...communicationSetup,
+                      notificationTypes: {
+                        ...communicationSetup.notificationTypes,
+                        confirmations: e.target.checked
+                      }
+                    })}
+                    className="h-4 w-4 text-purple-600 rounded"
+                  />
+                </label>
+
+                <label className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50">
+                  <div>
+                    <span className="font-medium">⏰ Appointment Reminders</span>
+                    <p className="text-sm text-gray-600">24h and 2h before appointment</p>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={communicationSetup.notificationTypes.reminders}
+                    onChange={(e) => setCommunicationSetup({
+                      ...communicationSetup,
+                      notificationTypes: {
+                        ...communicationSetup.notificationTypes,
+                        reminders: e.target.checked
+                      }
+                    })}
+                    className="h-4 w-4 text-purple-600 rounded"
+                  />
+                </label>
+
+                <label className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50">
+                  <div>
+                    <span className="font-medium">❌ Cancellation Notices</span>
+                    <p className="text-sm text-gray-600">When appointments are cancelled</p>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={communicationSetup.notificationTypes.cancellations}
+                    onChange={(e) => setCommunicationSetup({
+                      ...communicationSetup,
+                      notificationTypes: {
+                        ...communicationSetup.notificationTypes,
+                        cancellations: e.target.checked
+                      }
+                    })}
+                    className="h-4 w-4 text-purple-600 rounded"
+                  />
+                </label>
+
+                <label className="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50">
+                  <div>
+                    <span className="font-medium">🎉 Promotional Messages</span>
+                    <p className="text-sm text-gray-600">Special offers and campaigns</p>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={communicationSetup.notificationTypes.promotions}
+                    onChange={(e) => setCommunicationSetup({
+                      ...communicationSetup,
+                      notificationTypes: {
+                        ...communicationSetup.notificationTypes,
+                        promotions: e.target.checked
+                      }
+                    })}
+                    className="h-4 w-4 text-purple-600 rounded"
+                  />
+                </label>
+              </div>
+            </div>
+
+            {/* Platform Info */}
+            <div className="mb-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+              <p className="text-sm text-green-800">
+                <strong>✅ We handle the technical setup!</strong> You don't need any API keys or technical configuration. We send all notifications on your behalf using our platform.
+              </p>
+            </div>
+
+            <div className="mt-8 flex justify-between">
+              <button
+                onClick={() => {
+                  const loyaltyStepId = getLoyaltyStepId()
+                  const paymentStepId = getPaymentStepId()
+                  const locationStepId = getLocationStepId()
+                  
+                  if (loyaltyStepId) {
+                    setCurrentStep(loyaltyStepId)
+                  } else if (paymentStepId) {
+                    setCurrentStep(paymentStepId)
+                  } else if (locationStepId) {
+                    setCurrentStep(locationStepId)
+                  } else {
+                    setCurrentStep(5) // Business hours
+                  }
+                }}
+                className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 flex items-center"
+              >
+                <ArrowLeftIcon className="w-5 h-5 mr-2" />
+                Back
+              </button>
+              <button
+                onClick={() => {
+                  const phoneStepId = getPhoneStepId()
+                  if (phoneStepId) {
+                    setCurrentStep(phoneStepId)
+                  }
+                }}
+                className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 flex items-center"
+              >
+                Next Step
+                <ArrowRightIcon className="w-5 h-5 ml-2" />
+              </button>
+            </div>
+          </div>
+        )}
+
         {/* Phone Setup */}
         {currentStep === getPhoneStepId() && (
           <div className="bg-white rounded-xl shadow-lg p-8">
@@ -1864,7 +2406,7 @@ export default function OnboardingPage() {
             {/* Existing Number Configuration */}
             {phonePrefs.strategy === 'use_existing' && (
               <div className="mt-6 p-6 bg-blue-50 border border-blue-200 rounded-xl">
-                <h3 className="font-semibold mb-4">Configure Your Existing Number</h3>
+                <h3 className="font-semibold mb-4">📞 Keep Your Existing Number + Add AI</h3>
                 <div className="space-y-4">
                   <div>
                     <label className="block text-sm font-medium text-gray-700 mb-2">
@@ -1877,13 +2419,38 @@ export default function OnboardingPage() {
                       className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-blue-500 focus:border-blue-500"
                       placeholder="(555) 123-4567"
                     />
-                    <p className="text-xs text-gray-500 mt-1">
-                      This will require coordinating with your phone provider
-                    </p>
+                  </div>
+
+                  {/* AI Number Assignment */}
+                  {assignedPhoneNumber && (
+                    <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
+                      <h4 className="font-medium text-green-800 mb-2">🤖 Your AI Number (We'll Handle This):</h4>
+                      <div className="text-lg font-bold text-green-600 mb-2">
+                        {VapiPhoneService.formatPhoneNumber(assignedPhoneNumber)}
+                      </div>
+                      <p className="text-sm text-green-700">
+                        This is the number where your AI will receive forwarded calls
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Carrier Forwarding Instructions */}
+                  <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <h4 className="font-medium text-yellow-800 mb-2">📋 Simple Setup Instructions:</h4>
+                    <div className="text-sm text-yellow-700 space-y-2">
+                      <p><strong>1. Contact your phone carrier</strong> (Verizon, AT&T, etc.)</p>
+                      <p><strong>2. Set up call forwarding rules:</strong></p>
+                      <ul className="ml-4 space-y-1">
+                        <li>• <strong>When busy:</strong> Forward to {assignedPhoneNumber || '[AI_NUMBER]'}</li>
+                        <li>• <strong>When no answer (after 4-5 rings):</strong> Forward to {assignedPhoneNumber || '[AI_NUMBER]'}</li>
+                        {phonePrefs.forwardAfterHours && <li>• <strong>After hours:</strong> Forward to {assignedPhoneNumber || '[AI_NUMBER]'}</li>}
+                      </ul>
+                      <p><strong>3. Test it:</strong> Call your number and let it ring - AI should answer</p>
+                    </div>
                   </div>
 
                   <div className="space-y-3">
-                    <h4 className="font-medium text-gray-900">Smart Forwarding Rules:</h4>
+                    <h4 className="font-medium text-gray-900">Forwarding Options:</h4>
                     
                     <label className="flex items-center space-x-3">
                       <input
@@ -1892,7 +2459,7 @@ export default function OnboardingPage() {
                         onChange={(e) => setPhonePrefs({ ...phonePrefs, forwardAfterHours: e.target.checked })}
                         className="h-4 w-4 text-blue-600"
                       />
-                      <span className="text-sm">Forward calls during closed hours (AI handles bookings first)</span>
+                      <span className="text-sm">Forward all after-hours calls to AI (Recommended)</span>
                     </label>
                     
                     <label className="flex items-center space-x-3">
@@ -1902,8 +2469,22 @@ export default function OnboardingPage() {
                         onChange={(e) => setPhonePrefs({ ...phonePrefs, forwardComplexCalls: e.target.checked })}
                         className="h-4 w-4 text-blue-600"
                       />
-                      <span className="text-sm">Forward complex requests AI can't handle</span>
+                      <span className="text-sm">Let AI try first, then forward if needed</span>
                     </label>
+                  </div>
+
+                  {/* Carrier Quick Links */}
+                  <div className="p-3 bg-white border border-gray-200 rounded-lg">
+                    <h5 className="font-medium text-gray-800 mb-2">📞 Carrier Support Numbers:</h5>
+                    <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
+                      <div>• Verizon: *72</div>
+                      <div>• AT&T: *21*</div>
+                      <div>• T-Mobile: **21*</div>
+                      <div>• Sprint: *72</div>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-2">
+                      Call these codes + {assignedPhoneNumber || '[AI_NUMBER]'} + # to set up forwarding
+                    </p>
                   </div>
                 </div>
               </div>
@@ -1944,48 +2525,107 @@ export default function OnboardingPage() {
                 </div>
               </div>
               
-              <div className="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-                <h4 className="font-medium text-green-900 mb-2">💻 Web Booking Widget Options:</h4>
-                <div className="space-y-2 text-sm text-green-800 mb-3">
-                  <div>• Embeds on your existing website</div>
-                  <div>• Mobile-friendly booking interface</div>
-                  <div>• Real-time availability checking</div>
-                  <div>• Automatic confirmation emails</div>
+              <div className="mt-4 space-y-4">
+                {/* Website Option */}
+                <div className="border-2 border-gray-200 rounded-lg p-4">
+                  <label className="flex items-center space-x-3 cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={phonePrefs.webEnabled}
+                      onChange={(e) => setPhonePrefs({ ...phonePrefs, webEnabled: e.target.checked })}
+                      className="h-5 w-5 text-green-600 rounded"
+                    />
+                    <div className="flex-1">
+                      <h4 className="font-medium text-gray-900">💻 I have a website and want a booking widget</h4>
+                      <p className="text-sm text-gray-600">Add our booking widget to your existing website</p>
+                    </div>
+                  </label>
+                  
+                  {phonePrefs.webEnabled && (
+                    <div className="mt-4 ml-8 p-4 bg-green-50 border border-green-200 rounded-lg">
+                      <h5 className="font-medium text-green-900 mb-2">Widget Features:</h5>
+                      <div className="space-y-1 text-sm text-green-800 mb-3">
+                        <div>• Mobile-friendly booking interface</div>
+                        <div>• Real-time availability checking</div>
+                        <div>• Automatic confirmation emails</div>
+                        <div>• Matches your website design</div>
+                      </div>
+                      
+                      <div className="mt-3">
+                        <label className="block text-sm font-medium text-green-900 mb-2">Widget Style:</label>
+                        <div className="space-y-2">
+                          <label className="flex items-center space-x-2">
+                            <input
+                              type="radio"
+                              value="embedded"
+                              checked={phonePrefs.widgetStyle === 'embedded'}
+                              onChange={(e) => setPhonePrefs({ ...phonePrefs, widgetStyle: e.target.value as any })}
+                              className="text-green-600"
+                            />
+                            <span className="text-sm">Embedded (fits in your website)</span>
+                          </label>
+                          <label className="flex items-center space-x-2">
+                            <input
+                              type="radio"
+                              value="floating"
+                              checked={phonePrefs.widgetStyle === 'floating'}
+                              onChange={(e) => setPhonePrefs({ ...phonePrefs, widgetStyle: e.target.value as any })}
+                              className="text-green-600"
+                            />
+                            <span className="text-sm">Floating button (bottom corner)</span>
+                          </label>
+                          <label className="flex items-center space-x-2">
+                            <input
+                              type="radio"
+                              value="fullpage"
+                              checked={phonePrefs.widgetStyle === 'fullpage'}
+                              onChange={(e) => setPhonePrefs({ ...phonePrefs, widgetStyle: e.target.value as any })}
+                              className="text-green-600"
+                            />
+                            <span className="text-sm">Full page (dedicated booking page)</span>
+                          </label>
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
                 
-                <div className="mt-3">
-                  <label className="block text-sm font-medium text-green-900 mb-2">Widget Style:</label>
-                  <div className="space-y-2">
-                    <label className="flex items-center space-x-2">
-                      <input
-                        type="radio"
-                        value="embedded"
-                        checked={phonePrefs.widgetStyle === 'embedded'}
-                        onChange={(e) => setPhonePrefs({ ...phonePrefs, widgetStyle: e.target.value as any })}
-                        className="text-green-600"
-                      />
-                      <span className="text-sm">Embedded (fits in your website)</span>
-                    </label>
-                    <label className="flex items-center space-x-2">
-                      <input
-                        type="radio"
-                        value="floating"
-                        checked={phonePrefs.widgetStyle === 'floating'}
-                        onChange={(e) => setPhonePrefs({ ...phonePrefs, widgetStyle: e.target.value as any })}
-                        className="text-green-600"
-                      />
-                      <span className="text-sm">Floating button (bottom corner)</span>
-                    </label>
-                    <label className="flex items-center space-x-2">
-                      <input
-                        type="radio"
-                        value="fullpage"
-                        checked={phonePrefs.widgetStyle === 'fullpage'}
-                        onChange={(e) => setPhonePrefs({ ...phonePrefs, widgetStyle: e.target.value as any })}
-                        className="text-green-600"
-                      />
-                      <span className="text-sm">Full page (dedicated booking page)</span>
-                    </label>
+                {/* No Website Option */}
+                <div className="border-2 border-blue-200 bg-blue-50 rounded-lg p-4">
+                  <div className="flex items-start space-x-3">
+                    <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                      <span className="text-blue-600 font-bold text-sm">📱</span>
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-medium text-blue-900 mb-2">Don't have a website? No problem!</h4>
+                      <p className="text-sm text-blue-800 mb-3">
+                        Your customers can book appointments directly through our customer portal - no website needed.
+                      </p>
+                      <div className="space-y-2 text-sm text-blue-700">
+                        <div className="flex items-center space-x-2">
+                          <CheckCircleIcon className="w-4 h-4 text-blue-600" />
+                          <span>Customers use our mobile-friendly booking portal</span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <CheckCircleIcon className="w-4 h-4 text-blue-600" />
+                          <span>Share your booking link on social media, business cards</span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <CheckCircleIcon className="w-4 h-4 text-blue-600" />
+                          <span>QR codes for easy access in your salon</span>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <CheckCircleIcon className="w-4 h-4 text-blue-600" />
+                          <span>Customers can view their appointment history</span>
+                        </div>
+                      </div>
+                      
+                      <div className="mt-3 p-3 bg-blue-100 rounded border border-blue-300">
+                        <p className="text-sm text-blue-800">
+                          <strong>💡 Pro tip:</strong> Most salons find that customers prefer calling or using the direct booking link over website widgets. You can always add a website widget later!
+                        </p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -2032,18 +2672,9 @@ export default function OnboardingPage() {
             <div className="mt-8 flex justify-between">
               <button
                 onClick={() => {
-                  const loyaltyStepId = getLoyaltyStepId()
-                  const paymentStepId = getPaymentStepId()
-                  const locationStepId = getLocationStepId()
-                  
-                  if (loyaltyStepId) {
-                    setCurrentStep(loyaltyStepId)
-                  } else if (paymentStepId) {
-                    setCurrentStep(paymentStepId)
-                  } else if (locationStepId) {
-                    setCurrentStep(locationStepId)
-                  } else {
-                    setCurrentStep(5)
+                  const communicationStepId = getCommunicationStepId()
+                  if (communicationStepId) {
+                    setCurrentStep(communicationStepId)
                   }
                 }}
                 className="px-6 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 flex items-center"
@@ -2108,10 +2739,17 @@ export default function OnboardingPage() {
                 </p>
                 
                 {phonePrefs.strategy === 'use_existing' && (
-                  <div className="mt-3 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
-                    <p className="text-xs text-yellow-800">
-                      <strong>Next Step:</strong> We'll contact you within 24 hours to complete the phone system integration with your provider.
-                    </p>
+                  <div className="mt-4 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <h4 className="font-medium text-yellow-800 mb-2">📋 Final Setup Step:</h4>
+                    <div className="text-sm text-yellow-700 space-y-2">
+                      <p><strong>Set up call forwarding with your carrier:</strong></p>
+                      <div className="bg-yellow-100 p-3 rounded font-mono text-xs">
+                        <p>• Call your carrier and say: "Set up call forwarding"</p>
+                        <p>• Forward <strong>busy/no-answer</strong> calls to:</p>
+                        <p className="font-bold text-yellow-900 text-base">{assignedPhoneNumber}</p>
+                      </div>
+                      <p className="text-xs">This typically takes 5-10 minutes with your carrier's support.</p>
+                    </div>
                   </div>
                 )}
               </div>
@@ -2133,37 +2771,90 @@ export default function OnboardingPage() {
               </ul>
             </div>
             
-            {phonePrefs.webEnabled && business?.id && (
-              <div className="bg-green-50 border border-green-200 rounded-lg p-6 mb-6">
-                <h3 className="text-lg font-semibold text-green-800 mb-3">💻 Your Booking Widget:</h3>
-                <div className="space-y-3">
+            {/* Customer Booking Links */}
+            {business?.id && (
+              <div className="bg-gradient-to-r from-blue-50 to-green-50 border border-blue-200 rounded-lg p-6 mb-6">
+                <h3 className="text-lg font-semibold text-blue-800 mb-3">🔗 Customer Booking Options:</h3>
+                
+                {/* Customer Portal Link (Always Available) */}
+                <div className="space-y-3 mb-4">
                   <div>
-                    <label className="block text-sm font-medium text-green-700 mb-1">Widget URL:</label>
-                    <div className="bg-white border border-green-200 rounded px-3 py-2 text-sm font-mono">
-                      {typeof window !== 'undefined' ? `${window.location.origin}/widget/${business.id}` : `https://yourdomain.com/widget/${business.id}`}
+                    <label className="block text-sm font-medium text-blue-700 mb-1">
+                      📱 Customer Booking Portal:
+                    </label>
+                    <div className="bg-white border border-blue-200 rounded px-3 py-2 text-sm font-mono">
+                      {typeof window !== 'undefined' ? `${window.location.origin}/customer/portal?business=${business.id}` : `https://yourdomain.com/customer/portal?business=${business.id}`}
                     </div>
+                    <p className="text-xs text-blue-700 mt-1">
+                      Share this link on social media, business cards, or anywhere customers can access it
+                    </p>
                   </div>
-                  
-                  <div>
-                    <label className="block text-sm font-medium text-green-700 mb-1">Embed Code:</label>
-                    <div className="bg-white border border-green-200 rounded px-3 py-2 text-xs font-mono">
-                      {`<iframe src="${typeof window !== 'undefined' ? window.location.origin : 'https://yourdomain.com'}/widget/${business.id}" width="400" height="600" frameborder="0"></iframe>`}
-                    </div>
-                  </div>
-                  
-                  <p className="text-xs text-green-700">
-                    Copy this code to your website where you want the booking widget to appear
-                  </p>
                 </div>
+
+                {/* Website Widget (Only if enabled) */}
+                {phonePrefs.webEnabled && (
+                  <div className="border-t border-blue-200 pt-4">
+                    <h4 className="text-md font-medium text-green-800 mb-3">💻 Website Widget:</h4>
+                    <div className="space-y-3">
+                      <div>
+                        <label className="block text-sm font-medium text-green-700 mb-1">Widget URL:</label>
+                        <div className="bg-white border border-green-200 rounded px-3 py-2 text-sm font-mono">
+                          {typeof window !== 'undefined' ? `${window.location.origin}/widget/${business.id}` : `https://yourdomain.com/widget/${business.id}`}
+                        </div>
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-green-700 mb-1">Embed Code:</label>
+                        <div className="bg-white border border-green-200 rounded px-3 py-2 text-xs font-mono">
+                          {`<iframe src="${typeof window !== 'undefined' ? window.location.origin : 'https://yourdomain.com'}/widget/${business.id}" width="400" height="600" frameborder="0"></iframe>`}
+                        </div>
+                      </div>
+                      
+                      <p className="text-xs text-green-700">
+                        Copy this code to your website where you want the booking widget to appear
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                {!phonePrefs.webEnabled && (
+                  <div className="border-t border-blue-200 pt-4">
+                    <div className="flex items-start space-x-3">
+                      <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
+                        <span className="text-blue-600 text-sm">💡</span>
+                      </div>
+                      <div>
+                        <p className="text-sm text-blue-800">
+                          <strong>No website needed!</strong> Your customers can book using the portal link above. 
+                          You can add a website widget anytime from your dashboard settings.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Social Media Kit */}
+            {business?.id && (
+              <div className="mt-6">
+                <SocialMediaKit
+                  businessId={business.id}
+                  businessName={business.name}
+                  phoneNumber={assignedPhoneNumber || phonePrefs.existingNumber}
+                  bookingUrl={typeof window !== 'undefined' ? `${window.location.origin}/customer/portal?business=${business.id}` : `https://yourdomain.com/customer/portal?business=${business.id}`}
+                />
               </div>
             )}
             
-            <button
-              onClick={() => router.push('/demo-dashboard')}
-              className="px-8 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
-            >
-              Go to Dashboard Now
-            </button>
+            <div className="mt-8">
+              <button
+                onClick={() => router.push('/demo-dashboard')}
+                className="px-8 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 text-lg font-medium"
+              >
+                Go to Dashboard Now
+              </button>
+            </div>
           </div>
         )}
       </div>
