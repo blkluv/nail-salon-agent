@@ -14,6 +14,7 @@ const AnalyticsService = require('./services/AnalyticsService');
 const customerAuthRoutes = require('./routes/customerAuth');
 const customerPortalRoutes = require('./routes/customerPortal');
 const analyticsRoutes = require('./routes/analytics');
+const businessContextInjector = require('./business-context-injector');
 
 // Default business ID for demo
 const DEFAULT_BUSINESS_ID = '8424aa26-4fd5-4d4b-92aa-8a9c5ba77dad';
@@ -46,8 +47,30 @@ function getBusinessIdFromCall(message) {
         return lookupBusinessByPhoneId(message.call.phoneNumberId);
     }
     
-    // Option 2: Default to demo business for existing setup
-    return '8424aa26-4fd5-4d4b-92aa-8a9c5ba77dad';
+    // Option 2: Default to newest business (Bella's Nails Studio) 
+    // TODO: Replace with proper phone number lookup once phone_numbers table is populated
+    return lookupLatestBusiness();
+}
+
+async function lookupLatestBusiness() {
+    try {
+        const { data, error } = await supabase
+            .from('businesses')
+            .select('id')
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .single();
+            
+        if (error || !data) {
+            console.error('Latest business lookup failed:', error);
+            return '8424aa26-4fd5-4d4b-92aa-8a9c5ba77dad'; // Default demo
+        }
+        
+        return data.id;
+    } catch (error) {
+        console.error('Latest business lookup error:', error);
+        return '8424aa26-4fd5-4d4b-92aa-8a9c5ba77dad'; // Default demo
+    }
 }
 
 async function lookupBusinessByPhoneId(phoneId) {
@@ -60,13 +83,13 @@ async function lookupBusinessByPhoneId(phoneId) {
             
         if (error || !data) {
             console.error('Phone lookup failed:', error);
-            return '8424aa26-4fd5-4d4b-92aa-8a9c5ba77dad'; // Default demo
+            return await lookupLatestBusiness(); // Fallback to latest business
         }
         
         return data.business_id;
     } catch (error) {
         console.error('Phone lookup error:', error);
-        return '8424aa26-4fd5-4d4b-92aa-8a9c5ba77dad'; // Default demo
+        return await lookupLatestBusiness(); // Fallback to latest business
     }
 }
 
@@ -273,21 +296,37 @@ async function triggerPostBookingWorkflow(appointment, customer, service, busine
 async function handleToolCall(toolCall, businessId) {
     const { function: fn } = toolCall;
     
+    let result;
+    
     switch (fn.name) {
         case 'check_availability':
-            return await checkAvailability(fn.arguments, businessId);
+            result = await checkAvailability(fn.arguments, businessId);
+            break;
             
         case 'book_appointment':
-            return await bookAppointment(fn.arguments, businessId);
+            result = await bookAppointment(fn.arguments, businessId);
+            break;
             
         case 'check_appointments':
-            return await checkAppointments(fn.arguments, businessId);
+            result = await checkAppointments(fn.arguments, businessId);
+            break;
             
         case 'cancel_appointment':
-            return await cancelAppointment(fn.arguments, businessId);
+            result = await cancelAppointment(fn.arguments, businessId);
+            break;
             
         default:
-            return { error: `Unknown function: ${fn.name}` };
+            result = { error: `Unknown function: ${fn.name}` };
+    }
+    
+    // 🎯 INJECT BUSINESS CONTEXT INTO ALL RESPONSES
+    try {
+        const injectedResult = await businessContextInjector.injectIntoFunctionResponse(result, businessId);
+        console.log(`✅ Business context injected for function: ${fn.name}`);
+        return injectedResult;
+    } catch (contextError) {
+        console.error('❌ Error injecting business context:', contextError);
+        return result; // Return original result if injection fails
     }
 }
 
