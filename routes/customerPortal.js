@@ -13,9 +13,17 @@ const customerAuth = async (req, res, next) => {
         }
 
         const session = await CustomerAuthService.validateSession(token);
-        req.customer = session.customer;
+        req.customer = session.customer;  // This is already the customer object from the join
         req.businessId = session.business_id;
         req.sessionId = session.id;
+        
+        // Debug the session structure
+        console.log('🔍 Session structure debug:', {
+            hasCustomer: !!session.customer,
+            hasBusinessId: !!session.business_id,
+            customerId: session.customer?.id,
+            sessionKeys: Object.keys(session)
+        });
 
         console.log('🔐 Customer auth success:', {
             customerId: req.customer?.id,
