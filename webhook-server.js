@@ -7,6 +7,7 @@
 
 const express = require('express');
 const { createClient } = require('@supabase/supabase-js');
+const axios = require('axios');
 require('dotenv').config();
 
 const app = express();
@@ -450,6 +451,14 @@ async function bookAppointment(args, businessId) {
             serviceId: service?.id || 'none'
         });
         
+        // 🚀 TRIGGER N8N POST-BOOKING AUTOMATION
+        await triggerN8NAutomation({
+            appointment,
+            customer,
+            service,
+            businessId
+        });
+        
         // Format response
         const serviceName = service ? service.name : args.service_type?.replace('_', ' ') || 'your service';
         const servicePrice = service ? ` ($${service.base_price})` : '';
@@ -841,6 +850,105 @@ async function rescheduleAppointment(args, businessId) {
             success: false,
             message: "I'm having trouble rescheduling your appointment right now. Please call back or speak with our staff."
         };
+    }
+}
+
+// 🚀 N8N AUTOMATION INTEGRATION
+async function triggerN8NAutomation(data) {
+    const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL;
+    
+    if (!N8N_WEBHOOK_URL) {
+        console.log('⚠️  N8N_WEBHOOK_URL not configured, skipping automation');
+        return;
+    }
+    
+    try {
+        // Get business context for the automation
+        const { data: business } = await supabase
+            .from('businesses')
+            .select('*')
+            .eq('id', data.businessId)
+            .single();
+            
+        // Format phone number for Twilio (must be E.164 format: +1XXXXXXXXXX)
+        let formattedPhone = data.customer.phone;
+        if (formattedPhone) {
+            // Remove all non-digits
+            const digitsOnly = formattedPhone.replace(/\D/g, '');
+            
+            // Add country code if missing
+            if (digitsOnly.length === 10) {
+                formattedPhone = `+1${digitsOnly}`;
+            } else if (digitsOnly.length === 11 && digitsOnly.startsWith('1')) {
+                formattedPhone = `+${digitsOnly}`;
+            } else {
+                formattedPhone = `+${digitsOnly}`;
+            }
+        }
+        
+        console.log('📱 Original phone:', data.customer.phone, '→ Formatted:', formattedPhone);
+        
+        const n8nPayload = {
+            event: 'appointment_booked',
+            timestamp: new Date().toISOString(),
+            appointment: {
+                id: data.appointment.id,
+                date: data.appointment.appointment_date,
+                time: data.appointment.start_time,
+                duration: data.service?.duration_minutes || 60,
+                status: data.appointment.status || 'pending',
+                source: 'vapi_voice_ai'
+            },
+            customer: {
+                id: data.customer.id,
+                name: `${data.customer.first_name || 'Unknown'} ${data.customer.last_name || 'Customer'}`,
+                firstName: data.customer.first_name || 'Unknown',
+                lastName: data.customer.last_name || 'Customer',
+                phone: formattedPhone, // Use formatted phone
+                email: data.customer.email || 'customer@example.com'
+            },
+            service: {
+                id: data.service?.id || 'default-service',
+                name: data.service?.name || 'Nail Service',
+                duration: data.service?.duration_minutes || 60
+            },
+            business: {
+                id: business?.id || data.businessId,
+                name: business?.name || 'Beauty Salon',
+                phone: business?.phone || '(424) 351-9304',
+                email: business?.email || 'info@salon.com',
+                address: business?.address_line1 || '123 Beauty St',
+                city: business?.city || 'Los Angeles',
+                state: business?.state || 'CA'
+            }
+        };
+        
+        console.log('🚀 Triggering N8N automation...', {
+            url: N8N_WEBHOOK_URL,
+            appointmentId: data.appointment.id,
+            customerPhone: formattedPhone
+        });
+        
+        const response = await axios.post(N8N_WEBHOOK_URL, n8nPayload, {
+            timeout: 10000,
+            headers: {
+                'Content-Type': 'application/json',
+                'User-Agent': 'Vapi-Nail-Salon-Multi-Tenant/1.0'
+            }
+        });
+        
+        console.log('✅ N8N automation triggered successfully:', {
+            status: response.status,
+            appointmentId: response.data?.appointmentId || data.appointment.id
+        });
+        
+    } catch (error) {
+        console.error('❌ N8N automation failed:', {
+            error: error.message,
+            status: error.response?.status,
+            data: error.response?.data
+        });
+        // Don't throw - booking should succeed even if automation fails
     }
 }
 

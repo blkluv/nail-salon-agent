@@ -46,12 +46,17 @@ export function logout() {
 export function getCurrentBusinessId(): string | null {
   if (typeof window === 'undefined') return null
   
-  // First check if user is authenticated
+  // Check if user is properly authenticated
   const authBusinessId = localStorage.getItem('authenticated_business_id')
   if (authBusinessId) {
     return authBusinessId
   }
   
-  // Fallback to demo business ID for development
-  return localStorage.getItem('demo_business_id') || process.env.NEXT_PUBLIC_DEMO_BUSINESS_ID || null
+  // For development/testing only: use neutral demo business
+  if (process.env.NODE_ENV === 'development') {
+    return localStorage.getItem('demo_business_id') || process.env.NEXT_PUBLIC_DEMO_BUSINESS_ID || null
+  }
+  
+  // Production: Force proper authentication, no fallbacks
+  return null
 }

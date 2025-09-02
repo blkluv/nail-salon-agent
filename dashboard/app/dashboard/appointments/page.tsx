@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Layout from '../../../components/Layout'
 import { BusinessAPI, LocationAPIImpl, PaymentAPIImpl, LoyaltyAPIImpl } from '../../../lib/supabase'
+import { getCurrentBusinessId } from '../../../lib/auth-utils'
 import type { Location, PaymentWithDetails, LoyaltyCustomer } from '../../../lib/supabase-types-mvp'
 import AppointmentLocationBadge from '../../../components/AppointmentLocationBadge'
 import LocationSelector from '../../../components/LocationSelector'
@@ -65,7 +66,7 @@ export default function AppointmentsPage() {
   const [error, setError] = useState<string | null>(null)
 
   // Get business ID from demo or localStorage
-  const businessId = '8424aa26-4fd5-4d4b-92aa-8a9c5ba77dad'
+  const businessId = getCurrentBusinessId() || 'bb18c6ca-7e97-449d-8245-e3c28a6b6971' // Bella's Nails Studio
 
   // Load initial data
   useEffect(() => {

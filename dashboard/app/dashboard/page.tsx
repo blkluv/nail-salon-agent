@@ -21,10 +21,11 @@ import LocationSelector from '../../components/LocationSelector'
 import { format, isToday, isTomorrow } from 'date-fns'
 
 import { getCurrentBusinessId } from '../../lib/auth-utils'
+import { getSecureBusinessId, redirectToLoginIfUnauthenticated } from '../../lib/multi-tenant-auth'
 
-// Get business ID from authenticated user or demo
+// Get business ID with multi-tenant security
 const getBusinessId = () => {
-  return getCurrentBusinessId() || '8424aa26-4fd5-4d4b-92aa-8a9c5ba77dad'
+  return getSecureBusinessId()
 }
 
 
@@ -60,8 +61,19 @@ function DashboardPage() {
       setLoading(true)
       setError(null)
       
+      // Check authentication first
+      if (redirectToLoginIfUnauthenticated()) {
+        return
+      }
+      
       // Load business data
       const businessId = getBusinessId()
+      if (!businessId) {
+        setError('Authentication required. Please log in.')
+        setLoading(false)
+        return
+      }
+      
       console.log('🔍 Dashboard loading with Business ID:', businessId)
       const businessData = await BusinessAPI.getBusiness(businessId)
       console.log('📋 Business data loaded:', businessData?.name)
