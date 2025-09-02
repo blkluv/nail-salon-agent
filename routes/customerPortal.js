@@ -100,13 +100,17 @@ router.get('/appointments', customerAuth, async (req, res) => {
     try {
         const { status, limit = 20, offset = 0 } = req.query;
 
+        console.log('🔍 Fetching appointments for customer:', {
+            customerId: req.customer.id,
+            businessId: req.businessId,
+            status: status,
+            limit: limit
+        });
+
+        // First try a simple query without joins to ensure basic functionality
         let query = supabase
             .from('appointments')
-            .select(`
-                id, appointment_date, start_time, end_time, status, notes, total_amount,
-                service:services(id, name, duration_minutes, base_price),
-                staff:staff(id, first_name, last_name, role)
-            `)
+            .select('*')
             .eq('customer_id', req.customer.id)
             .order('appointment_date', { ascending: false })
             .order('start_time', { ascending: false })
@@ -118,7 +122,12 @@ router.get('/appointments', customerAuth, async (req, res) => {
 
         const { data: appointments, error } = await query;
 
-        if (error) throw error;
+        if (error) {
+            console.error('❌ Appointments query error:', error);
+            throw error;
+        }
+
+        console.log('✅ Found appointments:', appointments?.length || 0);
 
         // Log activity
         await CustomerAuthService.logPortalActivity(
