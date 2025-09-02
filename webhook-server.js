@@ -1,30 +1,27 @@
 #!/usr/bin/env node
 
 /**
- * PRODUCTION-READY Multi-Tenant Webhook Server for Vapi Assistant
- * Features: Business context injection, improved error handling, comprehensive logging
+ * MULTI-TENANT Webhook Server for Vapi Assistant
+ * Routes calls based on phone number to correct business
  */
 
 const express = require('express');
 const { createClient } = require('@supabase/supabase-js');
 require('dotenv').config();
 
-// Production environment configuration
 const app = express();
 const PORT = process.env.PORT || 3001;
 
-// Supabase configuration with fallbacks
+// Supabase configuration
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://irvyhhkoiyzartmmvbxw.supabase.co';
 const SUPABASE_SERVICE_KEY = process.env.SUPABASE_SERVICE_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlydnloaGtvaXl6YXJ0bW12Ynh3Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1NTExODI5MywiZXhwIjoyMDcwNjk0MjkzfQ.61Zfyc87GpmpIlWFL1fyX6wcfydqCu6DUFuHnpNSvhk';
 
-console.log('🚀 PRODUCTION Webhook server starting...');
-console.log('📡 Supabase URL:', SUPABASE_URL);
-console.log('🔑 Supabase Key:', SUPABASE_SERVICE_KEY ? 'CONFIGURED' : 'MISSING');
+console.log('🚀 MULTI-TENANT Webhook server starting...');
+console.log('📞 Phone-based business routing enabled');
 
-// Initialize Supabase client
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
-// Business Context Injector (Embedded for production deployment)
+// Business Context Injector (same as before)
 class BusinessContextInjector {
     constructor() {
         this.cache = new Map();
@@ -42,7 +39,6 @@ class BusinessContextInjector {
         try {
             console.log(`🏢 Fetching business context for: ${businessId}`);
 
-            // Fetch business details
             const { data: business } = await supabase
                 .from('businesses')
                 .select(`
@@ -57,7 +53,6 @@ class BusinessContextInjector {
                 throw new Error(`Business not found: ${businessId}`);
             }
 
-            // Fetch services
             const { data: services } = await supabase
                 .from('services')
                 .select('id, name, description, duration_minutes, base_price, category, requires_deposit, deposit_amount')
@@ -65,7 +60,6 @@ class BusinessContextInjector {
                 .eq('is_active', true)
                 .order('display_order', { ascending: true });
 
-            // Fetch staff
             const { data: staff } = await supabase
                 .from('staff')
                 .select('id, first_name, last_name, role, specialties, is_active')
@@ -73,7 +67,6 @@ class BusinessContextInjector {
                 .eq('is_active', true)
                 .order('first_name');
 
-            // Fetch business hours
             const { data: businessHours } = await supabase
                 .from('business_hours')
                 .select('day_of_week, is_closed, open_time, close_time')
@@ -87,7 +80,6 @@ class BusinessContextInjector {
                 businessHours: businessHours || []
             };
 
-            // Cache the result
             this.cache.set(cacheKey, {
                 data: context,
                 timestamp: Date.now()
@@ -98,33 +90,6 @@ class BusinessContextInjector {
             console.error(`❌ Error fetching business context:`, error);
             return null;
         }
-    }
-
-    formatServicesList(services) {
-        if (!services || services.length === 0) {
-            return "No services currently available.";
-        }
-
-        return services.map(service => {
-            const price = `$${service.base_price}`;
-            const duration = `${service.duration_minutes}min`;
-            const deposit = service.requires_deposit ? ` (Deposit: $${service.deposit_amount})` : '';
-            return `• ${service.name} - ${duration} - ${price}${deposit}`;
-        }).join('\n');
-    }
-
-    formatStaffList(staff) {
-        if (!staff || staff.length === 0) {
-            return "Our skilled technicians are available to serve you.";
-        }
-
-        return staff.map(member => {
-            const name = `${member.first_name} ${member.last_name}`;
-            const specialties = member.specialties?.length > 0 
-                ? ` (Specializes in: ${member.specialties.join(', ')})` 
-                : '';
-            return `• ${name}${specialties}`;
-        }).join('\n');
     }
 
     async injectIntoFunctionResponse(response, businessId) {
@@ -156,25 +121,49 @@ class BusinessContextInjector {
 
 const businessContextInjector = new BusinessContextInjector();
 
-// Multi-tenant business ID resolution
-async function lookupLatestBusiness() {
+// MULTI-TENANT: Phone number to business ID mapping
+async function getBusinessIdFromPhone(phoneNumber) {
     try {
-        const { data, error } = await supabase
+        // Clean phone number (remove formatting)
+        const cleanPhone = phoneNumber?.replace(/[\D]/g, '');
+        console.log(`📞 Looking up business for phone: ${cleanPhone}`);
+        
+        // Method 1: Direct phone match in businesses table
+        const { data: business, error } = await supabase
             .from('businesses')
-            .select('id')
-            .order('created_at', { ascending: false })
-            .limit(1)
+            .select('id, name, phone')
+            .eq('phone', phoneNumber)
             .single();
             
-        if (error || !data) {
-            console.error('Latest business lookup failed:', error);
-            return '8424aa26-4fd5-4d4b-92aa-8a9c5ba77dad'; // Default demo
+        if (business) {
+            console.log(`✅ Found business by phone: ${business.name} (${business.id})`);
+            return business.id;
         }
         
-        return data.id;
+        // Method 2: Check if this is our known demo/test number
+        if (cleanPhone === '4243519304') {
+            console.log('📱 Using demo business for (424) 351-9304');
+            // Return the latest business for now (Bella's Nails)
+            const { data: latestBusiness } = await supabase
+                .from('businesses')
+                .select('id, name')
+                .order('created_at', { ascending: false })
+                .limit(1)
+                .single();
+                
+            if (latestBusiness) {
+                console.log(`🎯 Demo routing to: ${latestBusiness.name} (${latestBusiness.id})`);
+                return latestBusiness.id;
+            }
+        }
+        
+        // Method 3: Fallback to default demo business
+        console.log('⚠️  No phone match, using default business');
+        return '8424aa26-4fd5-4d4b-92aa-8a9c5ba77dad';
+        
     } catch (error) {
-        console.error('Latest business lookup error:', error);
-        return '8424aa26-4fd5-4d4b-92aa-8a9c5ba77dad'; // Default demo
+        console.error('❌ Error looking up business by phone:', error);
+        return '8424aa26-4fd5-4d4b-92aa-8a9c5ba77dad'; // Default fallback
     }
 }
 
@@ -194,15 +183,27 @@ app.use((req, res, next) => {
     }
 });
 
-// Production webhook handler with business context injection
+// Multi-tenant webhook handler
 app.post('/webhook/vapi', async (req, res) => {
     try {
         const message = req.body.message;
-        console.log('📞 Webhook received:', JSON.stringify(message, null, 2));
+        const call = req.body.call; // Vapi provides call info including phone numbers
         
-        // Get business ID (for now, use latest business)
-        const businessId = await lookupLatestBusiness();
-        console.log('🏢 Using business ID:', businessId);
+        console.log('📞 Webhook received:', JSON.stringify({
+            type: message?.type,
+            hasToolCalls: !!message?.toolCalls,
+            hasFunctionCall: !!message?.functionCall,
+            callId: call?.id,
+            // Safely log phone info without exposing full numbers
+            customerNumber: call?.customer?.number ? 'xxx-xxx-' + call.customer.number.slice(-4) : 'unknown',
+            assistantNumber: call?.assistantPhoneNumber ? 'xxx-xxx-' + call.assistantPhoneNumber.slice(-4) : 'unknown'
+        }));
+        
+        // MULTI-TENANT: Get business ID from phone number
+        const phoneNumber = call?.assistantPhoneNumber || call?.phoneNumber;
+        const businessId = await getBusinessIdFromPhone(phoneNumber);
+        
+        console.log('🏢 Routing to business ID:', businessId);
         
         // Validate business exists
         const { data: business, error: businessError } = await supabase
@@ -259,7 +260,7 @@ app.post('/webhook/vapi', async (req, res) => {
     }
 });
 
-// Enhanced function call handler with business context injection
+// Enhanced function call handler (same as before)
 async function handleToolCall(toolCall, businessId) {
     const { function: fn } = toolCall;
     
@@ -287,24 +288,31 @@ async function handleToolCall(toolCall, businessId) {
                 result = { error: `Unknown function: ${fn.name}` };
         }
         
-        // Inject business context into all responses
         const injectedResult = await businessContextInjector.injectIntoFunctionResponse(result, businessId);
         console.log(`✅ Business context injected for function: ${fn.name}`);
         return injectedResult;
         
     } catch (contextError) {
         console.error('❌ Error injecting business context:', contextError);
-        return result; // Return original result if injection fails
+        return result;
     }
 }
 
-// Production-ready booking function
+// Enhanced booking function with detailed logging
 async function bookAppointment(args, businessId) {
     try {
-        console.log('📝 Booking appointment:', JSON.stringify(args, null, 2));
+        console.log('📝 BOOKING ATTEMPT:', {
+            businessId,
+            customerName: args.customer_name,
+            customerPhone: args.customer_phone,
+            serviceType: args.service_type,
+            appointmentDate: args.appointment_date,
+            startTime: args.start_time
+        });
         
         // Validate required parameters
         if (!args.customer_name || !args.customer_phone || !args.appointment_date || !args.start_time) {
+            console.log('❌ Missing required booking parameters');
             return {
                 success: false,
                 message: "I need your name, phone number, preferred date, and time to book your appointment. Could you please provide all of these details?"
@@ -322,6 +330,7 @@ async function bookAppointment(args, businessId) {
             
         if (existingCustomer) {
             customer = existingCustomer;
+            console.log('👤 Found existing customer:', customer.id);
         } else {
             const [firstName, ...lastNameParts] = args.customer_name.split(' ');
             const { data: newCustomer, error } = await supabase
@@ -341,9 +350,10 @@ async function bookAppointment(args, businessId) {
                 throw error;
             }
             customer = newCustomer;
+            console.log('👤 Created new customer:', customer.id);
         }
         
-        // Get service with improved matching
+        // Get service
         let service = null;
         if (args.service_type) {
             const serviceCategory = args.service_type.replace(/_/g, ' ').replace('manicure', 'Manicure').replace('pedicure', 'Pedicure');
@@ -363,13 +373,10 @@ async function bookAppointment(args, businessId) {
             }
             
             service = matchedService;
-            
-            if (!service) {
-                console.warn('⚠️ No matching service found for:', serviceCategory);
-            }
+            console.log('🎯 Service found:', service ? `${service.name} ($${service.base_price})` : 'No match');
         }
         
-        // Calculate end time if not provided
+        // Calculate end time
         const duration = service?.duration_minutes || 60;
         const startTime = new Date(`${args.appointment_date} ${args.start_time}`);
         const endTime = new Date(startTime.getTime() + (duration * 60000));
@@ -386,7 +393,7 @@ async function bookAppointment(args, businessId) {
             status: 'pending'
         };
 
-        console.log('📝 Creating appointment:', appointmentData);
+        console.log('📝 Creating appointment with data:', appointmentData);
 
         const { data: appointment, error } = await supabase
             .from('appointments')
@@ -399,7 +406,12 @@ async function bookAppointment(args, businessId) {
             throw error;
         }
         
-        console.log('✅ Appointment created successfully:', appointment.id);
+        console.log('✅ Appointment created successfully!', {
+            appointmentId: appointment.id,
+            businessId,
+            customerId: customer.id,
+            serviceId: service?.id || 'none'
+        });
         
         // Format response
         const serviceName = service ? service.name : args.service_type?.replace('_', ' ') || 'your service';
@@ -422,16 +434,16 @@ async function bookAppointment(args, businessId) {
     } catch (error) {
         console.error('❌ Error booking appointment:', error);
         
-        // Always return a helpful response to prevent silence
         return { 
             success: false, 
             message: "I apologize, but I'm having trouble booking your appointment right now. This might be due to a scheduling conflict or system issue. Could you please try again, or would you prefer to speak with one of our staff members directly?",
-            error: 'booking_system_error'
+            error: 'booking_system_error',
+            details: error.message
         };
     }
 }
 
-// Placeholder functions (implement as needed)
+// Placeholder functions
 async function checkAvailability(args, businessId) {
     return {
         available: true,
@@ -459,17 +471,17 @@ app.get('/health', (req, res) => {
     res.json({ 
         status: 'healthy', 
         timestamp: new Date().toISOString(),
-        version: 'production-v2.0',
-        features: ['business-context-injection', 'multi-tenant-support', 'enhanced-error-handling']
+        version: 'multi-tenant-v1.0',
+        features: ['phone-based-routing', 'business-context-injection', 'multi-tenant-support']
     });
 });
 
 // Start server
 app.listen(PORT, () => {
-    console.log(`🚀 PRODUCTION Webhook server running on port ${PORT}`);
+    console.log(`🚀 MULTI-TENANT Webhook server running on port ${PORT}`);
     console.log(`📞 Vapi webhook URL: http://localhost:${PORT}/webhook/vapi`);
+    console.log(`📱 Phone-based business routing: ENABLED`);
     console.log(`💾 Connected to Supabase: ${SUPABASE_URL}`);
-    console.log(`✨ Features: Business Context Injection, Multi-Tenant Support, Production Error Handling`);
 });
 
 module.exports = app;
