@@ -235,6 +235,19 @@ app.post('/webhook/vapi', async (req, res) => {
             return res.json(result);
         }
 
+        // Handle user's first input - respond with personalized greeting
+        if (message?.type === 'transcript' || (message && !message.toolCalls && !message.functionCall)) {
+            console.log('👋 Handling user first input - sending personalized greeting');
+            const context = await businessContextInjector.fetchBusinessContext(businessId);
+            if (context && context.business) {
+                const personalizedGreeting = `Hi! Thanks for calling ${context.business.name}! I'm your AI booking assistant. How can I help you today?`;
+                console.log('📞 Sending greeting:', personalizedGreeting);
+                return res.json({
+                    message: personalizedGreeting
+                });
+            }
+        }
+
         res.json({ status: 'received', businessId: businessId });
         
     } catch (error) {
