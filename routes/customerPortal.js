@@ -13,17 +13,23 @@ const customerAuth = async (req, res, next) => {
         }
 
         const session = await CustomerAuthService.validateSession(token);
-        req.customer = session.customer;  // This is already the customer object from the join
+        
+        // Handle different possible session structures
+        if (session.customer) {
+            // If customer data is joined
+            req.customer = session.customer;
+        } else {
+            // If we only have customer_id, fetch the customer
+            const { data: customer } = await supabase
+                .from('customers')
+                .select('*')
+                .eq('id', session.customer_id)
+                .single();
+            req.customer = customer;
+        }
+        
         req.businessId = session.business_id;
         req.sessionId = session.id;
-        
-        // Debug the session structure
-        console.log('🔍 Session structure debug:', {
-            hasCustomer: !!session.customer,
-            hasBusinessId: !!session.business_id,
-            customerId: session.customer?.id,
-            sessionKeys: Object.keys(session)
-        });
 
         console.log('🔐 Customer auth success:', {
             customerId: req.customer?.id,
