@@ -9,7 +9,7 @@ export async function GET() {
     // Use service role for admin operations
     const supabase = createClient(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_KEY!
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
     )
 
     // Calculate tomorrow's date
@@ -29,7 +29,6 @@ export async function GET() {
         service:services(*)
       `)
       .eq('appointment_date', tomorrowDate)
-      .eq('reminder_sent', false)
       .in('status', ['confirmed', 'pending'])
 
     if (error) {
@@ -57,7 +56,6 @@ export async function GET() {
           await supabase
             .from('appointments')
             .update({ 
-              reminder_sent: true,
               updated_at: new Date().toISOString()
             })
             .eq('id', appointment.id)
