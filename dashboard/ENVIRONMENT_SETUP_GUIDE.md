@@ -16,8 +16,8 @@ Add these to your `.env.local` file in the `/dashboard` folder:
 ### SMS Configuration (Twilio)
 ```env
 # Get these from: https://console.twilio.com
-TWILIO_ACCOUNT_SID=AC987ca6a56c085ef29e19d2db2b6481b5
-TWILIO_AUTH_TOKEN=aeb06dcbebd66aacb33c5960e996318d
+TWILIO_ACCOUNT_SID=your-twilio-account-sid
+TWILIO_AUTH_TOKEN=your-twilio-auth-token
 TWILIO_PHONE_NUMBER=+14243519304
 ```
 
