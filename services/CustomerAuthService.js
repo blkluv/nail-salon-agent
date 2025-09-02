@@ -12,36 +12,71 @@ class CustomerAuthService {
         this.RATE_LIMIT = 3; // codes per hour
     }
 
-    // Generate and send verification code
-    async sendVerificationCode(businessId, phoneNumber, ipAddress = null) {
+    // Authenticate with phone + last name (no SMS needed)
+    async authenticateWithPhoneAndName(businessId, phoneNumber, lastName, deviceInfo = {}, ipAddress = null) {
         try {
-            // Check rate limit
-            await this.checkRateLimit(businessId, phoneNumber);
+            console.log('🔐 Authenticating with phone + name:', {
+                businessId,
+                phone: phoneNumber,
+                lastName: lastName
+            });
 
-            // Generate 6-digit code
-            const code = this.generateCode();
-            const expiresAt = new Date(Date.now() + this.CODE_EXPIRY);
+            // Find customer by phone and last name
+            const customer = await this.findCustomerByPhoneAndName(businessId, phoneNumber, lastName);
+            
+            if (!customer) {
+                console.log('❌ No customer found with phone + name combination');
+                throw new Error('Invalid phone number or last name. Please check your information and try again.');
+            }
 
-            // Store in database
-            const { error: insertError } = await supabase
-                .from('customer_verification_codes')
+            console.log('✅ Customer found:', {
+                id: customer.id,
+                name: `${customer.first_name} ${customer.last_name}`
+            });
+
+            // Update customer login info
+            await supabase
+                .from('customers')
+                .update({
+                    portal_last_login: new Date().toISOString(),
+                    portal_login_count: (customer.portal_login_count || 0) + 1
+                })
+                .eq('id', customer.id);
+
+            // Create session
+            const sessionToken = this.generateSessionToken(customer.id, businessId);
+            const sessionExpiresAt = new Date(Date.now() + this.SESSION_EXPIRY);
+
+            await supabase
+                .from('customer_sessions')
                 .insert({
                     business_id: businessId,
-                    customer_phone: phoneNumber,
-                    verification_code: code,
-                    expires_at: expiresAt.toISOString()
+                    customer_id: customer.id,
+                    session_token: sessionToken,
+                    expires_at: sessionExpiresAt.toISOString(),
+                    device_info: deviceInfo,
+                    ip_address: ipAddress
                 });
 
-            if (insertError) throw insertError;
+            // Log activity
+            await this.logPortalActivity(businessId, customer.id, 'login', { method: 'phone_name' }, ipAddress);
 
-            // Send SMS
-            await SMSService.sendVerificationCode(businessId, phoneNumber, code);
-
-            return { success: true, expiresAt };
+            return {
+                success: true,
+                sessionToken,
+                expiresAt: sessionExpiresAt,
+                customer: {
+                    id: customer.id,
+                    first_name: customer.first_name,
+                    last_name: customer.last_name,
+                    phone: customer.phone,
+                    email: customer.email
+                }
+            };
 
         } catch (error) {
-            console.error('Send verification error:', error);
-            throw new Error(error.message || 'Failed to send verification code');
+            console.error('Phone + name auth error:', error);
+            throw new Error(error.message || 'Authentication failed');
         }
     }
 
@@ -203,6 +238,50 @@ class CustomerAuthService {
             .single();
 
         return data;
+    }
+
+    async findCustomerByPhoneAndName(businessId, phoneNumber, lastName) {
+        // Try exact match first
+        let { data } = await supabase
+            .from('customers')
+            .select('*')
+            .eq('business_id', businessId)
+            .eq('phone', phoneNumber)
+            .ilike('last_name', lastName)
+            .single();
+
+        if (data) return data;
+
+        // Try with formatted phone number if no exact match
+        const cleanPhone = phoneNumber.replace(/\D/g, '');
+        if (cleanPhone.length === 10) {
+            const formattedPhone = `+1${cleanPhone}`;
+            const { data: formattedData } = await supabase
+                .from('customers')
+                .select('*')
+                .eq('business_id', businessId)
+                .eq('phone', formattedPhone)
+                .ilike('last_name', lastName)
+                .single();
+            
+            if (formattedData) return formattedData;
+        }
+
+        // Try without +1 prefix
+        if (phoneNumber.startsWith('+1')) {
+            const withoutPrefix = phoneNumber.substring(2);
+            const { data: noPrefixData } = await supabase
+                .from('customers')
+                .select('*')
+                .eq('business_id', businessId)
+                .eq('phone', withoutPrefix)
+                .ilike('last_name', lastName)
+                .single();
+            
+            if (noPrefixData) return noPrefixData;
+        }
+
+        return null;
     }
 
     async createCustomerFromPhone(businessId, phoneNumber) {

@@ -12,14 +12,14 @@ const authRateLimit = rateLimit({
     legacyHeaders: false,
 });
 
-// Send verification code
-router.post('/send-verification', authRateLimit, async (req, res) => {
+// Authenticate with phone + last name
+router.post('/login', authRateLimit, async (req, res) => {
     try {
-        const { businessId, phoneNumber } = req.body;
+        const { businessId, phoneNumber, lastName } = req.body;
 
-        if (!businessId || !phoneNumber) {
+        if (!businessId || !phoneNumber || !lastName) {
             return res.status(400).json({
-                error: 'Business ID and phone number are required'
+                error: 'Business ID, phone number, and last name are required'
             });
         }
 
@@ -29,57 +29,31 @@ router.post('/send-verification', authRateLimit, async (req, res) => {
             return res.status(400).json({ error: 'Invalid phone number format' });
         }
 
-        const result = await CustomerAuthService.sendVerificationCode(
-            businessId,
-            `+1${normalizedPhone}`,
-            req.ip
-        );
-
-        res.json({
-            success: true,
-            message: 'Verification code sent successfully',
-            expiresAt: result.expiresAt
-        });
-
-    } catch (error) {
-        console.error('Send verification error:', error);
-        res.status(400).json({
-            error: error.message || 'Failed to send verification code'
-        });
-    }
-});
-
-// Verify code
-router.post('/verify-code', authRateLimit, async (req, res) => {
-    try {
-        const { businessId, phoneNumber, code } = req.body;
-
-        if (!businessId || !phoneNumber || !code) {
-            return res.status(400).json({
-                error: 'Business ID, phone number, and code are required'
-            });
-        }
-
-        const normalizedPhone = phoneNumber.replace(/\D/g, '');
         const deviceInfo = {
             userAgent: req.headers['user-agent'],
             acceptLanguage: req.headers['accept-language']
         };
 
-        const result = await CustomerAuthService.verifyCode(
+        const result = await CustomerAuthService.authenticateWithPhoneAndName(
             businessId,
-            `+1${normalizedPhone}`,
-            code,
+            normalizedPhone,
+            lastName.trim(),
             deviceInfo,
             req.ip
         );
 
-        res.json(result);
+        res.json({
+            success: true,
+            message: 'Login successful',
+            sessionToken: result.sessionToken,
+            expiresAt: result.expiresAt,
+            customer: result.customer
+        });
 
     } catch (error) {
-        console.error('Verify code error:', error);
+        console.error('Login error:', error);
         res.status(400).json({
-            error: error.message || 'Verification failed'
+            error: error.message || 'Authentication failed'
         });
     }
 });
@@ -105,34 +79,13 @@ router.post('/logout', async (req, res) => {
     }
 });
 
-// Resend code
-router.post('/resend-code', authRateLimit, async (req, res) => {
-    try {
-        const { businessId, phoneNumber } = req.body;
-
-        if (!businessId || !phoneNumber) {
-            return res.status(400).json({
-                error: 'Business ID and phone number are required'
-            });
-        }
-
-        const normalizedPhone = phoneNumber.replace(/\D/g, '');
-
-        const result = await CustomerAuthService.sendVerificationCode(
-            businessId,
-            `+1${normalizedPhone}`,
-            req.ip
-        );
-
-        res.json({
-            success: true,
-            message: 'Verification code resent successfully',
-            expiresAt: result.expiresAt
-        });
-
-    } catch (error) {
-        res.status(400).json({ error: error.message });
-    }
+// Health check for customer auth
+router.get('/status', (req, res) => {
+    res.json({
+        status: 'healthy',
+        authMethod: 'phone_and_name',
+        features: ['customer_login', 'session_management']
+    });
 });
 
 module.exports = router;
