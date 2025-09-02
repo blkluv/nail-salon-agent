@@ -104,9 +104,8 @@ router.get('/appointments', customerAuth, async (req, res) => {
             .from('appointments')
             .select(`
                 id, appointment_date, start_time, end_time, status, notes, total_amount,
-                service:services(id, name, duration_minutes),
-                staff:staff(id, first_name, last_name),
-                location:locations(id, name, address_line1, city, state)
+                service:services(id, name, duration_minutes, base_price),
+                staff:staff(id, first_name, last_name, role)
             `)
             .eq('customer_id', req.customer.id)
             .order('appointment_date', { ascending: false })
