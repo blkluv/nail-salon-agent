@@ -317,6 +317,10 @@ async function handleToolCall(toolCall, businessId) {
                 result = await cancelAppointment(fn.arguments, businessId);
                 break;
                 
+            case 'reschedule_appointment':
+                result = await rescheduleAppointment(fn.arguments, businessId);
+                break;
+                
             default:
                 result = { error: `Unknown function: ${fn.name}` };
         }
@@ -476,27 +480,368 @@ async function bookAppointment(args, businessId) {
     }
 }
 
-// Placeholder functions
+// CUSTOMER MANAGEMENT FUNCTIONS
+
 async function checkAvailability(args, businessId) {
-    return {
-        available: true,
-        message: "I can help you check availability. What date and service are you interested in?"
-    };
+    try {
+        console.log('🔍 Checking availability:', args);
+        
+        // For now, return available - could add real availability logic later
+        return {
+            available: true,
+            message: "That time slot is available! Would you like me to book it for you?"
+        };
+    } catch (error) {
+        console.error('❌ Error checking availability:', error);
+        return {
+            available: false,
+            message: "I'm having trouble checking availability right now. Let me transfer you to our staff."
+        };
+    }
 }
 
 async function checkAppointments(args, businessId) {
-    return {
-        appointments: [],
-        count: 0,
-        message: "Let me check your appointments. Could you provide your phone number?"
-    };
+    try {
+        console.log('📅 Checking appointments for customer:', args);
+        
+        if (!args.customer_phone) {
+            return {
+                appointments: [],
+                count: 0,
+                message: "I'll need your phone number to look up your appointments."
+            };
+        }
+        
+        // Clean phone number for lookup
+        const cleanPhone = args.customer_phone.replace(/\D/g, '');
+        console.log('🔍 Looking up appointments for phone:', cleanPhone);
+        
+        // Find customer
+        const { data: customer } = await supabase
+            .from('customers')
+            .select('id, first_name, last_name')
+            .eq('business_id', businessId)
+            .eq('phone', cleanPhone)
+            .single();
+            
+        if (!customer) {
+            return {
+                appointments: [],
+                count: 0,
+                message: "I don't see any appointments under that phone number. Would you like to book one?"
+            };
+        }
+        
+        // Get customer's appointments (future appointments only)
+        const { data: appointments, error } = await supabase
+            .from('appointments')
+            .select(`
+                id,
+                appointment_date,
+                start_time,
+                status,
+                services(name, base_price),
+                staff(first_name, last_name)
+            `)
+            .eq('business_id', businessId)
+            .eq('customer_id', customer.id)
+            .gte('appointment_date', new Date().toISOString().split('T')[0])
+            .order('appointment_date', { ascending: true })
+            .order('start_time', { ascending: true });
+            
+        if (error) {
+            console.error('❌ Error fetching appointments:', error);
+            throw error;
+        }
+        
+        console.log('✅ Found appointments:', appointments.length);
+        
+        if (appointments.length === 0) {
+            return {
+                appointments: [],
+                count: 0,
+                message: `Hi ${customer.first_name}! I don't see any upcoming appointments for you. Would you like to book one?`
+            };
+        }
+        
+        // Format appointments for response
+        const formattedAppointments = appointments.map(apt => {
+            const date = new Date(apt.appointment_date);
+            const dateStr = date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+            const timeStr = apt.start_time;
+            const service = apt.services?.name || 'Service';
+            const price = apt.services?.base_price ? `$${apt.services.base_price}` : '';
+            const staff = apt.staff ? `with ${apt.staff.first_name} ${apt.staff.last_name}` : '';
+            
+            return `${service} on ${dateStr} at ${timeStr} ${staff} ${price}`.trim();
+        });
+        
+        const appointmentList = formattedAppointments.join(', ');
+        
+        return {
+            appointments: appointments,
+            count: appointments.length,
+            message: `Hi ${customer.first_name}! You have ${appointments.length} upcoming appointment${appointments.length > 1 ? 's' : ''}: ${appointmentList}. Would you like to cancel or reschedule any of these?`
+        };
+        
+    } catch (error) {
+        console.error('❌ Error checking appointments:', error);
+        return {
+            appointments: [],
+            count: 0,
+            message: "I'm having trouble looking up your appointments right now. Please call back in a few minutes."
+        };
+    }
 }
 
 async function cancelAppointment(args, businessId) {
-    return {
-        success: false,
-        message: "I can help you cancel an appointment. Could you provide your booking details?"
-    };
+    try {
+        console.log('❌ Canceling appointment:', args);
+        
+        if (!args.customer_phone) {
+            return {
+                success: false,
+                message: "I'll need your phone number to cancel your appointment."
+            };
+        }
+        
+        // Clean phone number
+        const cleanPhone = args.customer_phone.replace(/\D/g, '');
+        
+        // Find customer
+        const { data: customer } = await supabase
+            .from('customers')
+            .select('id, first_name')
+            .eq('business_id', businessId)
+            .eq('phone', cleanPhone)
+            .single();
+            
+        if (!customer) {
+            return {
+                success: false,
+                message: "I don't see any appointments under that phone number."
+            };
+        }
+        
+        // If specific appointment ID provided, cancel that one
+        if (args.appointment_id) {
+            const { data: appointment, error } = await supabase
+                .from('appointments')
+                .update({ status: 'cancelled' })
+                .eq('id', args.appointment_id)
+                .eq('business_id', businessId)
+                .eq('customer_id', customer.id)
+                .select(`
+                    id,
+                    appointment_date,
+                    start_time,
+                    services(name)
+                `)
+                .single();
+                
+            if (error || !appointment) {
+                return {
+                    success: false,
+                    message: "I couldn't find that specific appointment. Could you provide more details?"
+                };
+            }
+            
+            const date = new Date(appointment.appointment_date);
+            const dateStr = date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+            
+            return {
+                success: true,
+                appointment_id: appointment.id,
+                message: `I've cancelled your ${appointment.services?.name || 'appointment'} on ${dateStr} at ${appointment.start_time}. Is there anything else I can help you with?`
+            };
+        }
+        
+        // If no specific ID, find their next appointment
+        const { data: nextAppointment } = await supabase
+            .from('appointments')
+            .select(`
+                id,
+                appointment_date,
+                start_time,
+                services(name)
+            `)
+            .eq('business_id', businessId)
+            .eq('customer_id', customer.id)
+            .eq('status', 'pending')
+            .gte('appointment_date', new Date().toISOString().split('T')[0])
+            .order('appointment_date', { ascending: true })
+            .order('start_time', { ascending: true })
+            .limit(1)
+            .single();
+            
+        if (!nextAppointment) {
+            return {
+                success: false,
+                message: "I don't see any upcoming appointments to cancel."
+            };
+        }
+        
+        // Cancel the next appointment
+        const { error } = await supabase
+            .from('appointments')
+            .update({ status: 'cancelled' })
+            .eq('id', nextAppointment.id);
+            
+        if (error) {
+            console.error('❌ Error cancelling appointment:', error);
+            throw error;
+        }
+        
+        const date = new Date(nextAppointment.appointment_date);
+        const dateStr = date.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+        
+        console.log('✅ Appointment cancelled:', nextAppointment.id);
+        
+        return {
+            success: true,
+            appointment_id: nextAppointment.id,
+            message: `I've cancelled your ${nextAppointment.services?.name || 'appointment'} on ${dateStr} at ${nextAppointment.start_time}. Would you like to book a new appointment?`
+        };
+        
+    } catch (error) {
+        console.error('❌ Error canceling appointment:', error);
+        return {
+            success: false,
+            message: "I'm having trouble canceling your appointment right now. Please call back or speak with our staff."
+        };
+    }
+}
+
+async function rescheduleAppointment(args, businessId) {
+    try {
+        console.log('🔄 Rescheduling appointment:', args);
+        
+        if (!args.customer_phone) {
+            return {
+                success: false,
+                message: "I'll need your phone number to reschedule your appointment."
+            };
+        }
+        
+        if (!args.new_date || !args.new_time) {
+            return {
+                success: false,
+                message: "I'll need the new date and time you'd prefer for your appointment."
+            };
+        }
+        
+        // Clean phone number
+        const cleanPhone = args.customer_phone.replace(/\D/g, '');
+        
+        // Find customer
+        const { data: customer } = await supabase
+            .from('customers')
+            .select('id, first_name')
+            .eq('business_id', businessId)
+            .eq('phone', cleanPhone)
+            .single();
+            
+        if (!customer) {
+            return {
+                success: false,
+                message: "I don't see any appointments under that phone number."
+            };
+        }
+        
+        // Find appointment to reschedule
+        let appointmentToReschedule;
+        
+        if (args.appointment_id) {
+            const { data: appointment } = await supabase
+                .from('appointments')
+                .select(`
+                    id,
+                    appointment_date,
+                    start_time,
+                    services(name),
+                    service_id
+                `)
+                .eq('id', args.appointment_id)
+                .eq('business_id', businessId)
+                .eq('customer_id', customer.id)
+                .single();
+                
+            appointmentToReschedule = appointment;
+        } else {
+            // Find their next appointment
+            const { data: appointment } = await supabase
+                .from('appointments')
+                .select(`
+                    id,
+                    appointment_date,
+                    start_time,
+                    services(name),
+                    service_id
+                `)
+                .eq('business_id', businessId)
+                .eq('customer_id', customer.id)
+                .eq('status', 'pending')
+                .gte('appointment_date', new Date().toISOString().split('T')[0])
+                .order('appointment_date', { ascending: true })
+                .order('start_time', { ascending: true })
+                .limit(1)
+                .single();
+                
+            appointmentToReschedule = appointment;
+        }
+        
+        if (!appointmentToReschedule) {
+            return {
+                success: false,
+                message: "I don't see any appointments to reschedule."
+            };
+        }
+        
+        // Calculate end time (assuming 60 minutes if no service duration)
+        const startTime = new Date(`${args.new_date} ${args.new_time}`);
+        const endTime = new Date(startTime.getTime() + (60 * 60000)); // 60 minutes
+        const endTimeString = endTime.toTimeString().substring(0, 8);
+        
+        // Update the appointment
+        const { data: updatedAppointment, error } = await supabase
+            .from('appointments')
+            .update({
+                appointment_date: args.new_date,
+                start_time: args.new_time,
+                end_time: endTimeString
+            })
+            .eq('id', appointmentToReschedule.id)
+            .select(`
+                id,
+                appointment_date,
+                start_time,
+                services(name)
+            `)
+            .single();
+            
+        if (error) {
+            console.error('❌ Error rescheduling appointment:', error);
+            throw error;
+        }
+        
+        const newDate = new Date(args.new_date);
+        const newDateStr = newDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
+        
+        console.log('✅ Appointment rescheduled:', updatedAppointment.id);
+        
+        return {
+            success: true,
+            appointment_id: updatedAppointment.id,
+            message: `Perfect! I've rescheduled your ${appointmentToReschedule.services?.name || 'appointment'} to ${newDateStr} at ${args.new_time}. Is there anything else I can help you with?`
+        };
+        
+    } catch (error) {
+        console.error('❌ Error rescheduling appointment:', error);
+        return {
+            success: false,
+            message: "I'm having trouble rescheduling your appointment right now. Please call back or speak with our staff."
+        };
+    }
 }
 
 // Health check endpoint
