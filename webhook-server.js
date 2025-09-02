@@ -121,49 +121,82 @@ class BusinessContextInjector {
 
 const businessContextInjector = new BusinessContextInjector();
 
-// MULTI-TENANT: Phone number to business ID mapping
+// MULTI-TENANT: Phone number to business ID mapping using phone_business_mapping table
 async function getBusinessIdFromPhone(phoneNumber) {
     try {
-        // Clean phone number (remove formatting)
-        const cleanPhone = phoneNumber?.replace(/[\D]/g, '');
-        console.log(`📞 Looking up business for phone: ${cleanPhone}`);
-        
-        // Method 1: Direct phone match in businesses table
-        const { data: business, error } = await supabase
-            .from('businesses')
-            .select('id, name, phone')
-            .eq('phone', phoneNumber)
-            .single();
-            
-        if (business) {
-            console.log(`✅ Found business by phone: ${business.name} (${business.id})`);
-            return business.id;
+        // Clean phone number (remove formatting, ensure E.164 format)
+        let cleanPhone = phoneNumber?.replace(/[\D]/g, '');
+        if (cleanPhone && !cleanPhone.startsWith('1')) {
+            cleanPhone = '1' + cleanPhone;
         }
+        const formattedPhone = cleanPhone ? `+${cleanPhone}` : null;
         
-        // Method 2: Check if this is our known demo/test number
-        if (cleanPhone === '4243519304') {
-            console.log('📱 Using demo business for (424) 351-9304');
-            // Return the latest business for now (Bella's Nails)
-            const { data: latestBusiness } = await supabase
-                .from('businesses')
-                .select('id, name')
-                .order('created_at', { ascending: false })
-                .limit(1)
+        console.log(`📞 Looking up business for phone: ${phoneNumber} → ${formattedPhone}`);
+        
+        // Method 1: Use phone_business_mapping table (PROPER MULTI-TENANT)
+        if (formattedPhone) {
+            const { data: mapping, error } = await supabase
+                .from('phone_business_mapping')
+                .select(`
+                    business_id,
+                    businesses!inner(id, name)
+                `)
+                .eq('phone_number', formattedPhone)
+                .eq('is_active', true)
                 .single();
                 
-            if (latestBusiness) {
-                console.log(`🎯 Demo routing to: ${latestBusiness.name} (${latestBusiness.id})`);
-                return latestBusiness.id;
+            if (mapping && !error) {
+                console.log(`✅ Phone mapping found: ${mapping.businesses.name} (${mapping.business_id})`);
+                return mapping.business_id;
             }
         }
         
-        // Method 3: Fallback to Bella's business (latest/production)
-        console.log('⚠️  No phone match, using Bella\'s Nails Studio');
-        return 'bb18c6ca-7e97-449d-8245-e3c28a6b6971';
+        // Method 2: Try original phone number format as fallback
+        if (phoneNumber) {
+            const { data: mapping, error } = await supabase
+                .from('phone_business_mapping')
+                .select(`
+                    business_id,
+                    businesses!inner(id, name)
+                `)
+                .eq('phone_number', phoneNumber)
+                .eq('is_active', true)
+                .single();
+                
+            if (mapping && !error) {
+                console.log(`✅ Phone mapping found (alt format): ${mapping.businesses.name} (${mapping.business_id})`);
+                return mapping.business_id;
+            }
+        }
+        
+        // Method 3: Legacy fallback for demo/existing number
+        console.log('⚠️  No phone mapping found, checking demo number fallback...');
+        if (cleanPhone === '14243519304' || cleanPhone === '4243519304') {
+            console.log('📱 Demo number detected, using Bella\'s Nails Studio');
+            return 'bb18c6ca-7e97-449d-8245-e3c28a6b6971';
+        }
+        
+        // Method 4: Last resort - use latest business
+        console.log('🆘 No mapping found, using latest business as fallback');
+        const { data: latestBusiness } = await supabase
+            .from('businesses')
+            .select('id, name')
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .single();
+            
+        if (latestBusiness) {
+            console.log(`🎯 Fallback routing to: ${latestBusiness.name} (${latestBusiness.id})`);
+            return latestBusiness.id;
+        }
+        
+        console.error('❌ No businesses found in database');
+        return null;
         
     } catch (error) {
         console.error('❌ Error looking up business by phone:', error);
-        return 'bb18c6ca-7e97-449d-8245-e3c28a6b6971'; // Bella's Nails fallback
+        // Return latest business as absolute fallback
+        return 'bb18c6ca-7e97-449d-8245-e3c28a6b6971';
     }
 }
 
