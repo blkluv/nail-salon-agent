@@ -27,7 +27,8 @@
     "quick-start": "npm install && npm run register",
     "help": "echo 'Available commands:' && echo '  npm run quick-start - Complete automated salon setup' && echo '  npm run register - Interactive salon registration' && echo '  npm run demo - Try with demo data' && echo '  npm run onboard - Test automated onboarding' && echo '  npm run dashboard - Start admin dashboard' && echo '  npm run help - Show this help'",
     "docs": "echo 'Documentation: https://github.com/dropfly/vapi-nail-salon-agent#readme'",
-    "support": "echo 'Support: https://github.com/dropfly/vapi-nail-salon-agent/issues'"
+    "support": "echo 'Support: https://github.com/dropfly/vapi-nail-salon-agent/issues'",
+    "production": "NODE_ENV=production node webhook-server.js"
   },
   "keywords": [
     "vapi",
