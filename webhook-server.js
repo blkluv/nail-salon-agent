@@ -956,13 +956,20 @@ async function triggerN8NAutomation(data) {
     }
 }
 
+// 👤 CUSTOMER PORTAL ROUTES
+const customerAuthRoutes = require('./routes/customerAuth');
+const customerPortalRoutes = require('./routes/customerPortal');
+
+app.use('/api/customer/auth', customerAuthRoutes);
+app.use('/api/customer/portal', customerPortalRoutes);
+
 // Health check endpoint
 app.get('/health', (req, res) => {
     res.json({ 
         status: 'healthy', 
         timestamp: new Date().toISOString(),
         version: 'multi-tenant-v1.0',
-        features: ['phone-based-routing', 'business-context-injection', 'multi-tenant-support']
+        features: ['phone-based-routing', 'business-context-injection', 'multi-tenant-support', 'customer-portal']
     });
 });
 
