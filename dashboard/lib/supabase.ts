@@ -595,6 +595,154 @@ export class BusinessAPI {
     }
   }
 
+  // Update appointment
+  static async updateAppointment(appointmentId: string, updateData: {
+    appointment_date?: string
+    start_time?: string
+    end_time?: string
+    service_id?: string
+    staff_id?: string
+    status?: string
+    notes?: string
+  }): Promise<Appointment | null> {
+    try {
+      console.log('Updating appointment:', appointmentId, updateData)
+      
+      const { data, error } = await supabase
+        .from('appointments')
+        .update({
+          ...updateData,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', appointmentId)
+        .select(`
+          *,
+          customer:customers(*),
+          staff:staff(*),
+          service:services(*)
+        `)
+        .single()
+      
+      if (error) {
+        console.error('Error updating appointment:', error)
+        throw new Error(`Database error updating appointment: ${error.message}`)
+      }
+      
+      console.log('Appointment updated successfully:', data)
+      return data
+    } catch (error) {
+      console.error('updateAppointment failed:', error)
+      throw error
+    }
+  }
+
+  // Cancel appointment
+  static async cancelAppointment(appointmentId: string, reason?: string): Promise<Appointment | null> {
+    try {
+      console.log('Cancelling appointment:', appointmentId)
+      
+      const { data, error } = await supabase
+        .from('appointments')
+        .update({
+          status: 'cancelled',
+          notes: reason ? `Cancelled: ${reason}` : 'Cancelled by customer',
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', appointmentId)
+        .select(`
+          *,
+          customer:customers(*),
+          staff:staff(*),
+          service:services(*)
+        `)
+        .single()
+      
+      if (error) {
+        console.error('Error cancelling appointment:', error)
+        throw new Error(`Database error cancelling appointment: ${error.message}`)
+      }
+      
+      console.log('Appointment cancelled successfully:', data)
+      return data
+    } catch (error) {
+      console.error('cancelAppointment failed:', error)
+      throw error
+    }
+  }
+
+  // Award loyalty points when appointment is completed
+  static async awardLoyaltyPoints(customerId: string, amount: number, visitCount: number = 1): Promise<void> {
+    try {
+      // Get current customer data
+      const { data: customer, error: fetchError } = await supabase
+        .from('customers')
+        .select('preferences, total_spent, total_visits')
+        .eq('id', customerId)
+        .single()
+      
+      if (fetchError) {
+        console.error('Error fetching customer for loyalty:', fetchError)
+        return
+      }
+      
+      // Calculate points (1 point per dollar + 10 points per visit)
+      const pointsFromSpending = Math.floor(amount)
+      const pointsFromVisit = visitCount * 10
+      const pointsEarned = pointsFromSpending + pointsFromVisit
+      
+      // Get current loyalty data
+      const currentLoyalty = customer.preferences?.loyalty || {
+        current_balance: 0,
+        total_earned: 0,
+        transactions: []
+      }
+      
+      // Update loyalty data
+      const newBalance = (currentLoyalty.current_balance || 0) + pointsEarned
+      const totalEarned = (currentLoyalty.total_earned || 0) + pointsEarned
+      
+      // Add transaction record
+      const transaction = {
+        date: new Date().toISOString(),
+        type: 'earned',
+        points: pointsEarned,
+        description: `Earned from service ($${amount})`,
+        balance_after: newBalance
+      }
+      
+      const transactions = currentLoyalty.transactions || []
+      transactions.unshift(transaction) // Add to beginning
+      if (transactions.length > 50) transactions.pop() // Keep only last 50
+      
+      // Update customer with new loyalty data
+      const { error: updateError } = await supabase
+        .from('customers')
+        .update({
+          preferences: {
+            ...customer.preferences,
+            loyalty: {
+              current_balance: newBalance,
+              total_earned: totalEarned,
+              transactions: transactions,
+              last_earned_at: new Date().toISOString()
+            }
+          },
+          total_spent: (customer.total_spent || 0) + amount,
+          total_visits: (customer.total_visits || 0) + visitCount,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', customerId)
+      
+      if (updateError) {
+        console.error('Error updating loyalty points:', updateError)
+      } else {
+        console.log(`✅ Awarded ${pointsEarned} loyalty points to customer ${customerId}`)
+      }
+    } catch (error) {
+      console.error('Error in awardLoyaltyPoints:', error)
+    }
+  }
+
   // Update customer profile information
   static async updateCustomer(customerId: string, updateData: {
     email?: string

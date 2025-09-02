@@ -9,14 +9,13 @@ import {
   CreditCardIcon,
   GiftIcon,
   BellIcon,
-  Cog6ToothIcon,
   ArrowRightOnRectangleIcon,
   SparklesIcon,
   PencilIcon,
   XMarkIcon,
   CheckCircleIcon
 } from '@heroicons/react/24/outline'
-import { BusinessAPI } from '../../../lib/supabase'
+import { BusinessAPI, supabase } from '../../../lib/supabase'
 import CustomerBookingFlow from '../../../components/CustomerBookingFlow'
 import AppointmentManager from '../../../components/AppointmentManager'
 
@@ -44,6 +43,7 @@ interface CustomerData {
     marketing_offers?: boolean
     birthday_rewards?: boolean
     new_service_alerts?: boolean
+    special_requests?: string
   }
 }
 
@@ -80,7 +80,8 @@ export default function CustomerPortal() {
     address_line2: '',
     city: '',
     state: '',
-    postal_code: ''
+    postal_code: '',
+    special_requests: ''
   })
 
   useEffect(() => {
@@ -108,17 +109,53 @@ export default function CustomerPortal() {
       
       let customerData: CustomerData
       if (realCustomer) {
-        // Use real customer data
+        // Calculate real loyalty data based on spending
+        const totalSpent = realCustomer.total_spent || 0
+        const totalVisits = realCustomer.total_visits || 0
+        
+        // Calculate loyalty points (1 point per dollar spent + 10 points per visit)
+        const pointsFromSpending = Math.floor(totalSpent)
+        const pointsFromVisits = totalVisits * 10
+        const totalPoints = pointsFromSpending + pointsFromVisits
+        
+        // Get stored loyalty data from preferences or calculate new
+        const storedLoyalty = realCustomer.preferences?.loyalty || {}
+        const loyaltyPoints = storedLoyalty.current_balance || totalPoints
+        
+        // Calculate tier based on total points earned
+        let loyaltyTier = 'Bronze'
+        let tierProgress = 0
+        let nextTierPoints = 500
+        
+        if (loyaltyPoints >= 3000) {
+          loyaltyTier = 'Platinum'
+          tierProgress = 100
+          nextTierPoints = null
+        } else if (loyaltyPoints >= 1500) {
+          loyaltyTier = 'Gold'
+          tierProgress = ((loyaltyPoints - 1500) / 1500) * 100
+          nextTierPoints = 3000
+        } else if (loyaltyPoints >= 500) {
+          loyaltyTier = 'Silver'
+          tierProgress = ((loyaltyPoints - 500) / 1000) * 100
+          nextTierPoints = 1500
+        } else {
+          loyaltyTier = 'Bronze'
+          tierProgress = (loyaltyPoints / 500) * 100
+          nextTierPoints = 500
+        }
+        
+        // Use real customer data with calculated loyalty
         customerData = {
           id: realCustomer.id,
           first_name: realCustomer.first_name,
           last_name: realCustomer.last_name,
           phone: realCustomer.phone,
           email: realCustomer.email || '',
-          total_visits: realCustomer.total_visits,
-          total_spent: realCustomer.total_spent,
-          loyalty_points: 125, // Mock for now - would come from loyalty system
-          loyalty_tier: 'Silver', // Mock for now - would be calculated
+          total_visits: totalVisits,
+          total_spent: totalSpent,
+          loyalty_points: loyaltyPoints,
+          loyalty_tier: loyaltyTier,
           preferences: realCustomer.preferences || {
             notifications: true,
             email_marketing: true,
@@ -162,7 +199,8 @@ export default function CustomerPortal() {
         address_line2: customerData.address_line2 || '',
         city: customerData.city || '',
         state: customerData.state || '',
-        postal_code: customerData.postal_code || ''
+        postal_code: customerData.postal_code || '',
+        special_requests: customerData.preferences?.special_requests || ''
       })
     } catch (error) {
       console.error('Failed to load customer data:', error)
@@ -182,36 +220,81 @@ export default function CustomerPortal() {
     try {
       setIsEditingProfile(true)
       
-      // Update customer in database
-      const updatedCustomer = await BusinessAPI.updateCustomer(customer.id, {
-        email: profileData.email,
-        // Store additional fields in preferences for now
-        preferences: {
-          ...customer.preferences,
+      // Check if this is a demo customer (not in database)
+      if (customer.id === 'demo-customer') {
+        // Create new customer first
+        const { data: newCustomer, error: createError } = await supabase
+          .from('customers')
+          .insert({
+            business_id: businessId,
+            first_name: customer.first_name,
+            last_name: customer.last_name,
+            phone: customer.phone,
+            email: profileData.email,
+            preferences: {
+              date_of_birth: profileData.date_of_birth,
+              address_line1: profileData.address_line1,
+              address_line2: profileData.address_line2,
+              city: profileData.city,
+              state: profileData.state,
+              postal_code: profileData.postal_code,
+              ...customer.preferences
+            }
+          })
+          .select()
+          .single()
+        
+        if (createError) {
+          throw createError
+        }
+        
+        // Update customer state with new ID
+        setCustomer(prev => prev ? {
+          ...prev,
+          id: newCustomer.id,
+          email: profileData.email,
           date_of_birth: profileData.date_of_birth,
           address_line1: profileData.address_line1,
           address_line2: profileData.address_line2,
           city: profileData.city,
           state: profileData.state,
           postal_code: profileData.postal_code
-        }
-      })
-      
-      if (updatedCustomer) {
-        // Update local customer state
-        setCustomer(prev => prev ? {
-          ...prev,
-          email: updatedCustomer.email,
-          date_of_birth: profileData.date_of_birth,
-          address_line1: profileData.address_line1,
-          address_line2: profileData.address_line2,
-          city: profileData.city,
-          state: profileData.state,
-          postal_code: profileData.postal_code,
-          preferences: updatedCustomer.preferences
         } : null)
         
-        alert('Profile updated successfully!')
+        alert('Profile created successfully!')
+      } else {
+        // Update existing customer
+        const updatedCustomer = await BusinessAPI.updateCustomer(customer.id, {
+          email: profileData.email,
+          // Store additional fields in preferences for now
+          preferences: {
+            ...customer.preferences,
+            date_of_birth: profileData.date_of_birth,
+            address_line1: profileData.address_line1,
+            address_line2: profileData.address_line2,
+            city: profileData.city,
+            state: profileData.state,
+            postal_code: profileData.postal_code,
+            special_requests: profileData.special_requests
+          }
+        })
+        
+        if (updatedCustomer) {
+          // Update local customer state
+          setCustomer(prev => prev ? {
+            ...prev,
+            email: updatedCustomer.email,
+            date_of_birth: profileData.date_of_birth,
+            address_line1: profileData.address_line1,
+            address_line2: profileData.address_line2,
+            city: profileData.city,
+            state: profileData.state,
+            postal_code: profileData.postal_code,
+            preferences: updatedCustomer.preferences
+          } : null)
+          
+          alert('Profile updated successfully!')
+        }
       }
     } catch (error) {
       console.error('Failed to update profile:', error)
@@ -353,8 +436,7 @@ export default function CustomerPortal() {
             <nav className="space-y-2">
               {[
                 { id: 'appointments', label: 'Appointments', icon: CalendarIcon },
-                { id: 'profile', label: 'Profile', icon: UserIcon },
-                { id: 'preferences', label: 'Preferences', icon: Cog6ToothIcon }
+                { id: 'profile', label: 'Profile', icon: UserIcon }
               ].map((item) => (
                 <button
                   key={item.id}
@@ -562,6 +644,93 @@ export default function CustomerPortal() {
                     </div>
                   </div>
 
+                  {/* Communication Preferences */}
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-900 mb-4">Communication Preferences</h3>
+                    <div className="bg-gray-50 rounded-lg p-4 space-y-4">
+                      {/* SMS Reminders */}
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h4 className="font-medium text-gray-900">SMS Reminders</h4>
+                          <p className="text-sm text-gray-600">Appointment reminders via text</p>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={customer.preferences?.sms_reminders !== false}
+                            onChange={(e) => setCustomer(prev => prev ? {
+                              ...prev,
+                              preferences: {
+                                ...prev.preferences,
+                                sms_reminders: e.target.checked
+                              }
+                            } : null)}
+                            className="sr-only peer"
+                          />
+                          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                        </label>
+                      </div>
+
+                      {/* Email Reminders */}
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h4 className="font-medium text-gray-900">Email Reminders</h4>
+                          <p className="text-sm text-gray-600">Appointment confirmations via email</p>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={customer.preferences?.email_reminders !== false}
+                            onChange={(e) => setCustomer(prev => prev ? {
+                              ...prev,
+                              preferences: {
+                                ...prev.preferences,
+                                email_reminders: e.target.checked
+                              }
+                            } : null)}
+                            className="sr-only peer"
+                          />
+                          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                        </label>
+                      </div>
+
+                      {/* Marketing Communications */}
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h4 className="font-medium text-gray-900">Marketing Communications</h4>
+                          <p className="text-sm text-gray-600">Special offers and promotions</p>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={customer.preferences?.email_marketing !== false}
+                            onChange={(e) => setCustomer(prev => prev ? {
+                              ...prev,
+                              preferences: {
+                                ...prev.preferences,
+                                email_marketing: e.target.checked
+                              }
+                            } : null)}
+                            className="sr-only peer"
+                          />
+                          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
+                        </label>
+                      </div>
+                    </div>
+                    
+                    {/* Special Requests */}
+                    <div className="mt-4">
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Special Requests & Allergies</label>
+                      <textarea
+                        rows={3}
+                        value={profileData.special_requests || ''}
+                        onChange={(e) => setProfileData(prev => ({ ...prev, special_requests: e.target.value }))}
+                        placeholder="Any allergies, sensitivities, or special requests we should know about..."
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      />
+                    </div>
+                  </div>
+
                   {/* Loyalty Program */}
                   <div>
                     <h3 className="text-lg font-medium text-gray-900 mb-4">Loyalty Rewards</h3>
@@ -588,16 +757,49 @@ export default function CustomerPortal() {
                       </div>
                       
                       <div className="mt-4 pt-4 border-t border-purple-200">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium text-gray-700">Progress to Silver</span>
-                          <span className="text-sm text-gray-600">{customer.loyalty_points || 0}/250 pts</span>
-                        </div>
-                        <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
-                          <div 
-                            className="bg-gradient-to-r from-purple-600 to-pink-600 h-2 rounded-full transition-all duration-300"
-                            style={{ width: `${Math.min(((customer.loyalty_points || 0) / 250) * 100, 100)}%` }}
-                          ></div>
-                        </div>
+                        {(() => {
+                          const points = customer.loyalty_points || 0
+                          let progressLabel = ''
+                          let targetPoints = 0
+                          let progressPercent = 0
+                          
+                          if (customer.loyalty_tier === 'Bronze') {
+                            progressLabel = 'Progress to Silver'
+                            targetPoints = 500
+                            progressPercent = (points / 500) * 100
+                          } else if (customer.loyalty_tier === 'Silver') {
+                            progressLabel = 'Progress to Gold'
+                            targetPoints = 1500
+                            progressPercent = ((points - 500) / 1000) * 100
+                          } else if (customer.loyalty_tier === 'Gold') {
+                            progressLabel = 'Progress to Platinum'
+                            targetPoints = 3000
+                            progressPercent = ((points - 1500) / 1500) * 100
+                          } else {
+                            progressLabel = 'Max Tier Reached!'
+                            targetPoints = points
+                            progressPercent = 100
+                          }
+                          
+                          return (
+                            <>
+                              <div className="flex items-center justify-between">
+                                <span className="text-sm font-medium text-gray-700">{progressLabel}</span>
+                                <span className="text-sm text-gray-600">
+                                  {customer.loyalty_tier === 'Platinum' 
+                                    ? '🏆 Platinum Member' 
+                                    : `${points}/${targetPoints} pts`}
+                                </span>
+                              </div>
+                              <div className="mt-2 w-full bg-gray-200 rounded-full h-2">
+                                <div 
+                                  className="bg-gradient-to-r from-purple-600 to-pink-600 h-2 rounded-full transition-all duration-300"
+                                  style={{ width: `${Math.min(progressPercent, 100)}%` }}
+                                ></div>
+                              </div>
+                            </>
+                          )
+                        })()}
                       </div>
 
                       {(customer.loyalty_points || 0) >= 100 && (
@@ -706,135 +908,6 @@ export default function CustomerPortal() {
               </div>
             )}
 
-            {activeTab === 'preferences' && (
-              <div className="bg-white rounded-xl shadow-sm p-6">
-                <h2 className="text-xl font-bold text-gray-900 mb-6">Communication Preferences</h2>
-                
-                <div className="space-y-8">
-                  {/* Appointment Reminders */}
-                  <div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-4">Appointment Reminders</h3>
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between py-3 border-b border-gray-200">
-                        <div>
-                          <h4 className="font-medium text-gray-900">SMS Reminders</h4>
-                          <p className="text-sm text-gray-600">Text message reminders before your appointments</p>
-                        </div>
-                        <label className="relative inline-flex items-center cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={customer.preferences?.sms_reminders || false}
-                            className="sr-only peer"
-                          />
-                          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
-                        </label>
-                      </div>
-
-                      <div className="ml-6">
-                        <label className="block text-sm font-medium text-gray-700 mb-2">Reminder timing:</label>
-                        <select className="w-full max-w-xs px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
-                          <option>2 hours before</option>
-                          <option>4 hours before</option>
-                          <option>1 day before</option>
-                          <option>2 days before</option>
-                        </select>
-                      </div>
-
-                      <div className="flex items-center justify-between py-3 border-b border-gray-200">
-                        <div>
-                          <h4 className="font-medium text-gray-900">Email Reminders</h4>
-                          <p className="text-sm text-gray-600">Email confirmations and reminders</p>
-                        </div>
-                        <label className="relative inline-flex items-center cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={customer.preferences?.email_reminders || false}
-                            className="sr-only peer"
-                          />
-                          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
-                        </label>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Marketing & Promotions */}
-                  <div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-4">Marketing & Promotions</h3>
-                    <div className="space-y-4">
-                      <div className="flex items-center justify-between py-3 border-b border-gray-200">
-                        <div>
-                          <h4 className="font-medium text-gray-900">Special Offers</h4>
-                          <p className="text-sm text-gray-600">Exclusive deals and seasonal promotions</p>
-                        </div>
-                        <label className="relative inline-flex items-center cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={customer.preferences?.marketing_offers || false}
-                            className="sr-only peer"
-                          />
-                          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
-                        </label>
-                      </div>
-
-                      <div className="flex items-center justify-between py-3 border-b border-gray-200">
-                        <div>
-                          <h4 className="font-medium text-gray-900">Birthday Rewards</h4>
-                          <p className="text-sm text-gray-600">Special birthday treats and discounts</p>
-                        </div>
-                        <label className="relative inline-flex items-center cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={customer.preferences?.birthday_rewards || false}
-                            className="sr-only peer"
-                          />
-                          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
-                        </label>
-                      </div>
-
-                      <div className="flex items-center justify-between py-3 border-b border-gray-200">
-                        <div>
-                          <h4 className="font-medium text-gray-900">New Service Alerts</h4>
-                          <p className="text-sm text-gray-600">Be the first to know about new services</p>
-                        </div>
-                        <label className="relative inline-flex items-center cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={customer.preferences?.new_service_alerts || false}
-                            className="sr-only peer"
-                          />
-                          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-600"></div>
-                        </label>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Communication Channels */}
-                  <div>
-                    <h3 className="text-lg font-medium text-gray-900 mb-4">Preferred Contact Method</h3>
-                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                      {['SMS', 'Email', 'Phone Call'].map((method) => (
-                        <label key={method} className="flex items-center space-x-3 p-3 border rounded-lg cursor-pointer hover:bg-gray-50">
-                          <input
-                            type="radio"
-                            name="contact_method"
-                            value={method.toLowerCase()}
-                            className="text-purple-600 focus:ring-purple-500"
-                            defaultChecked={method === 'SMS'}
-                          />
-                          <span className="font-medium text-gray-900">{method}</span>
-                        </label>
-                      ))}
-                    </div>
-                  </div>
-
-                  <div className="pt-4 border-t">
-                    <button className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:shadow-lg transition-all">
-                      Save Communication Preferences
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )}
           </div>
         </div>
       </div>

@@ -64,6 +64,10 @@ export default function AppointmentsPage() {
   const [loyaltyData, setLoyaltyData] = useState<any>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [editingAppointment, setEditingAppointment] = useState<Appointment | null>(null)
+  const [showCancelModal, setShowCancelModal] = useState(false)
+  const [cancelReason, setCancelReason] = useState('')
 
   // Get business ID from demo or localStorage
   const businessId = getCurrentBusinessId() || 'bb18c6ca-7e97-449d-8245-e3c28a6b6971' // Bella's Nails Studio
@@ -213,10 +217,76 @@ export default function AppointmentsPage() {
     return format(date, 'MMM d')
   }
 
-  const updateAppointmentStatus = (id: string, newStatus: Appointment['status']) => {
+  const updateAppointmentStatus = async (id: string, newStatus: Appointment['status']) => {
+    // Update local state immediately
     setAppointments(prev => prev.map(apt => 
       apt.id === id ? { ...apt, status: newStatus } : apt
     ))
+    
+    // Update in database
+    try {
+      const updatedApt = await BusinessAPI.updateAppointment(id, { status: newStatus })
+      
+      // If marking as completed, award loyalty points
+      if (newStatus === 'completed' && updatedApt) {
+        const appointment = appointments.find(apt => apt.id === id)
+        if (appointment && (appointment as any).raw_appointment?.customer_id) {
+          await BusinessAPI.awardLoyaltyPoints(
+            (appointment as any).raw_appointment.customer_id,
+            appointment.service_price || 0,
+            1
+          )
+          console.log('Loyalty points awarded for completed appointment')
+        }
+      }
+      
+      // Reload appointments to get updated data
+      await loadAppointments()
+    } catch (error) {
+      console.error('Error updating appointment status:', error)
+      // Revert local state on error
+      await loadAppointments()
+    }
+  }
+
+  const handleEditAppointment = async () => {
+    if (!editingAppointment) return
+    
+    try {
+      const updated = await BusinessAPI.updateAppointment(editingAppointment.id, {
+        appointment_date: editingAppointment.appointment_date,
+        start_time: editingAppointment.start_time,
+        end_time: editingAppointment.end_time,
+        service_id: (editingAppointment as any).raw_appointment?.service_id
+      })
+      
+      if (updated) {
+        await loadAppointments()
+        setShowEditModal(false)
+        setEditingAppointment(null)
+      }
+    } catch (error) {
+      console.error('Failed to update appointment:', error)
+      alert('Failed to update appointment')
+    }
+  }
+
+  const handleCancelAppointment = async () => {
+    if (!selectedAppointment) return
+    
+    try {
+      const cancelled = await BusinessAPI.cancelAppointment(selectedAppointment.id, cancelReason)
+      
+      if (cancelled) {
+        await loadAppointments()
+        setShowCancelModal(false)
+        setSelectedAppointment(null)
+        setCancelReason('')
+      }
+    } catch (error) {
+      console.error('Failed to cancel appointment:', error)
+      alert('Failed to cancel appointment')
+    }
   }
 
   const handlePaymentProcessed = async (paymentData: any) => {
@@ -689,12 +759,31 @@ export default function AppointmentsPage() {
                   >
                     Close
                   </button>
-                  <button
-                    type="button"
-                    className="btn-secondary mt-3 sm:mt-0"
-                  >
-                    Edit Appointment
-                  </button>
+                  {selectedAppointment.status !== 'cancelled' && selectedAppointment.status !== 'completed' && (
+                    <>
+                      <button
+                        type="button"
+                        className="btn-secondary mt-3 sm:mt-0"
+                        onClick={() => {
+                          setEditingAppointment(selectedAppointment)
+                          setShowEditModal(true)
+                          setShowModal(false)
+                        }}
+                      >
+                        Edit Appointment
+                      </button>
+                      <button
+                        type="button"
+                        className="mt-3 sm:mt-0 sm:ml-3 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition"
+                        onClick={() => {
+                          setShowCancelModal(true)
+                          setShowModal(false)
+                        }}
+                      >
+                        Cancel Appointment
+                      </button>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
@@ -719,6 +808,178 @@ export default function AppointmentsPage() {
           onClose={() => setShowLoyaltyModal(false)}
           paymentAmount={loyaltyData?.paymentAmount || 0}
         />
+
+        {/* Edit Appointment Modal */}
+        {showEditModal && editingAppointment && (
+          <div className="fixed inset-0 z-50 overflow-y-auto">
+            <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+              <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
+              
+              <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                  <div className="flex justify-between items-start mb-4">
+                    <h3 className="text-lg font-medium text-gray-900">
+                      Edit Appointment
+                    </h3>
+                    <button
+                      onClick={() => {
+                        setShowEditModal(false)
+                        setEditingAppointment(null)
+                      }}
+                      className="text-gray-400 hover:text-gray-600"
+                    >
+                      <XMarkIcon className="h-6 w-6" />
+                    </button>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Date
+                      </label>
+                      <input
+                        type="date"
+                        value={editingAppointment.appointment_date}
+                        onChange={(e) => setEditingAppointment({
+                          ...editingAppointment,
+                          appointment_date: e.target.value
+                        })}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                      />
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          Start Time
+                        </label>
+                        <input
+                          type="time"
+                          value={editingAppointment.start_time}
+                          onChange={(e) => setEditingAppointment({
+                            ...editingAppointment,
+                            start_time: e.target.value
+                          })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">
+                          End Time
+                        </label>
+                        <input
+                          type="time"
+                          value={editingAppointment.end_time}
+                          onChange={(e) => setEditingAppointment({
+                            ...editingAppointment,
+                            end_time: e.target.value
+                          })}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                  <button
+                    type="button"
+                    className="btn-primary sm:ml-3"
+                    onClick={handleEditAppointment}
+                  >
+                    Save Changes
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-secondary mt-3 sm:mt-0"
+                    onClick={() => {
+                      setShowEditModal(false)
+                      setEditingAppointment(null)
+                    }}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Cancel Appointment Modal */}
+        {showCancelModal && selectedAppointment && (
+          <div className="fixed inset-0 z-50 overflow-y-auto">
+            <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+              <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" />
+              
+              <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                  <div className="flex justify-between items-start mb-4">
+                    <h3 className="text-lg font-medium text-gray-900">
+                      Cancel Appointment
+                    </h3>
+                    <button
+                      onClick={() => {
+                        setShowCancelModal(false)
+                        setCancelReason('')
+                      }}
+                      className="text-gray-400 hover:text-gray-600"
+                    >
+                      <XMarkIcon className="h-6 w-6" />
+                    </button>
+                  </div>
+                  
+                  <div className="mb-4">
+                    <p className="text-sm text-gray-600 mb-4">
+                      Are you sure you want to cancel this appointment?
+                    </p>
+                    
+                    <div className="bg-gray-50 rounded-lg p-4 mb-4">
+                      <p className="font-medium text-gray-900">{selectedAppointment.customer_name}</p>
+                      <p className="text-sm text-gray-600">{selectedAppointment.service_type}</p>
+                      <p className="text-sm text-gray-600">
+                        {formatDate(selectedAppointment.appointment_date)} at {selectedAppointment.start_time}
+                      </p>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Cancellation Reason (Optional)
+                      </label>
+                      <textarea
+                        value={cancelReason}
+                        onChange={(e) => setCancelReason(e.target.value)}
+                        rows={3}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+                        placeholder="Please provide a reason for cancellation..."
+                      />
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                  <button
+                    type="button"
+                    className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm"
+                    onClick={handleCancelAppointment}
+                  >
+                    Cancel Appointment
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-secondary mt-3 sm:mt-0"
+                    onClick={() => {
+                      setShowCancelModal(false)
+                      setCancelReason('')
+                    }}
+                  >
+                    Keep Appointment
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </Layout>
   )

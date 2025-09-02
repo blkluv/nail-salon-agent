@@ -9,6 +9,9 @@ const supabase = createClient(
 const VAPI_API_KEY = process.env.VAPI_API_KEY!
 const WEBHOOK_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://web-production-60875.up.railway.app'
 
+// Shared default assistant for Starter and Professional tiers
+const SHARED_ASSISTANT_ID = '8ab7e000-aea8-4141-a471-33133219a471' // Existing nail concierge assistant
+
 interface ProvisionClientRequest {
   businessName: string
   ownerName: string
@@ -17,6 +20,7 @@ interface ProvisionClientRequest {
   plan: 'starter' | 'professional' | 'business' | 'enterprise'
   address?: string
   services?: string[]
+  businessType?: string
 }
 
 export async function POST(request: NextRequest) {
@@ -62,8 +66,8 @@ export async function POST(request: NextRequest) {
 
     console.log('✅ Business record created:', businessId)
 
-    // Step 2: Provision Vapi Phone Number
-    console.log('📞 Provisioning Vapi phone number...')
+    // Step 2: Provision Vapi Phone Number (New Vapi numbers, not Twilio)
+    console.log('📞 Provisioning new Vapi phone number...')
     
     const phoneResponse = await fetch('https://api.vapi.ai/phone-number', {
       method: 'POST',
@@ -72,9 +76,9 @@ export async function POST(request: NextRequest) {
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        provider: 'twilio',
+        provider: 'vapi', // Use Vapi provider instead of Twilio
         name: `${body.businessName} Booking Line`,
-        assistantId: null // Will set after creating assistant
+        assistantId: null // Will set based on plan tier
       })
     })
 
@@ -97,71 +101,91 @@ export async function POST(request: NextRequest) {
     const phoneData = await phoneResponse.json()
     console.log('✅ Phone number provisioned:', phoneData.number)
 
-    // Step 3: Create Vapi Assistant
-    console.log('🤖 Creating Vapi assistant...')
-    
-    const assistantResponse = await fetch('https://api.vapi.ai/assistant', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${VAPI_API_KEY}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        name: `${body.businessName} AI Booking Assistant`,
-        model: {
-          provider: 'openai',
-          model: 'gpt-4',
-          messages: [
-            {
-              role: 'system',
-              content: `You are a helpful AI assistant for ${body.businessName}, a nail salon. 
-              
-Your job is to:
-1. Help customers book appointments
-2. Answer questions about services
-3. Provide friendly, professional customer service
-4. Collect customer information for bookings
+    // Step 3: Determine Assistant Strategy Based on Plan Tier
+    let assistantId: string
+    let assistantData: any = null
 
-Available services: ${body.services?.join(', ') || 'Basic Manicure, Gel Manicure, Pedicure, Nail Art'}
+    if (body.plan === 'business' || body.plan === 'enterprise') {
+      // Business tier gets CUSTOM AI assistant
+      console.log('🤖 Creating CUSTOM Vapi assistant for Business tier...')
+      
+      const assistantResponse = await fetch('https://api.vapi.ai/assistant', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${VAPI_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          name: `${body.businessName} Custom AI Concierge`,
+          model: {
+            provider: 'openai',
+            model: 'gpt-4o', // Premium model for business tier
+            messages: [
+              {
+                role: 'system',
+                content: `You are the personalized AI concierge for ${body.businessName}, a ${body.businessType || 'beauty business'}.
 
-Always be warm, professional, and helpful. When booking appointments, collect:
-- Customer name and phone number
+🏢 About ${body.businessName}:
+You represent this specific business with their unique personality and services. Always identify yourself as calling from ${body.businessName}.
+
+💼 Your Role:
+1. Help customers book appointments with ${body.businessName}
+2. Answer questions about our specific services
+3. Provide personalized, professional customer service
+4. Collect complete customer information for bookings
+
+🎯 Available Services:
+${body.services?.map(s => `- ${s}`).join('\n') || '- Professional beauty services\n- Consultation appointments\n- Specialty treatments'}
+
+📋 For Every Booking, Collect:
+- Customer name and phone number  
 - Preferred date and time
-- Service requested
-- Any special requests
+- Specific service requested
+- Any special requests or preferences
+
+🎨 Personality: Professional, warm, and knowledgeable about ${body.businessName}'s specific offerings.
 
 Business ID: ${businessId}
-Webhook: ${WEBHOOK_BASE_URL}/webhook/vapi/${businessId}`
-            }
-          ]
-        },
-        voice: {
-          provider: '11labs',
-          voiceId: 'sarah'
-        },
-        serverUrl: `${WEBHOOK_BASE_URL}/webhook/vapi/${businessId}`,
-        serverUrlSecret: businessId
+Webhook: ${WEBHOOK_BASE_URL}/webhook/vapi/${businessId}
+
+Always represent ${body.businessName} with excellence!`
+              }
+            ]
+          },
+          voice: {
+            provider: '11labs',
+            voiceId: 'sarah'
+          },
+          serverUrl: `${WEBHOOK_BASE_URL}/webhook/vapi/${businessId}`,
+          serverUrlSecret: businessId
+        })
       })
-    })
 
-    if (!assistantResponse.ok) {
-      const assistantError = await assistantResponse.text()
-      console.error('❌ Vapi assistant creation failed:', assistantError)
+      if (!assistantResponse.ok) {
+        const assistantError = await assistantResponse.text()
+        console.error('❌ Custom assistant creation failed:', assistantError)
+        
+        // Update business status to failed
+        await supabase
+          .from('businesses')
+          .update({ status: 'failed', error_message: 'Custom assistant creation failed' })
+          .eq('id', businessId)
+        
+        return NextResponse.json(
+          { error: 'Failed to create custom AI assistant', details: assistantError },
+          { status: 500 }
+        )
+      }
+
+      assistantData = await assistantResponse.json()
+      assistantId = assistantData.id
+      console.log('✅ CUSTOM Assistant created for Business tier:', assistantId)
       
-      // Update business status to failed
-      await supabase
-        .from('businesses')
-        .update({ status: 'failed', error_message: 'Assistant creation failed' })
-        .eq('id', businessId)
-      
-      return NextResponse.json(
-        { error: 'Failed to create AI assistant', details: assistantError },
-        { status: 500 }
-      )
+    } else {
+      // Starter and Professional tiers use SHARED assistant
+      assistantId = SHARED_ASSISTANT_ID
+      console.log('✅ Using SHARED Assistant for Starter/Professional tier:', assistantId)
     }
-
-    const assistantData = await assistantResponse.json()
-    console.log('✅ Assistant created:', assistantData.id)
 
     // Step 4: Link Assistant to Phone Number
     console.log('🔗 Linking assistant to phone number...')
@@ -173,7 +197,7 @@ Webhook: ${WEBHOOK_BASE_URL}/webhook/vapi/${businessId}`
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        assistantId: assistantData.id
+        assistantId: assistantId
       })
     })
 
@@ -190,7 +214,8 @@ Webhook: ${WEBHOOK_BASE_URL}/webhook/vapi/${businessId}`
       .update({
         vapi_phone_number: phoneData.number,
         vapi_phone_id: phoneData.id,
-        vapi_assistant_id: assistantData.id,
+        vapi_assistant_id: assistantId,
+        vapi_configured: true,
         status: 'active',
         updated_at: new Date().toISOString()
       })
@@ -230,12 +255,20 @@ Webhook: ${WEBHOOK_BASE_URL}/webhook/vapi/${businessId}`
 
     return NextResponse.json({
       success: true,
-      message: 'Client provisioned successfully',
+      message: 'Client provisioned successfully with tiered AI agent strategy',
       data: {
         businessId,
         businessName: body.businessName,
         phoneNumber: phoneData.number,
-        assistantId: assistantData.id,
+        assistantId: assistantId,
+        assistantType: (body.plan === 'business' || body.plan === 'enterprise') ? 'custom' : 'shared',
+        plan: body.plan,
+        features: {
+          customAgent: body.plan === 'business' || body.plan === 'enterprise',
+          sharedAgent: body.plan === 'starter' || body.plan === 'professional',
+          phoneNumber: true,
+          multiTenantWebhook: true
+        },
         dashboardUrl: `${process.env.NEXT_PUBLIC_VERCEL_URL || 'http://localhost:3000'}/login?business=${businessId}`,
         status: 'active'
       }
