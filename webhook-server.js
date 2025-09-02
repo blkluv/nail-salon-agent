@@ -910,7 +910,9 @@ async function triggerN8NAutomation(data) {
             service: {
                 id: data.service?.id || 'default-service',
                 name: data.service?.name || 'Nail Service',
-                duration: data.service?.duration_minutes || 60
+                duration: data.service?.duration_minutes || 60,
+                price: data.service?.base_price || 0,
+                category: data.service?.category || 'beauty'
             },
             business: {
                 id: business?.id || data.businessId,
@@ -926,7 +928,9 @@ async function triggerN8NAutomation(data) {
         console.log('🚀 Triggering N8N automation...', {
             url: N8N_WEBHOOK_URL,
             appointmentId: data.appointment.id,
-            customerPhone: formattedPhone
+            customerPhone: formattedPhone,
+            servicePrice: data.service?.base_price,
+            serviceName: data.service?.name
         });
         
         const response = await axios.post(N8N_WEBHOOK_URL, n8nPayload, {
