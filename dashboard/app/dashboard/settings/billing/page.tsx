@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { 
   CreditCardIcon,
@@ -39,7 +39,7 @@ interface InvoiceHistory {
   downloadUrl?: string
 }
 
-export default function BillingPage() {
+function BillingContent() {
   const searchParams = useSearchParams()
   const [showPlanComparison, setShowPlanComparison] = useState(false)
   const [billingInfo, setBillingInfo] = useState<BillingInfo | null>(null)
@@ -348,5 +348,20 @@ export default function BillingPage() {
         />
       )}
     </div>
+  )
+}
+
+export default function BillingPage() {
+  return (
+    <Suspense fallback={
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto"></div>
+          <p className="mt-2 text-gray-600">Loading billing information...</p>
+        </div>
+      </div>
+    }>
+      <BillingContent />
+    </Suspense>
   )
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import PaymentForm from '../../../../components/PaymentForm'
 import PaymentConfirmation from '../../../../components/PaymentConfirmation'
@@ -21,7 +21,7 @@ interface AppointmentDetails {
   business_name: string
 }
 
-export default function CheckoutPage() {
+function CheckoutContent() {
   const searchParams = useSearchParams()
   const router = useRouter()
   
@@ -251,5 +251,20 @@ export default function CheckoutPage() {
         />
       )}
     </div>
+  )
+}
+
+export default function CheckoutPage() {
+  return (
+    <Suspense fallback={
+      <div className="max-w-4xl mx-auto px-4 py-8">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto"></div>
+          <p className="mt-2 text-gray-600">Loading checkout...</p>
+        </div>
+      </div>
+    }>
+      <CheckoutContent />
+    </Suspense>
   )
 }
