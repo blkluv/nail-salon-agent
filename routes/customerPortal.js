@@ -17,8 +17,16 @@ const customerAuth = async (req, res, next) => {
         req.businessId = session.business_id;
         req.sessionId = session.id;
 
+        console.log('🔐 Customer auth success:', {
+            customerId: req.customer?.id,
+            customerName: req.customer ? `${req.customer.first_name} ${req.customer.last_name}` : 'unknown',
+            businessId: req.businessId,
+            sessionId: req.sessionId
+        });
+
         next();
     } catch (error) {
+        console.error('❌ Customer auth failed:', error);
         res.status(401).json({ error: 'Invalid session' });
     }
 };
