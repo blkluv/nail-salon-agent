@@ -157,13 +157,13 @@ async function getBusinessIdFromPhone(phoneNumber) {
             }
         }
         
-        // Method 3: Fallback to default demo business
-        console.log('⚠️  No phone match, using default business');
-        return '8424aa26-4fd5-4d4b-92aa-8a9c5ba77dad';
+        // Method 3: Fallback to Bella's business (latest/production)
+        console.log('⚠️  No phone match, using Bella\'s Nails Studio');
+        return 'bb18c6ca-7e97-449d-8245-e3c28a6b6971';
         
     } catch (error) {
         console.error('❌ Error looking up business by phone:', error);
-        return '8424aa26-4fd5-4d4b-92aa-8a9c5ba77dad'; // Default fallback
+        return 'bb18c6ca-7e97-449d-8245-e3c28a6b6971'; // Bella's Nails fallback
     }
 }
 
