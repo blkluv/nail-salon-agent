@@ -9,18 +9,21 @@ const supabase = createClient(
 
 // Initialize Square client with environment validation
 const isProduction = process.env.SQUARE_ENVIRONMENT === 'production'
-let client: Client | null = null
 
-try {
-  if (process.env.SQUARE_ACCESS_TOKEN) {
-    client = new Client({
-      accessToken: process.env.SQUARE_ACCESS_TOKEN,
-      environment: isProduction ? Environment.Production : Environment.Sandbox
-    })
+// Lazy initialization to avoid build-time errors
+const getSquareClient = (): Client | null => {
+  try {
+    if (process.env.SQUARE_ACCESS_TOKEN) {
+      return new Client({
+        accessToken: process.env.SQUARE_ACCESS_TOKEN,
+        environment: isProduction ? Environment.Production : Environment.Sandbox
+      })
+    }
+    return null
+  } catch (error) {
+    console.warn('Square client initialization failed:', error)
+    return null
   }
-} catch (error) {
-  console.warn('Square client initialization failed:', error)
-  client = null
 }
 
 export interface SquarePaymentData {
@@ -49,6 +52,7 @@ export class SquareService {
     try {
       console.log('🔄 Processing Square payment:', { ...data, amount: data.amount / 100 })
 
+      const client = getSquareClient()
       if (!client) {
         return {
           success: false,
@@ -141,6 +145,9 @@ export class SquareService {
    */
   static async getPayment(paymentId: string): Promise<any> {
     try {
+      const client = getSquareClient()
+      if (!client) return null
+      
       const paymentsApi = client.paymentsApi
       const { result } = await paymentsApi.getPayment(paymentId)
       return result.payment
@@ -155,6 +162,14 @@ export class SquareService {
    */
   static async refundPayment(paymentId: string, amount?: number, reason?: string): Promise<SquarePaymentResult> {
     try {
+      const client = getSquareClient()
+      if (!client) {
+        return {
+          success: false,
+          error: 'Square client not initialized. Please configure Square credentials.'
+        }
+      }
+      
       const refundsApi = client.refundsApi
       const idempotencyKey = randomUUID()
 
@@ -215,6 +230,7 @@ export class SquareService {
    */
   static async getLocations(): Promise<any[]> {
     try {
+      const client = getSquareClient()
       if (!client) {
         console.warn('Square client not initialized for getLocations')
         return []
@@ -240,6 +256,9 @@ export class SquareService {
     note?: string
   }): Promise<any> {
     try {
+      const client = getSquareClient()
+      if (!client) return null
+      
       const customersApi = client.customersApi
       
       const requestBody = {
@@ -280,6 +299,7 @@ export class SquareService {
    */
   static async testConnection(): Promise<{ success: boolean; error?: string; locations?: any[] }> {
     try {
+      const client = getSquareClient()
       if (!client) {
         return {
           success: false,

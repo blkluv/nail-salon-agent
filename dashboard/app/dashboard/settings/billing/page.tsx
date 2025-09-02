@@ -12,6 +12,9 @@ import {
 } from '@heroicons/react/24/outline'
 import PlanComparison from '../../../../components/PlanComparison'
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+
 interface BillingInfo {
   currentPlan: 'starter' | 'professional' | 'business'
   billingCycle: 'monthly' | 'yearly'

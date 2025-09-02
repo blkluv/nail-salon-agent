@@ -6,9 +6,15 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-08-27.basil',
-})
+// Lazy initialization to avoid build-time errors
+const getStripeClient = () => {
+  if (!process.env.STRIPE_SECRET_KEY) {
+    return null
+  }
+  return new Stripe(process.env.STRIPE_SECRET_KEY!, {
+    apiVersion: '2025-08-27.basil',
+  })
+}
 
 export interface PaymentIntentData {
   amount: number // in cents
@@ -34,6 +40,14 @@ export class StripeService {
    */
   static async processPayment(data: PaymentIntentData): Promise<PaymentResult> {
     try {
+      const stripe = getStripeClient()
+      if (!stripe) {
+        return {
+          success: false,
+          error: 'Stripe client not initialized. Please configure Stripe credentials.'
+        }
+      }
+      
       console.log('🔄 Processing Stripe payment:', { ...data, amount: data.amount / 100 })
 
       // Get business information for better payment descriptions
@@ -92,6 +106,14 @@ export class StripeService {
    */
   static async confirmPayment(paymentIntentId: string): Promise<PaymentResult> {
     try {
+      const stripe = getStripeClient()
+      if (!stripe) {
+        return {
+          success: false,
+          error: 'Stripe client not initialized. Please configure Stripe credentials.'
+        }
+      }
+      
       const paymentIntent = await stripe.paymentIntents.confirm(paymentIntentId)
       
       return {
@@ -114,6 +136,14 @@ export class StripeService {
    */
   static async refundPayment(paymentIntentId: string, amount?: number, reason?: string): Promise<PaymentResult> {
     try {
+      const stripe = getStripeClient()
+      if (!stripe) {
+        return {
+          success: false,
+          error: 'Stripe client not initialized. Please configure Stripe credentials.'
+        }
+      }
+      
       const refund = await stripe.refunds.create({
         payment_intent: paymentIntentId,
         amount: amount, // If not provided, refunds the full amount
@@ -145,6 +175,9 @@ export class StripeService {
    */
   static async getPaymentIntent(paymentIntentId: string): Promise<Stripe.PaymentIntent | null> {
     try {
+      const stripe = getStripeClient()
+      if (!stripe) return null
+      
       const paymentIntent = await stripe.paymentIntents.retrieve(paymentIntentId)
       return paymentIntent
     } catch (error: any) {
@@ -163,6 +196,9 @@ export class StripeService {
     metadata?: Record<string, string>
   }): Promise<Stripe.Customer | null> {
     try {
+      const stripe = getStripeClient()
+      if (!stripe) return null
+      
       const customer = await stripe.customers.create({
         email: customerData.email,
         name: customerData.name,
@@ -182,6 +218,11 @@ export class StripeService {
    */
   static async handleWebhook(body: string, signature: string): Promise<{ success: boolean; event?: Stripe.Event; error?: string }> {
     try {
+      const stripe = getStripeClient()
+      if (!stripe) {
+        return { success: false, error: 'Stripe client not initialized' }
+      }
+      
       const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET!
       const event = stripe.webhooks.constructEvent(body, signature, endpointSecret)
       
@@ -199,6 +240,9 @@ export class StripeService {
    */
   static async getPaymentMethod(paymentMethodId: string): Promise<Stripe.PaymentMethod | null> {
     try {
+      const stripe = getStripeClient()
+      if (!stripe) return null
+      
       const paymentMethod = await stripe.paymentMethods.retrieve(paymentMethodId)
       return paymentMethod
     } catch (error: any) {

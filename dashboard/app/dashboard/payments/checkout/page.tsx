@@ -6,6 +6,9 @@ import PaymentForm from '../../../../components/PaymentForm'
 import PaymentConfirmation from '../../../../components/PaymentConfirmation'
 import { ArrowLeftIcon } from '@heroicons/react/24/outline'
 
+// Force dynamic rendering
+export const dynamic = 'force-dynamic'
+
 interface AppointmentDetails {
   id: string
   customer_name: string
