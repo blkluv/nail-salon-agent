@@ -206,7 +206,7 @@ export default function PaymentHistory({
                     <span className="font-semibold text-gray-900">
                       ${(payment.total_amount / 100).toFixed(2)}
                     </span>
-                    <PaymentStatusBadge status={payment.status} />
+                    <PaymentStatusBadge status={payment.status === 'completed' ? 'paid' : payment.status as any} />
                   </div>
                   
                   {showCustomerInfo && payment.customer_name && (

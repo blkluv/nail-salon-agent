@@ -5,9 +5,9 @@ import {
   CheckIcon, 
   XMarkIcon,
   SparklesIcon,
-  CrownIcon,
   BuildingStorefrontIcon
 } from '@heroicons/react/24/outline'
+import { StarIcon as CrownIcon } from '@heroicons/react/24/solid'
 import Link from 'next/link'
 
 interface PlanComparisonProps {

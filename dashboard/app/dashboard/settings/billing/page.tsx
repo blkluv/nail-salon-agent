@@ -10,7 +10,7 @@ import {
   ExclamationTriangleIcon,
   ArrowPathIcon
 } from '@heroicons/react/24/outline'
-import PlanComparison from '../../../components/PlanComparison'
+import PlanComparison from '../../../../components/PlanComparison'
 
 interface BillingInfo {
   currentPlan: 'starter' | 'professional' | 'business'

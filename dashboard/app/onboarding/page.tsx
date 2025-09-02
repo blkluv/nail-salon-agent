@@ -723,7 +723,7 @@ export default function OnboardingPage() {
             selectedServices.map((service, index) => ({
               business_id: business.id,
               name: service.name, // Use exact custom name from user
-              description: service.description || `Professional ${service.name.toLowerCase()} service`,
+              description: (service as any).description || `Professional ${service.name.toLowerCase()} service`,
               category: service.category,
               duration_minutes: service.duration,
               base_price: parseFloat(service.price.toString()), // Ensure proper decimal conversion

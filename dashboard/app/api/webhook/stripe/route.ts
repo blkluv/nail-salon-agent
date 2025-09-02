@@ -217,8 +217,8 @@ async function handleSubscriptionEvent(event: Stripe.Event) {
         tierUpdate.subscription_tier = planName
         tierUpdate.subscription_status = subscriptionStatus
         
-        if (subscription.current_period_end) {
-          tierUpdate.trial_ends_at = new Date(subscription.current_period_end * 1000).toISOString()
+        if ((subscription as any).current_period_end) {
+          tierUpdate.trial_ends_at = new Date((subscription as any).current_period_end * 1000).toISOString()
         }
         break
 

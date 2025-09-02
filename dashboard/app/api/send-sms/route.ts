@@ -105,9 +105,9 @@ export async function POST(request: NextRequest) {
           day: 'numeric'
         })
         templateData.appointmentTime = appointment.start_time
-        templateData.serviceName = appointment.service?.name
-        templateData.servicePrice = appointment.service?.base_price?.toString()
-        templateData.location = appointment.location?.name
+        templateData.serviceName = (appointment as any).service?.name || 'Service'
+        templateData.servicePrice = (appointment as any).service?.base_price?.toString() || '0'
+        templateData.location = (appointment as any).location?.name || 'Salon'
         
         // Generate confirmation code if not provided
         if (!templateData.confirmationCode) {

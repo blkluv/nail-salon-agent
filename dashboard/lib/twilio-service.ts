@@ -457,7 +457,7 @@ Keep visiting to earn more rewards! 💖`
       }
 
       // Try to fetch account information
-      const account = await client.api.v2010.accounts.get()
+      const account = await client.api.v2010.accounts(process.env.TWILIO_ACCOUNT_SID || '').fetch()
       
       return {
         success: true,
