@@ -7,12 +7,21 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-// Initialize Square client
+// Initialize Square client with environment validation
 const isProduction = process.env.SQUARE_ENVIRONMENT === 'production'
-const client = new Client({
-  accessToken: process.env.SQUARE_ACCESS_TOKEN!,
-  environment: isProduction ? Environment.Production : Environment.Sandbox
-})
+let client: Client | null = null
+
+try {
+  if (process.env.SQUARE_ACCESS_TOKEN) {
+    client = new Client({
+      accessToken: process.env.SQUARE_ACCESS_TOKEN,
+      environment: isProduction ? Environment.Production : Environment.Sandbox
+    })
+  }
+} catch (error) {
+  console.warn('Square client initialization failed:', error)
+  client = null
+}
 
 export interface SquarePaymentData {
   amount: number // in cents
@@ -39,6 +48,13 @@ export class SquareService {
   static async processPayment(data: SquarePaymentData): Promise<SquarePaymentResult> {
     try {
       console.log('🔄 Processing Square payment:', { ...data, amount: data.amount / 100 })
+
+      if (!client) {
+        return {
+          success: false,
+          error: 'Square client not initialized. Please configure Square credentials.'
+        }
+      }
 
       // Get business and appointment details
       const { data: business } = await supabase
@@ -199,6 +215,11 @@ export class SquareService {
    */
   static async getLocations(): Promise<any[]> {
     try {
+      if (!client) {
+        console.warn('Square client not initialized for getLocations')
+        return []
+      }
+      
       const locationsApi = client.locationsApi
       const { result } = await locationsApi.listLocations()
       return result.locations || []
@@ -259,6 +280,13 @@ export class SquareService {
    */
   static async testConnection(): Promise<{ success: boolean; error?: string; locations?: any[] }> {
     try {
+      if (!client) {
+        return {
+          success: false,
+          error: 'Square client not initialized. Please configure Square credentials.'
+        }
+      }
+      
       const locations = await this.getLocations()
       return {
         success: true,
