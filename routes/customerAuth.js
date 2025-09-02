@@ -88,4 +88,36 @@ router.get('/status', (req, res) => {
     });
 });
 
+// Debug session endpoint  
+router.post('/debug-session', async (req, res) => {
+    try {
+        const { sessionToken } = req.body;
+        
+        if (!sessionToken) {
+            return res.status(400).json({ error: 'Session token required' });
+        }
+        
+        const session = await CustomerAuthService.validateSession(sessionToken);
+        
+        res.json({
+            success: true,
+            session: {
+                id: session.id,
+                business_id: session.business_id,
+                customer_id: session.customer_id,
+                expires_at: session.expires_at,
+                customer: session.customer,
+                business: session.business,
+                keys: Object.keys(session)
+            }
+        });
+        
+    } catch (error) {
+        res.status(400).json({
+            error: error.message,
+            details: 'Session validation failed'
+        });
+    }
+});
+
 module.exports = router;
