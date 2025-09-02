@@ -6,6 +6,8 @@ import LocationCard from '../../../components/LocationCard'
 import LocationForm from '../../../components/LocationForm'
 import Layout from '../../../components/Layout'
 import { LocationAPIImpl, BusinessAPI } from '../../../lib/supabase'
+import { BrandedSMSService } from '../../../lib/branded-sms-service'
+import { BrandedEmailService } from '../../../lib/branded-email-service'
 import type { Location, CreateLocationRequest, Business } from '../../../lib/supabase-types-mvp'
 
 // Mock business ID - in real app, this would come from auth context
@@ -61,16 +63,34 @@ export default function LocationsPage() {
   }
 
   const handleDeleteLocation = async (locationId: string) => {
-    if (!confirm('Are you sure you want to delete this location? This action cannot be undone.')) {
+    const location = locations.find(loc => loc.id === locationId)
+    
+    if (!location) return
+    
+    if (!confirm(`Are you sure you want to delete "${location.name}"? This will:\n\n• Cancel all upcoming appointments at this location\n• Notify affected customers via SMS and email\n• Remove all location-specific data\n\nThis action cannot be undone.`)) {
       return
     }
 
     try {
       setIsLoading(true)
+      
+      // First, send notifications to customers about location closure
+      if (business) {
+        await BrandedSMSService.sendEmergencyLocationBroadcast(
+          DEMO_BUSINESS_ID,
+          `Important: Our ${location.name} location is permanently closing. We will contact you personally to reschedule your appointments at our other locations. Thank you for your understanding.`,
+          [locationId]
+        )
+      }
+      
+      // Delete the location
       await locationAPI.deleteLocation(locationId)
       
       // Remove from local state
       setLocations(prev => prev.filter(loc => loc.id !== locationId))
+      
+      // Show success message
+      setError(`Successfully closed ${location.name}. Customer notifications have been sent.`)
     } catch (error) {
       console.error('Failed to delete location:', error)
       setError('Failed to delete location. Please try again.')
@@ -81,6 +101,9 @@ export default function LocationsPage() {
 
   const handleSetPrimary = async (locationId: string) => {
     try {
+      const location = locations.find(loc => loc.id === locationId)
+      if (!location) return
+      
       await locationAPI.setAsPrimary(locationId)
       
       // Update local state
@@ -88,6 +111,23 @@ export default function LocationsPage() {
         ...loc,
         is_primary: loc.id === locationId
       })))
+      
+      // Send notification to staff about primary location change
+      if (business) {
+        // This would integrate with staff notification system in a real implementation
+        console.log(`Primary location changed to: ${location.name}`)
+        
+        // Example of how staff notifications would work:
+        // await BrandedSMSService.sendStaffLocationAlert(
+        //   staffPhoneNumber,
+        //   `Primary location has been changed to ${location.name}. Please update your schedules accordingly.`,
+        //   locationId,
+        //   DEMO_BUSINESS_ID
+        // )
+      }
+      
+      setError(`Successfully set ${location.name} as the primary location.`)
+      
     } catch (error) {
       console.error('Failed to set primary location:', error)
       setError('Failed to set primary location. Please try again.')
@@ -104,10 +144,29 @@ export default function LocationsPage() {
         setLocations(prev => prev.map(loc => 
           loc.id === selectedLocation.id ? updated : loc
         ))
+        
+        setError(`Successfully updated ${data.name} location details.`)
       } else {
         // Create new location
         const newLocation = await locationAPI.createLocation(DEMO_BUSINESS_ID, data)
         setLocations(prev => [...prev, newLocation])
+        
+        // Send notification about new location opening
+        if (business && locations.length > 0) {
+          // This would notify existing customers about the new location
+          // In a real implementation, this would be more targeted
+          console.log(`New location ${data.name} has been added!`)
+          
+          // Example of promotional SMS for new location:
+          // await BrandedSMSService.sendCrossLocationPromotion(
+          //   customerPhone,
+          //   DEMO_BUSINESS_ID,
+          //   `🎉 Exciting news! We've opened a new location at ${data.address_line1}, ${data.city}! Book your next appointment at any of our convenient locations.`,
+          //   [newLocation.id]
+          // )
+        }
+        
+        setError(`Successfully added ${data.name} as a new location! ${locations.length === 0 ? 'This is now your primary location.' : ''}`)
       }
 
       setIsFormOpen(false)

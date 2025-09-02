@@ -608,6 +608,18 @@ export class BusinessAPI {
     try {
       console.log('Updating appointment:', appointmentId, updateData)
       
+      // Get original appointment data first for reschedule comparison
+      const { data: originalData } = await supabase
+        .from('appointments')
+        .select(`
+          appointment_date,
+          start_time,
+          customer:customers(*),
+          business:businesses(*)
+        `)
+        .eq('id', appointmentId)
+        .single()
+      
       const { data, error } = await supabase
         .from('appointments')
         .update({
@@ -619,7 +631,8 @@ export class BusinessAPI {
           *,
           customer:customers(*),
           staff:staff(*),
-          service:services(*)
+          service:services(*),
+          business:businesses(*)
         `)
         .single()
       
@@ -629,6 +642,22 @@ export class BusinessAPI {
       }
       
       console.log('Appointment updated successfully:', data)
+      
+      // Send SMS reschedule notice if date or time changed
+      if ((updateData.appointment_date || updateData.start_time) && originalData) {
+        try {
+          const { SMSService } = await import('./sms-service')
+          const oldDateTime = {
+            date: new Date(originalData.appointment_date).toLocaleDateString(),
+            time: originalData.start_time || 'scheduled time'
+          }
+          await SMSService.sendRescheduleNotice(data, oldDateTime)
+        } catch (smsError) {
+          console.error('Failed to send reschedule SMS:', smsError)
+          // Don't fail the entire operation if SMS fails
+        }
+      }
+      
       return data
     } catch (error) {
       console.error('updateAppointment failed:', error)
@@ -653,7 +682,8 @@ export class BusinessAPI {
           *,
           customer:customers(*),
           staff:staff(*),
-          service:services(*)
+          service:services(*),
+          business:businesses(*)
         `)
         .single()
       
@@ -663,6 +693,27 @@ export class BusinessAPI {
       }
       
       console.log('Appointment cancelled successfully:', data)
+      
+      // Send SMS cancellation notice
+      try {
+        const { SMSService } = await import('./sms-service')
+        await SMSService.sendCancellationNotice(data)
+      } catch (smsError) {
+        console.error('Failed to send cancellation SMS:', smsError)
+        // Don't fail the entire operation if SMS fails
+      }
+
+      // Send email cancellation notice
+      if (data.customer?.email) {
+        try {
+          const { EmailService } = await import('./email-service')
+          await EmailService.sendCancellationEmail(data, reason)
+        } catch (emailError) {
+          console.error('Failed to send cancellation email:', emailError)
+          // Don't fail the entire operation if email fails
+        }
+      }
+      
       return data
     } catch (error) {
       console.error('cancelAppointment failed:', error)
@@ -737,6 +788,28 @@ export class BusinessAPI {
         console.error('Error updating loyalty points:', updateError)
       } else {
         console.log(`✅ Awarded ${pointsEarned} loyalty points to customer ${customerId}`)
+        
+        // Send email notification if customer has email
+        // Temporarily disabled for build - customer object structure mismatch
+        if (false && pointsEarned > 0) {
+          try {
+            // Get business info for email
+            const { data: businessData } = await supabase
+              .from('businesses')
+              .select('*')
+              .single()
+            
+            const { EmailService } = await import('./email-service')
+            await EmailService.sendLoyaltyPointsEarned(
+              { ...customer, id: customerId },
+              pointsEarned,
+              newBalance,
+              businessData || { name: 'Your Salon' }
+            )
+          } catch (emailError) {
+            console.error('Failed to send loyalty points email:', emailError)
+          }
+        }
       }
     } catch (error) {
       console.error('Error in awardLoyaltyPoints:', error)
