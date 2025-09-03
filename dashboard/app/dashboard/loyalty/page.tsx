@@ -11,6 +11,8 @@ import {
   ArrowPathIcon
 } from '@heroicons/react/24/outline'
 import Layout from '../../../components/Layout'
+import TierGate from '../../../components/TierGate'
+import DataCollectionIndicator from '../../../components/DataCollectionIndicator'
 import LoyaltyTierCard from '../../../components/LoyaltyTierCard'
 import LocationSelector from '../../../components/LocationSelector'
 import { LoyaltyAPIImpl, BusinessAPI, LocationAPIImpl } from '../../../lib/supabase'
@@ -21,6 +23,7 @@ const DEMO_BUSINESS_ID = '8424aa26-4fd5-4d4b-92aa-8a9c5ba77dad'
 
 export default function LoyaltyPage() {
   const [loyaltyProgram, setLoyaltyProgram] = useState<LoyaltyProgram | null>(null)
+  const [loyaltyStats, setLoyaltyStats] = useState<any>(null)
   const [business, setBusiness] = useState<Business | null>(null)
   const [locations, setLocations] = useState<Location[]>([])
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null)
@@ -79,11 +82,33 @@ export default function LoyaltyPage() {
   const loadLoyaltyProgram = async () => {
     try {
       setIsLoading(true)
+      // ALWAYS load loyalty data regardless of tier for analytics collection
       const program = await loyaltyAPI.getLoyaltyProgram(DEMO_BUSINESS_ID)
       setLoyaltyProgram(program)
+      
+      // Also load loyalty statistics for preview data
+      if (!program) {
+        // Create mock loyalty data collection for preview
+        setLoyaltyStats({
+          totalMembers: 67,
+          pointsIssued: 2340,
+          redemptionRate: 23,
+          avgPointsPerCustomer: 187,
+          topTier: 'Gold (12 members)',
+          monthlyGrowth: '+18%'
+        })
+      }
     } catch (error) {
       console.error('Failed to load loyalty program:', error)
-      // Don't set error here, just set program to null (no program created yet)
+      // Still set mock preview data even if no program exists
+      setLoyaltyStats({
+        totalMembers: 67,
+        pointsIssued: 2340,
+        redemptionRate: 23,
+        avgPointsPerCustomer: 187,
+        topTier: 'Gold (12 members)',
+        monthlyGrowth: '+18%'
+      })
       setLoyaltyProgram(null)
     } finally {
       setIsLoading(false)
@@ -194,27 +219,7 @@ export default function LoyaltyPage() {
     )
   }
 
-  // Check if user has access to loyalty features
-  if (!business || !['professional', 'business'].includes(business.subscription_tier)) {
-    return (
-      <Layout business={business}>
-        <div className="p-6 max-w-7xl mx-auto">
-          <div className="text-center py-12">
-            <GiftIcon className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-2 text-sm font-medium text-gray-900">Loyalty Program Unavailable</h3>
-            <p className="mt-1 text-sm text-gray-500">
-              Upgrade to Professional or Business plan to access loyalty program features.
-            </p>
-            <div className="mt-6">
-              <button className="inline-flex items-center px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-md hover:bg-purple-700">
-                Upgrade Plan
-              </button>
-            </div>
-          </div>
-        </div>
-      </Layout>
-    )
-  }
+  // Always show loyalty page but gate the content based on tier
 
   return (
     <Layout business={business}>
@@ -227,8 +232,21 @@ export default function LoyaltyPage() {
               Reward your customers and build lasting relationships
             </p>
           </div>
-          
-          <div className="flex items-center space-x-3">
+        </div>
+
+        {/* Loyalty Data Collection Indicator for Starter Tier */}
+        <DataCollectionIndicator 
+          tier={business?.subscription_tier || 'starter'} 
+          className="mb-6"
+        />
+
+        <TierGate
+          feature="loyalty"
+          tier={business?.subscription_tier || 'starter'}
+          fallback="preview"
+          previewData={loyaltyStats}
+        >
+          <div className="flex items-center space-x-3 mb-8">
             {loyaltyProgram ? (
               <>
                 <button 
@@ -456,6 +474,7 @@ export default function LoyaltyPage() {
             </div>
           </div>
         )}
+        </TierGate>
       </div>
     </Layout>
   )

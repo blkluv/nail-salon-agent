@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-// import { SMSService } from '@/lib/sms-service'
+import { SMSService } from '../../../../lib/sms-service'
 
 export async function GET() {
   try {
@@ -47,9 +47,8 @@ export async function GET() {
     // Send reminders for each appointment
     for (const appointment of appointments || []) {
       try {
-        // Send SMS reminder - temporarily disabled for build
-        // const smsResult = await SMSService.sendReminder(appointment)
-        const smsResult = { success: true, error: null } // Mock for build
+        // Send SMS reminder
+        const smsResult = await SMSService.sendReminder(appointment)
         
         if (smsResult.success) {
           // Mark as reminded in database

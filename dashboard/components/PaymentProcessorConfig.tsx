@@ -12,7 +12,7 @@ import {
 import type { PaymentProcessor } from '../lib/supabase-types-mvp'
 
 interface PaymentProcessorConfigProps {
-  processor: Partial<PaymentProcessor> & { processor_type: 'square' | 'stripe' }
+  processor: Partial<PaymentProcessor> & { processor_type: 'square' | 'stripe' | 'paypal' }
   onSave: (config: Partial<PaymentProcessor>) => Promise<void>
   onTest?: (config: Partial<PaymentProcessor>) => Promise<boolean>
   isLoading?: boolean
@@ -107,6 +107,16 @@ export default function PaymentProcessorConfig({
         api_key_public: 'Publishable Key',
         api_key_secret: 'Secret Key',
         account_id: 'Account ID'
+      }
+    },
+    paypal: {
+      name: 'PayPal',
+      color: 'bg-blue-500',
+      docs: 'https://developer.paypal.com/api/rest/',
+      fields: {
+        api_key_public: 'Client ID',
+        api_key_secret: 'Client Secret',
+        account_id: 'Merchant ID'
       }
     }
   }
@@ -256,6 +266,36 @@ export default function PaymentProcessorConfig({
                 {errors.application_id && (
                   <p className="mt-1 text-sm text-red-600">{errors.application_id}</p>
                 )}
+              </div>
+            )}
+
+            {config.processor_type === 'paypal' && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3">
+                  PayPal Environment
+                </label>
+                <div className="flex items-center space-x-4">
+                  <label className="flex items-center">
+                    <input
+                      type="radio"
+                      checked={!config.is_live_mode}
+                      onChange={() => updateField('is_live_mode', false)}
+                      className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300"
+                      disabled={isLoading}
+                    />
+                    <span className="ml-2 text-sm text-gray-700">Sandbox</span>
+                  </label>
+                  <label className="flex items-center">
+                    <input
+                      type="radio"
+                      checked={config.is_live_mode}
+                      onChange={() => updateField('is_live_mode', true)}
+                      className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300"
+                      disabled={isLoading}
+                    />
+                    <span className="ml-2 text-sm text-gray-700">Live</span>
+                  </label>
+                </div>
               </div>
             )}
 
