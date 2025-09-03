@@ -271,7 +271,7 @@ export default function LoyaltyPage() {
               </button>
             )}
           </div>
-        </div>
+        </TierGate>
 
         {/* Location Selector for Business Plan */}
         {locations.length > 1 && (
