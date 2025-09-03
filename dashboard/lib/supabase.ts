@@ -328,6 +328,37 @@ export class BusinessAPI {
     return data || []
   }
 
+  static async addService(businessId: string, serviceData: {
+    name: string
+    description?: string
+    category?: string
+    duration_minutes: number
+    base_price: number
+    is_active?: boolean
+    requires_deposit?: boolean
+    deposit_amount?: number
+  }): Promise<Service> {
+    const { data, error } = await supabase
+      .from('services')
+      .insert({
+        business_id: businessId,
+        is_active: true,
+        requires_deposit: false,
+        deposit_amount: 0,
+        ...serviceData,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Error adding service:', error)
+      throw new Error(`Failed to add service: ${error.message}`)
+    }
+    return data
+  }
+
   static async getCustomers(businessId: string, limit = 50): Promise<Customer[]> {
     const { data, error } = await supabase
       .from('customers')
@@ -341,6 +372,35 @@ export class BusinessAPI {
       return []
     }
     return data || []
+  }
+
+  static async addCustomer(businessId: string, customerData: {
+    first_name: string
+    last_name: string
+    email?: string
+    phone: string
+    date_of_birth?: string
+    notes?: string
+    preferences?: any
+  }): Promise<Customer> {
+    const { data, error } = await supabase
+      .from('customers')
+      .insert({
+        business_id: businessId,
+        total_visits: 0,
+        total_spent: 0,
+        ...customerData,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Error adding customer:', error)
+      throw new Error(`Failed to add customer: ${error.message}`)
+    }
+    return data
   }
 
   static async getDashboardStats(businessId: string): Promise<DashboardStats> {

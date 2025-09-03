@@ -60,6 +60,41 @@ export default function ServicesPage() {
     loadServices()
   }, [])
 
+  const handleAddService = async (serviceData: any) => {
+    try {
+      const businessId = getCurrentBusinessId()
+      if (!businessId) {
+        console.error('No business ID available')
+        return
+      }
+
+      // Create service data for API
+      const newServiceData = {
+        name: serviceData.name,
+        description: serviceData.description || '',
+        category: serviceData.category || 'General',
+        duration_minutes: serviceData.duration,
+        base_price: serviceData.price,
+        is_active: true,
+        requires_deposit: serviceData.requiresDeposit || false,
+        deposit_amount: serviceData.depositAmount || 0
+      }
+
+      // Add to database
+      const createdService = await BusinessAPI.addService(businessId, newServiceData)
+      
+      // Reload services to show the new one
+      await loadServices()
+      
+      setShowAddModal(false)
+      
+      console.log('Service added successfully')
+    } catch (error) {
+      console.error('Failed to add service:', error)
+      alert('Failed to add service. Please try again.')
+    }
+  }
+
   const loadServices = async () => {
     try {
       setLoading(true)
@@ -271,7 +306,211 @@ export default function ServicesPage() {
             ))
           )}
         </div>
+
+        {/* Add Service Modal */}
+        {showAddModal && (
+          <AddServiceModal
+            isOpen={showAddModal}
+            onClose={() => setShowAddModal(false)}
+            onSubmit={handleAddService}
+          />
+        )}
       </div>
     </Layout>
+  )
+}
+
+// Add Service Modal Component
+interface AddServiceModalProps {
+  isOpen: boolean
+  onClose: () => void
+  onSubmit: (serviceData: any) => void
+}
+
+function AddServiceModal({ isOpen, onClose, onSubmit }: AddServiceModalProps) {
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    category: 'Manicures',
+    duration: 30,
+    price: 25,
+    requiresDeposit: false,
+    depositAmount: 0
+  })
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsSubmitting(true)
+
+    try {
+      await onSubmit(formData)
+      
+      // Reset form
+      setFormData({
+        name: '',
+        description: '',
+        category: 'Manicures',
+        duration: 30,
+        price: 25,
+        requiresDeposit: false,
+        depositAmount: 0
+      })
+      
+      onClose()
+    } catch (error) {
+      console.error('Failed to add service:', error)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  if (!isOpen) return null
+
+  return (
+    <div className="fixed inset-0 z-50 overflow-y-auto">
+      <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={onClose} />
+        
+        <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+          <form onSubmit={handleSubmit}>
+            <div className="bg-white px-6 py-6">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-lg font-medium text-gray-900">Add New Service</h3>
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <XMarkIcon className="h-6 w-6" />
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Service Name *
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.name}
+                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                    placeholder="e.g., Classic Manicure"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Description
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={formData.description}
+                    onChange={(e) => setFormData({...formData, description: e.target.value})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                    placeholder="Brief description of the service..."
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Category
+                    </label>
+                    <select
+                      value={formData.category}
+                      onChange={(e) => setFormData({...formData, category: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                    >
+                      <option value="Manicures">Manicures</option>
+                      <option value="Pedicures">Pedicures</option>
+                      <option value="Enhancements">Enhancements</option>
+                      <option value="Spa Services">Spa Services</option>
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Duration (minutes)
+                    </label>
+                    <input
+                      type="number"
+                      min="15"
+                      max="480"
+                      step="15"
+                      value={formData.duration}
+                      onChange={(e) => setFormData({...formData, duration: parseInt(e.target.value) || 30})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Price ($)
+                  </label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={formData.price}
+                    onChange={(e) => setFormData({...formData, price: parseFloat(e.target.value) || 0})}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                  />
+                </div>
+
+                <div className="flex items-center">
+                  <input
+                    type="checkbox"
+                    id="requiresDeposit"
+                    checked={formData.requiresDeposit}
+                    onChange={(e) => setFormData({...formData, requiresDeposit: e.target.checked})}
+                    className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
+                  />
+                  <label htmlFor="requiresDeposit" className="ml-2 block text-sm text-gray-900">
+                    Requires deposit
+                  </label>
+                </div>
+
+                {formData.requiresDeposit && (
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Deposit Amount ($)
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={formData.depositAmount}
+                      onChange={(e) => setFormData({...formData, depositAmount: parseFloat(e.target.value) || 0})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="bg-gray-50 px-6 py-3 sm:flex sm:flex-row-reverse">
+              <button
+                type="submit"
+                disabled={isSubmitting || !formData.name}
+                className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-purple-600 text-base font-medium text-white hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50"
+              >
+                {isSubmitting ? 'Adding...' : 'Add Service'}
+              </button>
+              <button
+                type="button"
+                onClick={onClose}
+                className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
   )
 }
