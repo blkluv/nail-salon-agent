@@ -30,8 +30,51 @@ interface CallLog {
   transcript?: string
 }
 
-// No call logs yet for new business
-const mockCallLogs: CallLog[] = []
+// Mock call logs for demonstration - in production these would come from Vapi API
+const mockCallLogs: CallLog[] = [
+  {
+    id: '1',
+    timestamp: new Date(Date.now() - 1000 * 60 * 15).toISOString(), // 15 minutes ago
+    duration: 240,
+    outcome: 'booking',
+    customerPhone: '+1-555-123-4567',
+    customerName: 'Sarah Johnson',
+    serviceRequested: 'Gel Manicure',
+    appointmentBooked: true,
+    transcript: 'Customer called to book a gel manicure appointment for Friday afternoon. Successfully scheduled for 2:00 PM with Maya.'
+  },
+  {
+    id: '2', 
+    timestamp: new Date(Date.now() - 1000 * 60 * 45).toISOString(), // 45 minutes ago
+    duration: 120,
+    outcome: 'inquiry',
+    customerPhone: '+1-555-234-5678',
+    customerName: 'Maria Rodriguez',
+    serviceRequested: 'Pricing information',
+    appointmentBooked: false,
+    transcript: 'Customer inquired about pricing for pedicure services and asked about availability for next week.'
+  },
+  {
+    id: '3',
+    timestamp: new Date(Date.now() - 1000 * 60 * 120).toISOString(), // 2 hours ago  
+    duration: 180,
+    outcome: 'booking',
+    customerPhone: '+1-555-345-6789',
+    customerName: 'Jennifer Chen',
+    serviceRequested: 'Full Set Acrylics',
+    appointmentBooked: true,
+    transcript: 'Returning customer booked full set acrylic nails for Saturday morning. Requested nail art add-on.'
+  },
+  {
+    id: '4',
+    timestamp: new Date(Date.now() - 1000 * 60 * 200).toISOString(), // 3+ hours ago
+    duration: 45,
+    outcome: 'hung_up',
+    customerPhone: '+1-555-456-7890',
+    appointmentBooked: false,
+    transcript: 'Call disconnected early, customer may have been unsure or had connection issues.'
+  }
+]
 
 export default function VoiceAIPage() {
   const [isActive, setIsActive] = useState(true)
@@ -71,8 +114,8 @@ export default function VoiceAIPage() {
   // Calculate stats
   const totalCalls = mockCallLogs.length
   const successfulBookings = mockCallLogs.filter(call => call.appointmentBooked).length
-  const conversionRate = (successfulBookings / totalCalls * 100).toFixed(1)
-  const avgCallDuration = Math.round(mockCallLogs.reduce((sum, call) => sum + call.duration, 0) / totalCalls)
+  const conversionRate = totalCalls > 0 ? (successfulBookings / totalCalls * 100).toFixed(1) : '0.0'
+  const avgCallDuration = totalCalls > 0 ? Math.round(mockCallLogs.reduce((sum, call) => sum + call.duration, 0) / totalCalls) : 0
 
   return (
     <Layout business={{ name: 'Bella Nails & Spa', subscription_tier: 'professional' }}>

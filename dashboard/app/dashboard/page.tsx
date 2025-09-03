@@ -257,9 +257,12 @@ function DashboardPage() {
                   <button className="px-4 py-2 bg-white bg-opacity-20 text-white rounded-lg hover:bg-opacity-30 transition-all text-sm font-medium">
                     📞 Test AI Call
                   </button>
-                  <button className="px-4 py-2 bg-white text-purple-600 rounded-lg hover:bg-opacity-90 transition-all text-sm font-medium">
+                  <a 
+                    href="/dashboard/voice-ai"
+                    className="inline-flex items-center px-4 py-2 bg-white text-purple-600 rounded-lg hover:bg-opacity-90 transition-all text-sm font-medium"
+                  >
                     📊 View Call Analytics
-                  </button>
+                  </a>
                 </div>
               </div>
             </div>
