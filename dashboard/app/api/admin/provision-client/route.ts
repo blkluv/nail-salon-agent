@@ -39,17 +39,28 @@ export async function POST(request: NextRequest) {
 
     // Step 1: Create business record in database
     const businessId = crypto.randomUUID()
+    
+    // Generate unique slug from business name
+    const slug = body.businessName
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+    
     const { data: business, error: businessError } = await supabase
       .from('businesses')
       .insert({
         id: businessId,
+        slug: slug,
         name: body.businessName,
-        owner_name: body.ownerName,
+        email: body.ownerEmail,
+        owner_first_name: body.ownerName?.split(' ')[0] || 'Demo',
+        owner_last_name: body.ownerName?.split(' ').slice(1).join(' ') || 'Owner',
         owner_email: body.ownerEmail,
         phone: body.phone,
         address: body.address,
-        plan_tier: body.plan,
-        status: 'provisioning',
+        business_type: body.businessType || 'beauty_salon',
+        plan_type: body.plan,
+        subscription_status: 'trial',
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       })
@@ -86,10 +97,10 @@ export async function POST(request: NextRequest) {
       const phoneError = await phoneResponse.text()
       console.error('❌ Vapi phone provisioning failed:', phoneError)
       
-      // Update business status to failed
+      // Update business subscription status to failed
       await supabase
         .from('businesses')
-        .update({ status: 'failed', error_message: 'Phone provisioning failed' })
+        .update({ subscription_status: 'cancelled' })
         .eq('id', businessId)
       
       return NextResponse.json(
@@ -165,10 +176,10 @@ Always represent ${body.businessName} with excellence!`
         const assistantError = await assistantResponse.text()
         console.error('❌ Custom assistant creation failed:', assistantError)
         
-        // Update business status to failed
+        // Update business subscription status to failed
         await supabase
           .from('businesses')
-          .update({ status: 'failed', error_message: 'Custom assistant creation failed' })
+          .update({ subscription_status: 'cancelled' })
           .eq('id', businessId)
         
         return NextResponse.json(
@@ -213,10 +224,8 @@ Always represent ${body.businessName} with excellence!`
       .from('businesses')
       .update({
         vapi_phone_number: phoneData.number,
-        vapi_phone_id: phoneData.id,
         vapi_assistant_id: assistantId,
-        vapi_configured: true,
-        status: 'active',
+        subscription_status: 'active',
         updated_at: new Date().toISOString()
       })
       .eq('id', businessId)
@@ -237,11 +246,13 @@ Always represent ${body.businessName} with excellence!`
         id: crypto.randomUUID(),
         business_id: businessId,
         name: serviceName,
-        duration: 60, // Default 1 hour
-        price: 50, // Default $50
+        duration_minutes: 60, // Default 1 hour
+        price_cents: 5000, // Default $50 in cents
         description: `Professional ${serviceName.toLowerCase()} service`,
+        category: 'general',
         is_active: true,
-        created_at: new Date().toISOString()
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
       }))
 
       await supabase.from('services').insert(services)
