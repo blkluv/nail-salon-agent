@@ -36,6 +36,17 @@ export default function LoyaltyPage() {
   const [isPageLoading, setIsPageLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [showCreateForm, setShowCreateForm] = useState(false)
+  const [isEditing, setIsEditing] = useState(false)
+  
+  // Editable program settings
+  const [editableProgram, setEditableProgram] = useState({
+    name: '',
+    description: '',
+    is_active: true,
+    points_per_dollar: 1,
+    referral_points: 0,
+    birthday_bonus_points: 0
+  })
 
   const loyaltyAPI = new LoyaltyAPIImpl()
   const locationAPI = new LocationAPIImpl()
@@ -92,6 +103,18 @@ export default function LoyaltyPage() {
       // ALWAYS load loyalty data regardless of tier for analytics collection
       const program = await loyaltyAPI.getLoyaltyProgram(getBusinessId())
       setLoyaltyProgram(program)
+      
+      // Initialize editable state with current program values
+      if (program) {
+        setEditableProgram({
+          name: program.name || 'VIP Rewards',
+          description: program.description || 'Earn points with every visit and unlock exclusive rewards',
+          is_active: program.is_active !== undefined ? program.is_active : true,
+          points_per_dollar: program.points_per_dollar || 1,
+          referral_points: program.referral_points || 0,
+          birthday_bonus_points: program.birthday_bonus_points || 0
+        })
+      }
       
       // Also load loyalty statistics for preview data
       if (!program) {
@@ -191,6 +214,57 @@ export default function LoyaltyPage() {
     }
   }
 
+  const handleSaveSettings = async () => {
+    if (!loyaltyProgram) return
+
+    try {
+      setIsLoading(true)
+      setError(null)
+      
+      // Update the loyalty program with new settings
+      const updatedProgram = await loyaltyAPI.updateLoyaltyProgram(getBusinessId(), {
+        ...loyaltyProgram,
+        name: editableProgram.name,
+        description: editableProgram.description,
+        is_active: editableProgram.is_active,
+        points_per_dollar: editableProgram.points_per_dollar,
+        referral_points: editableProgram.referral_points,
+        birthday_bonus_points: editableProgram.birthday_bonus_points
+      })
+      
+      setLoyaltyProgram(updatedProgram)
+      setIsEditing(false)
+      
+      // Show success feedback
+      console.log('Program updated successfully')
+      
+    } catch (error) {
+      console.error('Failed to save loyalty program settings:', error)
+      setError('Failed to save settings. Please try again.')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleEditProgram = () => {
+    setIsEditing(true)
+  }
+
+  const handleCancelEdit = () => {
+    setIsEditing(false)
+    // Reset editable values to current program values
+    if (loyaltyProgram) {
+      setEditableProgram({
+        name: loyaltyProgram.name || 'VIP Rewards',
+        description: loyaltyProgram.description || 'Earn points with every visit and unlock exclusive rewards',
+        is_active: loyaltyProgram.is_active !== undefined ? loyaltyProgram.is_active : true,
+        points_per_dollar: loyaltyProgram.points_per_dollar || 1,
+        referral_points: loyaltyProgram.referral_points || 0,
+        birthday_bonus_points: loyaltyProgram.birthday_bonus_points || 0
+      })
+    }
+  }
+
   const getTotalCustomers = () => {
     // Mock data - in real implementation, this would come from the API
     return 156
@@ -261,10 +335,32 @@ export default function LoyaltyPage() {
                   <UserGroupIcon className="w-4 h-4 mr-2" />
                   View Customers
                 </button>
-                <button className="inline-flex items-center px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-md hover:bg-purple-700">
-                  <PencilIcon className="w-4 h-4 mr-2" />
-                  Edit Program
-                </button>
+                {isEditing ? (
+                  <div className="flex items-center space-x-2">
+                    <button 
+                      onClick={handleSaveSettings}
+                      disabled={isLoading}
+                      className="inline-flex items-center px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 disabled:opacity-50"
+                    >
+                      {isLoading ? 'Saving...' : 'Save Changes'}
+                    </button>
+                    <button 
+                      onClick={handleCancelEdit}
+                      disabled={isLoading}
+                      className="inline-flex items-center px-4 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-50 disabled:opacity-50"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                ) : (
+                  <button 
+                    onClick={handleEditProgram}
+                    className="inline-flex items-center px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-md hover:bg-purple-700"
+                  >
+                    <PencilIcon className="w-4 h-4 mr-2" />
+                    Edit Program
+                  </button>
+                )}
               </>
             ) : (
               <button 
@@ -339,9 +435,36 @@ export default function LoyaltyPage() {
               {/* Program Overview */}
               <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
                 <div className="flex items-center justify-between mb-6">
-                  <div>
-                    <h2 className="text-xl font-semibold text-gray-900">{loyaltyProgram.name}</h2>
-                    <p className="text-gray-600 mt-1">{loyaltyProgram.description}</p>
+                  <div className="flex-1">
+                    {isEditing ? (
+                      <div className="space-y-3">
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Program Name</label>
+                          <input
+                            type="text"
+                            value={editableProgram.name}
+                            onChange={(e) => setEditableProgram({...editableProgram, name: e.target.value})}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-lg font-semibold text-gray-900 focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                            disabled={isLoading}
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                          <textarea
+                            value={editableProgram.description}
+                            onChange={(e) => setEditableProgram({...editableProgram, description: e.target.value})}
+                            rows={2}
+                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-gray-600 focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                            disabled={isLoading}
+                          />
+                        </div>
+                      </div>
+                    ) : (
+                      <div>
+                        <h2 className="text-xl font-semibold text-gray-900">{loyaltyProgram.name}</h2>
+                        <p className="text-gray-600 mt-1">{loyaltyProgram.description}</p>
+                      </div>
+                    )}
                   </div>
                   <div className="flex items-center space-x-2">
                     {loyaltyProgram.is_active ? (
@@ -404,13 +527,14 @@ export default function LoyaltyPage() {
                     </div>
                     <input
                       type="checkbox"
-                      checked={loyaltyProgram.is_active}
+                      checked={isEditing ? editableProgram.is_active : loyaltyProgram.is_active}
                       onChange={(e) => {
-                        // Handle program status change
-                        console.log('Toggle program status:', e.target.checked)
+                        if (isEditing) {
+                          setEditableProgram({...editableProgram, is_active: e.target.checked})
+                        }
                       }}
                       className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
-                      disabled={isLoading}
+                      disabled={!isEditing || isLoading}
                     />
                   </div>
 
@@ -422,11 +546,16 @@ export default function LoyaltyPage() {
                     <div className="flex items-center space-x-2">
                       <input
                         type="number"
-                        value={loyaltyProgram.points_per_dollar}
+                        value={isEditing ? editableProgram.points_per_dollar : loyaltyProgram.points_per_dollar}
+                        onChange={(e) => {
+                          if (isEditing) {
+                            setEditableProgram({...editableProgram, points_per_dollar: parseFloat(e.target.value) || 1})
+                          }
+                        }}
                         min="0.1"
                         step="0.1"
-                        className="w-20 px-2 py-1 text-sm border border-gray-300 rounded-md"
-                        disabled={isLoading}
+                        className="w-20 px-2 py-1 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                        disabled={!isEditing || isLoading}
                       />
                       <span className="text-sm text-gray-500">points</span>
                     </div>
@@ -440,10 +569,15 @@ export default function LoyaltyPage() {
                     <div className="flex items-center space-x-2">
                       <input
                         type="number"
-                        value={loyaltyProgram.referral_points || 0}
+                        value={isEditing ? editableProgram.referral_points : (loyaltyProgram.referral_points || 0)}
+                        onChange={(e) => {
+                          if (isEditing) {
+                            setEditableProgram({...editableProgram, referral_points: parseInt(e.target.value) || 0})
+                          }
+                        }}
                         min="0"
-                        className="w-20 px-2 py-1 text-sm border border-gray-300 rounded-md"
-                        disabled={isLoading}
+                        className="w-20 px-2 py-1 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                        disabled={!isEditing || isLoading}
                       />
                       <span className="text-sm text-gray-500">points</span>
                     </div>
@@ -457,24 +591,41 @@ export default function LoyaltyPage() {
                     <div className="flex items-center space-x-2">
                       <input
                         type="number"
-                        value={loyaltyProgram.birthday_bonus_points || 0}
+                        value={isEditing ? editableProgram.birthday_bonus_points : (loyaltyProgram.birthday_bonus_points || 0)}
+                        onChange={(e) => {
+                          if (isEditing) {
+                            setEditableProgram({...editableProgram, birthday_bonus_points: parseInt(e.target.value) || 0})
+                          }
+                        }}
                         min="0"
-                        className="w-20 px-2 py-1 text-sm border border-gray-300 rounded-md"
-                        disabled={isLoading}
+                        className="w-20 px-2 py-1 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                        disabled={!isEditing || isLoading}
                       />
                       <span className="text-sm text-gray-500">points</span>
                     </div>
                   </div>
                 </div>
 
-                <div className="mt-6 pt-6 border-t border-gray-200">
-                  <button 
-                    disabled={isLoading}
-                    className="inline-flex items-center px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-md hover:bg-purple-700 disabled:opacity-50"
-                  >
-                    {isLoading ? 'Saving...' : 'Save Settings'}
-                  </button>
-                </div>
+                {isEditing && (
+                  <div className="mt-6 pt-6 border-t border-gray-200">
+                    <div className="flex items-center space-x-3">
+                      <button 
+                        onClick={handleSaveSettings}
+                        disabled={isLoading}
+                        className="inline-flex items-center px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-md hover:bg-green-700 disabled:opacity-50"
+                      >
+                        {isLoading ? 'Saving...' : 'Save Settings'}
+                      </button>
+                      <button 
+                        onClick={handleCancelEdit}
+                        disabled={isLoading}
+                        className="inline-flex items-center px-4 py-2 border border-gray-300 text-gray-700 text-sm font-medium rounded-md hover:bg-gray-50 disabled:opacity-50"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
           )}
