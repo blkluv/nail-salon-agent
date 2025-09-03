@@ -13,6 +13,8 @@ import {
 } from '@heroicons/react/24/outline'
 import SmartAnalytics from '../../../components/SmartAnalytics'
 import { FeatureGate, useFeatureFlags } from '../../../lib/feature-flags'
+import TierGate from '../../../components/TierGate'
+import DataCollectionIndicator from '../../../components/DataCollectionIndicator'
 import { BrandedAnalytics, BrandedRevenueChart, BrandedServicePopularityChart, BrandedStaffPerformanceChart, BrandedCustomerRetentionChart } from '../../../components/BrandedAnalytics'
 import { RevenueChart, ServicePopularityChart, CustomerRetentionChart } from '../../../components/analytics/RevenueChart'
 import StaffPerformance from '../../../components/analytics/StaffPerformance'
@@ -189,6 +191,12 @@ export default function AnalyticsPage() {
             </div>
           </div>
         </div>
+
+        {/* Data Collection Indicator for Starter Tier */}
+        <DataCollectionIndicator 
+          tier={business?.subscription_tier || 'starter'} 
+          className="mb-6"
+        />
         
         {/* Tab Navigation */}
         <div className="bg-white rounded-xl shadow-sm mb-6">
@@ -220,41 +228,77 @@ export default function AnalyticsPage() {
           </div>
         </div>
 
-        {/* Tab Content */}
+        {/* Tab Content - Always load data, but gate UI display */}
         {activeTab === 'overview' && (
-          <SmartAnalytics 
-            businessId={DEMO_BUSINESS_ID}
-            dateRange={dateRange}
-            className="mb-8"
-          />
+          <TierGate
+            feature="analytics"
+            tier={business?.subscription_tier || 'starter'}
+            fallback="preview"
+            previewData={{
+              totalRevenue: '$2,400',
+              totalAppointments: '24',
+              avgTicket: '$200',
+              topService: 'Gel Manicure'
+            }}
+          >
+            <SmartAnalytics 
+              businessId={DEMO_BUSINESS_ID}
+              dateRange={dateRange}
+              className="mb-8"
+            />
+          </TierGate>
         )}
 
         {activeTab === 'revenue' && (
-          <div className="space-y-6">
-            <div className="bg-white rounded-xl shadow-sm p-6">
-              <h3 className="text-lg font-semibold text-gray-900 mb-6">Revenue Analytics</h3>
-              
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-                <div>
-                  <h4 className="font-medium text-gray-900 mb-4">Daily Revenue Trend</h4>
-                  <RevenueChart data={revenueData} type="line" height={300} />
+          <TierGate
+            feature="analytics"
+            tier={business?.subscription_tier || 'starter'}
+            fallback="preview"
+            previewData={{
+              totalRevenue: '$2,400',
+              avgRevenue: '$86/day',
+              topServiceRevenue: '$840 (Gel Manicure)',
+              growthRate: '+12%'
+            }}
+          >
+            <div className="space-y-6">
+              <div className="bg-white rounded-xl shadow-sm p-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-6">Revenue Analytics</h3>
+                
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
+                  <div>
+                    <h4 className="font-medium text-gray-900 mb-4">Daily Revenue Trend</h4>
+                    <RevenueChart data={revenueData} type="line" height={300} />
+                  </div>
+                  <div>
+                    <h4 className="font-medium text-gray-900 mb-4">Revenue by Service</h4>
+                    <ServicePopularityChart data={serviceData} height={300} />
+                  </div>
                 </div>
-                <div>
-                  <h4 className="font-medium text-gray-900 mb-4">Revenue by Service</h4>
-                  <ServicePopularityChart data={serviceData} height={300} />
-                </div>
-              </div>
 
-              <div className="border-t border-gray-200 pt-6">
-                <h4 className="font-medium text-gray-900 mb-4">Customer Retention</h4>
-                <CustomerRetentionChart data={retentionData} height={300} />
+                <div className="border-t border-gray-200 pt-6">
+                  <h4 className="font-medium text-gray-900 mb-4">Customer Retention</h4>
+                  <CustomerRetentionChart data={retentionData} height={300} />
+                </div>
               </div>
             </div>
-          </div>
+          </TierGate>
         )}
 
         {activeTab === 'staff' && (
-          <StaffPerformance businessId={DEMO_BUSINESS_ID} dateRange={dateRange} />
+          <TierGate
+            feature="analytics"
+            tier={business?.subscription_tier || 'starter'}
+            fallback="preview"
+            previewData={{
+              totalStaff: '4',
+              avgUtilization: '73%',
+              topPerformer: 'Sarah ($1,240 revenue)',
+              totalHours: '148 hours'
+            }}
+          >
+            <StaffPerformance businessId={DEMO_BUSINESS_ID} dateRange={dateRange} />
+          </TierGate>
         )}
 
         {activeTab === 'services' && (
