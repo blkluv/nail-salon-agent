@@ -269,209 +269,208 @@ export default function LoyaltyPage() {
               </button>
             )}
           </div>
-        </TierGate>
 
-        {/* Location Selector for Business Plan */}
-        {locations.length > 1 && (
-          <div className="mb-8">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Select Location</h3>
-              <div className="max-w-md">
-                <LocationSelector
-                  locations={locations}
-                  selectedLocation={selectedLocation}
-                  onLocationChange={setSelectedLocation}
-                  placeholder="Select a location"
-                  includeAllOption={false}
-                />
+          {/* Location Selector for Business Plan */}
+          {locations.length > 1 && (
+            <div className="mb-8">
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <h3 className="text-lg font-medium text-gray-900 mb-4">Select Location</h3>
+                <div className="max-w-md">
+                  <LocationSelector
+                    locations={locations}
+                    selectedLocation={selectedLocation}
+                    onLocationChange={setSelectedLocation}
+                    placeholder="Select a location"
+                    includeAllOption={false}
+                  />
+                </div>
+                <p className="text-sm text-gray-500 mt-2">
+                  Loyalty programs can be configured per location or globally.
+                </p>
               </div>
-              <p className="text-sm text-gray-500 mt-2">
-                Loyalty programs can be configured per location or globally.
-              </p>
             </div>
-          </div>
-        )}
+          )}
 
-        {/* Error Message */}
-        {error && (
-          <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-md">
-            <p className="text-red-600 text-sm">{error}</p>
-            <button 
-              onClick={() => setError(null)} 
-              className="text-red-600 hover:text-red-700 underline text-sm mt-1"
-            >
-              Dismiss
-            </button>
-          </div>
-        )}
-
-        {!loyaltyProgram ? (
-          // No Program Created State
-          <div className="text-center py-12">
-            <GiftIcon className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-2 text-sm font-medium text-gray-900">No Loyalty Program</h3>
-            <p className="mt-1 text-sm text-gray-500 max-w-md mx-auto">
-              Create a loyalty program to reward your customers with points, tiers, and exclusive benefits.
-            </p>
-            <div className="mt-6">
+          {/* Error Message */}
+          {error && (
+            <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-md">
+              <p className="text-red-600 text-sm">{error}</p>
               <button 
-                onClick={handleCreateProgram}
-                disabled={isLoading}
-                className="inline-flex items-center px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-md hover:bg-purple-700 disabled:opacity-50"
+                onClick={() => setError(null)} 
+                className="text-red-600 hover:text-red-700 underline text-sm mt-1"
               >
-                {isLoading ? (
-                  <ArrowPathIcon className="w-4 h-4 mr-2 animate-spin" />
-                ) : (
-                  <PlusIcon className="w-4 h-4 mr-2" />
-                )}
-                Create Loyalty Program
+                Dismiss
               </button>
             </div>
-          </div>
-        ) : (
-          <div className="space-y-8">
-            {/* Program Overview */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <div className="flex items-center justify-between mb-6">
-                <div>
-                  <h2 className="text-xl font-semibold text-gray-900">{loyaltyProgram.name}</h2>
-                  <p className="text-gray-600 mt-1">{loyaltyProgram.description}</p>
-                </div>
-                <div className="flex items-center space-x-2">
-                  {loyaltyProgram.is_active ? (
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                      Active
-                    </span>
-                  ) : (
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                      Inactive
-                    </span>
-                  )}
-                </div>
-              </div>
+          )}
 
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-purple-600">{loyaltyProgram.points_per_dollar}x</div>
-                  <div className="text-sm text-gray-600">Points per $1</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-blue-600">{getTotalCustomers()}</div>
-                  <div className="text-sm text-gray-600">Total Members</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-green-600">{getActiveCustomers()}</div>
-                  <div className="text-sm text-gray-600">Active Members</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold text-orange-600">{getAveragePoints()}</div>
-                  <div className="text-sm text-gray-600">Avg Points</div>
-                </div>
-              </div>
-            </div>
-
-            {/* Loyalty Tiers */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-6">Loyalty Tiers</h3>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                {loyaltyProgram.tiers?.map((tier, index) => (
-                  <LoyaltyTierCard 
-                    key={tier.id}
-                    tier={tier}
-                    onEdit={handleUpdateTier}
-                    isLoading={isLoading}
-                  />
-                ))}
-              </div>
-            </div>
-
-            {/* Program Settings */}
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-6">Program Settings</h3>
-              
-              <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <label className="text-sm font-medium text-gray-700">Program Status</label>
-                    <p className="text-xs text-gray-500">Enable or disable the entire loyalty program</p>
-                  </div>
-                  <input
-                    type="checkbox"
-                    checked={loyaltyProgram.is_active}
-                    onChange={(e) => {
-                      // Handle program status change
-                      console.log('Toggle program status:', e.target.checked)
-                    }}
-                    className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
-                    disabled={isLoading}
-                  />
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div>
-                    <label className="text-sm font-medium text-gray-700">Points per Dollar</label>
-                    <p className="text-xs text-gray-500">How many points customers earn per dollar spent</p>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="number"
-                      value={loyaltyProgram.points_per_dollar}
-                      min="0.1"
-                      step="0.1"
-                      className="w-20 px-2 py-1 text-sm border border-gray-300 rounded-md"
-                      disabled={isLoading}
-                    />
-                    <span className="text-sm text-gray-500">points</span>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div>
-                    <label className="text-sm font-medium text-gray-700">Referral Bonus</label>
-                    <p className="text-xs text-gray-500">Points awarded for successful referrals</p>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="number"
-                      value={loyaltyProgram.referral_points || 0}
-                      min="0"
-                      className="w-20 px-2 py-1 text-sm border border-gray-300 rounded-md"
-                      disabled={isLoading}
-                    />
-                    <span className="text-sm text-gray-500">points</span>
-                  </div>
-                </div>
-
-                <div className="flex items-center justify-between">
-                  <div>
-                    <label className="text-sm font-medium text-gray-700">Birthday Bonus</label>
-                    <p className="text-xs text-gray-500">Extra points awarded during birthday month</p>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="number"
-                      value={loyaltyProgram.birthday_bonus_points || 0}
-                      min="0"
-                      className="w-20 px-2 py-1 text-sm border border-gray-300 rounded-md"
-                      disabled={isLoading}
-                    />
-                    <span className="text-sm text-gray-500">points</span>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-6 pt-6 border-t border-gray-200">
+          {!loyaltyProgram ? (
+            // No Program Created State
+            <div className="text-center py-12">
+              <GiftIcon className="mx-auto h-12 w-12 text-gray-400" />
+              <h3 className="mt-2 text-sm font-medium text-gray-900">No Loyalty Program</h3>
+              <p className="mt-1 text-sm text-gray-500 max-w-md mx-auto">
+                Create a loyalty program to reward your customers with points, tiers, and exclusive benefits.
+              </p>
+              <div className="mt-6">
                 <button 
+                  onClick={handleCreateProgram}
                   disabled={isLoading}
                   className="inline-flex items-center px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-md hover:bg-purple-700 disabled:opacity-50"
                 >
-                  {isLoading ? 'Saving...' : 'Save Settings'}
+                  {isLoading ? (
+                    <ArrowPathIcon className="w-4 h-4 mr-2 animate-spin" />
+                  ) : (
+                    <PlusIcon className="w-4 h-4 mr-2" />
+                  )}
+                  Create Loyalty Program
                 </button>
               </div>
             </div>
-          </div>
-        )}
+          ) : (
+            <div className="space-y-8">
+              {/* Program Overview */}
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h2 className="text-xl font-semibold text-gray-900">{loyaltyProgram.name}</h2>
+                    <p className="text-gray-600 mt-1">{loyaltyProgram.description}</p>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    {loyaltyProgram.is_active ? (
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                        Active
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                        Inactive
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-purple-600">{loyaltyProgram.points_per_dollar}x</div>
+                    <div className="text-sm text-gray-600">Points per $1</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-blue-600">{getTotalCustomers()}</div>
+                    <div className="text-sm text-gray-600">Total Members</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-green-600">{getActiveCustomers()}</div>
+                    <div className="text-sm text-gray-600">Active Members</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-2xl font-bold text-orange-600">{getAveragePoints()}</div>
+                    <div className="text-sm text-gray-600">Avg Points</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Loyalty Tiers */}
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <h3 className="text-lg font-medium text-gray-900 mb-6">Loyalty Tiers</h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  {loyaltyProgram.tiers?.map((tier, index) => (
+                    <LoyaltyTierCard 
+                      key={tier.id}
+                      tier={tier}
+                      onEdit={handleUpdateTier}
+                      isLoading={isLoading}
+                    />
+                  ))}
+                </div>
+              </div>
+
+              {/* Program Settings */}
+              <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+                <h3 className="text-lg font-medium text-gray-900 mb-6">Program Settings</h3>
+                
+                <div className="space-y-6">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">Program Status</label>
+                      <p className="text-xs text-gray-500">Enable or disable the entire loyalty program</p>
+                    </div>
+                    <input
+                      type="checkbox"
+                      checked={loyaltyProgram.is_active}
+                      onChange={(e) => {
+                        // Handle program status change
+                        console.log('Toggle program status:', e.target.checked)
+                      }}
+                      className="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded"
+                      disabled={isLoading}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">Points per Dollar</label>
+                      <p className="text-xs text-gray-500">How many points customers earn per dollar spent</p>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="number"
+                        value={loyaltyProgram.points_per_dollar}
+                        min="0.1"
+                        step="0.1"
+                        className="w-20 px-2 py-1 text-sm border border-gray-300 rounded-md"
+                        disabled={isLoading}
+                      />
+                      <span className="text-sm text-gray-500">points</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">Referral Bonus</label>
+                      <p className="text-xs text-gray-500">Points awarded for successful referrals</p>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="number"
+                        value={loyaltyProgram.referral_points || 0}
+                        min="0"
+                        className="w-20 px-2 py-1 text-sm border border-gray-300 rounded-md"
+                        disabled={isLoading}
+                      />
+                      <span className="text-sm text-gray-500">points</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <label className="text-sm font-medium text-gray-700">Birthday Bonus</label>
+                      <p className="text-xs text-gray-500">Extra points awarded during birthday month</p>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="number"
+                        value={loyaltyProgram.birthday_bonus_points || 0}
+                        min="0"
+                        className="w-20 px-2 py-1 text-sm border border-gray-300 rounded-md"
+                        disabled={isLoading}
+                      />
+                      <span className="text-sm text-gray-500">points</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="mt-6 pt-6 border-t border-gray-200">
+                  <button 
+                    disabled={isLoading}
+                    className="inline-flex items-center px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-md hover:bg-purple-700 disabled:opacity-50"
+                  >
+                    {isLoading ? 'Saving...' : 'Save Settings'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </TierGate>
       </div>
     </Layout>
