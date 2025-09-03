@@ -24,15 +24,17 @@ interface AppointmentManagerProps {
   onClose: () => void
   onRescheduleComplete: () => void
   onCancelComplete: () => void
+  initialMode?: 'reschedule' | 'cancel'
 }
 
 export default function AppointmentManager({ 
   appointment, 
   onClose, 
   onRescheduleComplete,
-  onCancelComplete 
+  onCancelComplete,
+  initialMode = 'reschedule'
 }: AppointmentManagerProps) {
-  const [mode, setMode] = useState<'reschedule' | 'cancel'>('reschedule')
+  const [mode, setMode] = useState<'reschedule' | 'cancel'>(initialMode)
   const [selectedDate, setSelectedDate] = useState('')
   const [selectedTime, setSelectedTime] = useState('')
   const [isLoading, setIsLoading] = useState(false)

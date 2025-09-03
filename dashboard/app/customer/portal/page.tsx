@@ -67,6 +67,7 @@ export default function CustomerPortal() {
   const [showRescheduleModal, setShowRescheduleModal] = useState<string | null>(null)
   const [showBookingFlow, setShowBookingFlow] = useState(false)
   const [appointmentToManage, setAppointmentToManage] = useState<Appointment | null>(null)
+  const [appointmentAction, setAppointmentAction] = useState<'reschedule' | 'cancel'>('reschedule')
 
   // Get business ID from session (set during login)
   const [businessId, setBusinessId] = useState<string>('')
@@ -493,12 +494,21 @@ export default function CustomerPortal() {
                         {appointment.status === 'confirmed' && (
                           <div className="mt-4 flex space-x-2">
                             <button
-                              onClick={() => setAppointmentToManage(appointment)}
+                              onClick={() => {
+                                setAppointmentAction('reschedule')
+                                setAppointmentToManage(appointment)
+                              }}
                               className="px-3 py-1 text-sm bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200"
                             >
                               Reschedule
                             </button>
-                            <button className="px-3 py-1 text-sm bg-red-100 text-red-700 rounded-md hover:bg-red-200">
+                            <button
+                              onClick={() => {
+                                setAppointmentAction('cancel')
+                                setAppointmentToManage(appointment)
+                              }}
+                              className="px-3 py-1 text-sm bg-red-100 text-red-700 rounded-md hover:bg-red-200"
+                            >
                               Cancel
                             </button>
                           </div>
@@ -937,6 +947,7 @@ export default function CustomerPortal() {
       {appointmentToManage && (
         <AppointmentManager
           appointment={appointmentToManage}
+          initialMode={appointmentAction}
           onClose={() => setAppointmentToManage(null)}
           onRescheduleComplete={() => {
             setAppointmentToManage(null)
