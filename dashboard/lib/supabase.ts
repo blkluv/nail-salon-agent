@@ -282,6 +282,36 @@ export class BusinessAPI {
     return data || []
   }
 
+  static async addStaff(businessId: string, staffData: {
+    first_name: string
+    last_name: string
+    email: string
+    phone?: string | null
+    role: string
+    is_active: boolean
+    hire_date: string
+    hourly_rate?: number
+    commission_rate?: number
+    specialties?: string[]
+  }): Promise<Staff> {
+    const { data, error } = await supabase
+      .from('staff')
+      .insert({
+        business_id: businessId,
+        ...staffData,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      })
+      .select()
+      .single()
+
+    if (error) {
+      console.error('Error adding staff:', error)
+      throw new Error(`Failed to add staff member: ${error.message}`)
+    }
+    return data
+  }
+
   static async getServices(businessId: string): Promise<Service[]> {
     const { data, error } = await supabase
       .from('services')
