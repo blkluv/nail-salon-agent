@@ -37,6 +37,10 @@ export default function VoiceAIPage() {
   const [isActive, setIsActive] = useState(true)
   const [selectedCall, setSelectedCall] = useState<CallLog | null>(null)
   const [showCallModal, setShowCallModal] = useState(false)
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false)
+  
+  // For demo, assume professional tier (shared agent)
+  const subscriptionTier = 'professional'
 
   const formatDuration = (seconds: number) => {
     const minutes = Math.floor(seconds / 60)
@@ -103,7 +107,10 @@ export default function VoiceAIPage() {
                 </>
               )}
             </button>
-            <button className="btn-secondary">
+            <button 
+              onClick={() => setShowUpgradeModal(true)}
+              className="btn-secondary"
+            >
               <CogIcon className="h-4 w-4 mr-2" />
               Settings
             </button>
@@ -220,8 +227,27 @@ export default function VoiceAIPage() {
 
         {/* AI Configuration */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-          <div className="card">
-            <div className="p-6">
+          <div className="card relative">
+            {subscriptionTier !== 'business' && (
+              <div className="absolute inset-0 bg-white bg-opacity-95 rounded-lg flex items-center justify-center z-10">
+                <div className="text-center p-6">
+                  <div className="inline-flex items-center justify-center w-12 h-12 bg-purple-100 rounded-full mb-4">
+                    <CogIcon className="h-6 w-6 text-purple-600" />
+                  </div>
+                  <h4 className="text-lg font-semibold text-gray-900 mb-2">Custom AI Configuration</h4>
+                  <p className="text-sm text-gray-600 mb-4">
+                    You're currently using our shared AI assistant. Upgrade to Business tier to customize voice, personality, and greeting.
+                  </p>
+                  <button 
+                    onClick={() => setShowUpgradeModal(true)}
+                    className="inline-flex items-center px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700"
+                  >
+                    Upgrade to Business ($297/mo)
+                  </button>
+                </div>
+              </div>
+            )}
+            <div className="p-6 opacity-50">
               <h3 className="text-lg font-medium text-gray-900 mb-4">AI Configuration</h3>
               <div className="space-y-4">
                 <div>
@@ -255,8 +281,27 @@ export default function VoiceAIPage() {
             </div>
           </div>
 
-          <div className="card">
-            <div className="p-6">
+          <div className="card relative">
+            {subscriptionTier !== 'business' && (
+              <div className="absolute inset-0 bg-white bg-opacity-95 rounded-lg flex items-center justify-center z-10">
+                <div className="text-center p-6">
+                  <div className="inline-flex items-center justify-center w-12 h-12 bg-purple-100 rounded-full mb-4">
+                    <SpeakerWaveIcon className="h-6 w-6 text-purple-600" />
+                  </div>
+                  <h4 className="text-lg font-semibold text-gray-900 mb-2">Custom Call Rules</h4>
+                  <p className="text-sm text-gray-600 mb-4">
+                    Configure auto-booking, call duration, and custom workflows with Business tier.
+                  </p>
+                  <button 
+                    onClick={() => setShowUpgradeModal(true)}
+                    className="inline-flex items-center px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-lg hover:bg-purple-700"
+                  >
+                    Upgrade to Business ($297/mo)
+                  </button>
+                </div>
+              </div>
+            )}
+            <div className="p-6 opacity-50">
               <h3 className="text-lg font-medium text-gray-900 mb-4">Call Handling Rules</h3>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
@@ -377,6 +422,111 @@ export default function VoiceAIPage() {
             ))}
           </div>
         </div>
+
+        {/* Upgrade Modal */}
+        {showUpgradeModal && (
+          <div className="fixed inset-0 z-50 overflow-y-auto">
+            <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+              <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={() => setShowUpgradeModal(false)} />
+              
+              <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full">
+                <div className="bg-white px-4 pt-5 pb-4 sm:p-6">
+                  <div className="text-center">
+                    <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-purple-100 mb-4">
+                      <PhoneIcon className="h-8 w-8 text-purple-600" />
+                    </div>
+                    <h3 className="text-2xl font-bold text-gray-900 mb-2">
+                      Upgrade to Business Tier
+                    </h3>
+                    <p className="text-gray-600 mb-6">
+                      Get your own custom AI assistant with full control and personalization
+                    </p>
+                  </div>
+
+                  <div className="bg-purple-50 rounded-lg p-6 mb-6">
+                    <h4 className="font-semibold text-purple-900 mb-4">🎯 What You Get with Business Tier:</h4>
+                    <ul className="space-y-3 text-left">
+                      <li className="flex items-start">
+                        <CheckCircleIcon className="h-5 w-5 text-purple-600 mt-0.5 mr-3 flex-shrink-0" />
+                        <div>
+                          <span className="font-medium text-gray-900">Custom AI Assistant</span>
+                          <p className="text-sm text-gray-600">Your own dedicated AI with custom personality and branding</p>
+                        </div>
+                      </li>
+                      <li className="flex items-start">
+                        <CheckCircleIcon className="h-5 w-5 text-purple-600 mt-0.5 mr-3 flex-shrink-0" />
+                        <div>
+                          <span className="font-medium text-gray-900">Voice Customization</span>
+                          <p className="text-sm text-gray-600">Choose voice style, speed, language, and accent</p>
+                        </div>
+                      </li>
+                      <li className="flex items-start">
+                        <CheckCircleIcon className="h-5 w-5 text-purple-600 mt-0.5 mr-3 flex-shrink-0" />
+                        <div>
+                          <span className="font-medium text-gray-900">Custom Greeting & Scripts</span>
+                          <p className="text-sm text-gray-600">Personalized greeting messages and conversation flows</p>
+                        </div>
+                      </li>
+                      <li className="flex items-start">
+                        <CheckCircleIcon className="h-5 w-5 text-purple-600 mt-0.5 mr-3 flex-shrink-0" />
+                        <div>
+                          <span className="font-medium text-gray-900">Advanced Call Rules</span>
+                          <p className="text-sm text-gray-600">Configure auto-booking, call routing, and escalation</p>
+                        </div>
+                      </li>
+                      <li className="flex items-start">
+                        <CheckCircleIcon className="h-5 w-5 text-purple-600 mt-0.5 mr-3 flex-shrink-0" />
+                        <div>
+                          <span className="font-medium text-gray-900">Multi-Location Support</span>
+                          <p className="text-sm text-gray-600">Manage up to 3 locations with location-aware routing</p>
+                        </div>
+                      </li>
+                      <li className="flex items-start">
+                        <CheckCircleIcon className="h-5 w-5 text-purple-600 mt-0.5 mr-3 flex-shrink-0" />
+                        <div>
+                          <span className="font-medium text-gray-900">White Label Options</span>
+                          <p className="text-sm text-gray-600">Remove all third-party branding</p>
+                        </div>
+                      </li>
+                    </ul>
+                  </div>
+
+                  <div className="bg-gray-50 rounded-lg p-4 mb-6">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-gray-600">Current Plan</span>
+                      <span className="font-medium">Professional - $147/month</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-gray-600">Business Plan</span>
+                      <span className="text-2xl font-bold text-purple-600">$297/month</span>
+                    </div>
+                    <p className="text-xs text-gray-500 mt-2">
+                      That's only $150 more for complete AI customization
+                    </p>
+                  </div>
+
+                  <div className="flex space-x-3">
+                    <button
+                      onClick={() => {
+                        alert('Upgrade feature coming soon! Contact support to upgrade your plan.')
+                        setShowUpgradeModal(false)
+                      }}
+                      className="flex-1 px-6 py-3 bg-purple-600 text-white font-medium rounded-lg hover:bg-purple-700 transition"
+                    >
+                      Upgrade Now
+                    </button>
+                    <button
+                      onClick={() => setShowUpgradeModal(false)}
+                      className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition"
+                    >
+                      Maybe Later
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Call Detail Modal */}
         {showCallModal && selectedCall && (
