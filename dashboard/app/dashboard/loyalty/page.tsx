@@ -18,8 +18,13 @@ import LocationSelector from '../../../components/LocationSelector'
 import { LoyaltyAPIImpl, BusinessAPI, LocationAPIImpl } from '../../../lib/supabase'
 import type { LoyaltyProgram, LoyaltyTier, Business, Location } from '../../../lib/supabase-types-mvp'
 
-// Mock business ID - in real app, this would come from auth context
-const DEMO_BUSINESS_ID = '8424aa26-4fd5-4d4b-92aa-8a9c5ba77dad'
+// Get business ID from auth context
+const getBusinessId = () => {
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem('authenticated_business_id') || '8424aa26-4fd5-4d4b-92aa-8a9c5ba77dad'
+  }
+  return '8424aa26-4fd5-4d4b-92aa-8a9c5ba77dad'
+}
 
 export default function LoyaltyPage() {
   const [loyaltyProgram, setLoyaltyProgram] = useState<LoyaltyProgram | null>(null)
@@ -50,15 +55,17 @@ export default function LoyaltyPage() {
       setIsPageLoading(true)
       setError(null)
 
+      const businessId = getBusinessId()
+      
       // Load business info
-      const businessData = await BusinessAPI.getBusiness(DEMO_BUSINESS_ID)
+      const businessData = await BusinessAPI.getBusiness(businessId)
       if (businessData) {
         setBusiness(businessData)
       }
 
       // Load locations for multi-location businesses
       if (businessData && businessData.subscription_tier === 'business') {
-        const locationsData = await locationAPI.getLocations(DEMO_BUSINESS_ID)
+        const locationsData = await locationAPI.getLocations(businessId)
         setLocations(locationsData)
         
         // Set primary location as default
@@ -83,7 +90,7 @@ export default function LoyaltyPage() {
     try {
       setIsLoading(true)
       // ALWAYS load loyalty data regardless of tier for analytics collection
-      const program = await loyaltyAPI.getLoyaltyProgram(DEMO_BUSINESS_ID)
+      const program = await loyaltyAPI.getLoyaltyProgram(getBusinessId())
       setLoyaltyProgram(program)
       
       // Also load loyalty statistics for preview data
@@ -120,7 +127,7 @@ export default function LoyaltyPage() {
       setIsLoading(true)
       
       const defaultProgram: any = {
-        business_id: DEMO_BUSINESS_ID,
+        business_id: getBusinessId(),
         location_id: selectedLocation?.id,
         name: 'VIP Rewards',
         description: 'Earn points with every visit and unlock exclusive rewards',
@@ -158,7 +165,7 @@ export default function LoyaltyPage() {
         ]
       }
 
-      const program = await loyaltyAPI.createLoyaltyProgram(DEMO_BUSINESS_ID, defaultProgram as any)
+      const program = await loyaltyAPI.createLoyaltyProgram(getBusinessId(), defaultProgram as any)
       setLoyaltyProgram(program)
       setShowCreateForm(false)
     } catch (error) {

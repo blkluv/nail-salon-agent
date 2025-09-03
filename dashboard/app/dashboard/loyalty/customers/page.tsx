@@ -18,8 +18,13 @@ import CustomerPointsModal from '../../../../components/CustomerPointsModal'
 import { LoyaltyAPIImpl, BusinessAPI, LocationAPIImpl } from '../../../../lib/supabase'
 import type { LoyaltyCustomer, Business, Location, LoyaltyProgram } from '../../../../lib/supabase-types-mvp'
 
-// Mock business ID - in real app, this would come from auth context
-const DEMO_BUSINESS_ID = '8424aa26-4fd5-4d4b-92aa-8a9c5ba77dad'
+// Get business ID from auth context
+const getBusinessId = () => {
+  if (typeof window !== 'undefined') {
+    return localStorage.getItem('authenticated_business_id') || '8424aa26-4fd5-4d4b-92aa-8a9c5ba77dad'
+  }
+  return '8424aa26-4fd5-4d4b-92aa-8a9c5ba77dad'
+}
 
 interface CustomerFilters {
   search: string
@@ -63,16 +68,18 @@ export default function LoyaltyCustomersPage() {
     try {
       setIsPageLoading(true)
       setError(null)
+      
+      const businessId = getBusinessId()
 
       // Load business info
-      const businessData = await BusinessAPI.getBusiness(DEMO_BUSINESS_ID)
+      const businessData = await BusinessAPI.getBusiness(businessId)
       if (businessData) {
         setBusiness(businessData)
       }
 
       // Load locations for multi-location businesses
       if (businessData && businessData.subscription_tier === 'business') {
-        const locationsData = await locationAPI.getLocations(DEMO_BUSINESS_ID)
+        const locationsData = await locationAPI.getLocations(businessId)
         setLocations(locationsData)
         
         // Set primary location as default
@@ -83,7 +90,7 @@ export default function LoyaltyCustomersPage() {
       }
 
       // Load loyalty program
-      const program = await loyaltyAPI.getLoyaltyProgram(DEMO_BUSINESS_ID)
+      const program = await loyaltyAPI.getLoyaltyProgram(businessId)
       setLoyaltyProgram(program)
 
     } catch (error) {
