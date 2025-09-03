@@ -162,6 +162,62 @@ export default function StaffPage() {
   const [showModal, setShowModal] = useState(false)
   const [showAddModal, setShowAddModal] = useState(false)
 
+  const handleAddStaff = async (staffData: any) => {
+    try {
+      const businessId = getCurrentBusinessId()
+      if (!businessId) {
+        console.error('No business ID available')
+        return
+      }
+
+      // Split name into first and last name
+      const nameParts = staffData.name.trim().split(' ')
+      const firstName = nameParts[0]
+      const lastName = nameParts.slice(1).join(' ') || ''
+
+      // Create staff member data for API
+      const newStaffMember = {
+        first_name: firstName,
+        last_name: lastName,
+        email: staffData.email,
+        phone: staffData.phone || null,
+        role: 'technician',
+        is_active: true,
+        hire_date: new Date().toISOString().split('T')[0],
+        hourly_rate: staffData.hourlyRate || 0,
+        commission_rate: staffData.commissionRate || 0,
+        specialties: staffData.specialties || []
+      }
+
+      // Add to database
+      const createdStaff = await BusinessAPI.addStaff(businessId, newStaffMember)
+      
+      // Add to local state
+      const newStaffForState: Staff = {
+        id: createdStaff.id,
+        name: staffData.name,
+        email: staffData.email,
+        phone: staffData.phone || '',
+        specialties: staffData.specialties || [],
+        isActive: true,
+        hireDate: new Date().toISOString().split('T')[0],
+        hourlyRate: staffData.hourlyRate || 0,
+        commissionRate: staffData.commissionRate || 0,
+        rating: 5.0,
+        totalAppointments: 0,
+        schedule: staffData.schedule || {}
+      }
+
+      setStaff(prevStaff => [...prevStaff, newStaffForState])
+      setShowAddModal(false)
+      
+      console.log('Staff member added successfully')
+    } catch (error) {
+      console.error('Failed to add staff member:', error)
+      alert('Failed to add staff member. Please try again.')
+    }
+  }
+
   const filteredStaff = staff.filter(member =>
     member.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     member.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -467,7 +523,296 @@ export default function StaffPage() {
             </div>
           </div>
         )}
+
+        {/* Add Staff Modal */}
+        {showAddModal && (
+          <AddStaffModal
+            isOpen={showAddModal}
+            onClose={() => setShowAddModal(false)}
+            onSubmit={handleAddStaff}
+          />
+        )}
       </div>
     </Layout>
+  )
+}
+
+// Add Staff Modal Component
+interface AddStaffModalProps {
+  isOpen: boolean
+  onClose: () => void
+  onSubmit: (staffData: any) => void
+}
+
+function AddStaffModal({ isOpen, onClose, onSubmit }: AddStaffModalProps) {
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    phone: '',
+    specialties: [] as string[],
+    hourlyRate: 0,
+    commissionRate: 0,
+    bio: '',
+    schedule: {
+      monday: { start: '09:00', end: '17:00' },
+      tuesday: { start: '09:00', end: '17:00' },
+      wednesday: { start: '09:00', end: '17:00' },
+      thursday: { start: '09:00', end: '17:00' },
+      friday: { start: '09:00', end: '17:00' },
+      saturday: { start: '10:00', end: '16:00' },
+      sunday: 'off' as const
+    }
+  })
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [newSpecialty, setNewSpecialty] = useState('')
+
+  const availableSpecialties = [
+    'Manicures', 'Pedicures', 'Nail Art', 'Gel Polish', 'Acrylic Nails', 
+    'French Manicure', 'Spa Services', 'Massage', 'Waxing', 'Facials'
+  ]
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsSubmitting(true)
+
+    try {
+      await onSubmit({
+        ...formData,
+        id: Date.now().toString(), // Temporary ID for mock data
+        isActive: true,
+        hireDate: new Date().toISOString().split('T')[0],
+        rating: 5.0,
+        totalAppointments: 0
+      })
+      
+      // Reset form
+      setFormData({
+        name: '',
+        email: '',
+        phone: '',
+        specialties: [],
+        hourlyRate: 0,
+        commissionRate: 0,
+        bio: '',
+        schedule: {
+          monday: { start: '09:00', end: '17:00' },
+          tuesday: { start: '09:00', end: '17:00' },
+          wednesday: { start: '09:00', end: '17:00' },
+          thursday: { start: '09:00', end: '17:00' },
+          friday: { start: '09:00', end: '17:00' },
+          saturday: { start: '10:00', end: '16:00' },
+          sunday: 'off' as const
+        }
+      })
+      
+      onClose()
+    } catch (error) {
+      console.error('Failed to add staff:', error)
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
+  const addSpecialty = (specialty: string) => {
+    if (specialty && !formData.specialties.includes(specialty)) {
+      setFormData({
+        ...formData,
+        specialties: [...formData.specialties, specialty]
+      })
+    }
+  }
+
+  const removeSpecialty = (specialty: string) => {
+    setFormData({
+      ...formData,
+      specialties: formData.specialties.filter(s => s !== specialty)
+    })
+  }
+
+  if (!isOpen) return null
+
+  return (
+    <div className="fixed inset-0 z-50 overflow-y-auto">
+      <div className="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+        <div className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity" onClick={onClose} />
+        
+        <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-4xl sm:w-full">
+          <form onSubmit={handleSubmit}>
+            <div className="bg-white px-6 py-6">
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-lg font-medium text-gray-900">Add Staff Member</h3>
+                <button
+                  type="button"
+                  onClick={onClose}
+                  className="text-gray-400 hover:text-gray-600"
+                >
+                  <XMarkIcon className="h-6 w-6" />
+                </button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Basic Information */}
+                <div className="space-y-4">
+                  <h4 className="text-sm font-medium text-gray-900">Basic Information</h4>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Full Name *
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={formData.name}
+                      onChange={(e) => setFormData({...formData, name: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Email *
+                    </label>
+                    <input
+                      type="email"
+                      required
+                      value={formData.email}
+                      onChange={(e) => setFormData({...formData, email: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Phone
+                    </label>
+                    <input
+                      type="tel"
+                      value={formData.phone}
+                      onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Bio
+                    </label>
+                    <textarea
+                      rows={3}
+                      value={formData.bio}
+                      onChange={(e) => setFormData({...formData, bio: e.target.value})}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                    />
+                  </div>
+                </div>
+
+                {/* Specialties and Compensation */}
+                <div className="space-y-4">
+                  <h4 className="text-sm font-medium text-gray-900">Specialties & Compensation</h4>
+                  
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">
+                      Specialties
+                    </label>
+                    <div className="space-y-2">
+                      <div className="flex gap-2">
+                        <select
+                          value={newSpecialty}
+                          onChange={(e) => setNewSpecialty(e.target.value)}
+                          className="flex-1 px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                        >
+                          <option value="">Select a specialty...</option>
+                          {availableSpecialties
+                            .filter(s => !formData.specialties.includes(s))
+                            .map(specialty => (
+                              <option key={specialty} value={specialty}>{specialty}</option>
+                            ))}
+                        </select>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            addSpecialty(newSpecialty)
+                            setNewSpecialty('')
+                          }}
+                          disabled={!newSpecialty}
+                          className="px-3 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 disabled:opacity-50"
+                        >
+                          Add
+                        </button>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {formData.specialties.map(specialty => (
+                          <span
+                            key={specialty}
+                            className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800"
+                          >
+                            {specialty}
+                            <button
+                              type="button"
+                              onClick={() => removeSpecialty(specialty)}
+                              className="ml-2 text-purple-600 hover:text-purple-800"
+                            >
+                              <XMarkIcon className="h-3 w-3" />
+                            </button>
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Hourly Rate ($)
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        step="0.01"
+                        value={formData.hourlyRate}
+                        onChange={(e) => setFormData({...formData, hourlyRate: parseFloat(e.target.value) || 0})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                        Commission Rate (%)
+                      </label>
+                      <input
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="1"
+                        value={formData.commissionRate}
+                        onChange={(e) => setFormData({...formData, commissionRate: parseFloat(e.target.value) || 0})}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-gray-50 px-6 py-3 sm:flex sm:flex-row-reverse">
+              <button
+                type="submit"
+                disabled={isSubmitting || !formData.name || !formData.email}
+                className="btn-primary sm:ml-3 disabled:opacity-50"
+              >
+                {isSubmitting ? 'Adding...' : 'Add Staff Member'}
+              </button>
+              <button
+                type="button"
+                onClick={onClose}
+                className="btn-secondary mt-3 sm:mt-0"
+              >
+                Cancel
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
   )
 }
