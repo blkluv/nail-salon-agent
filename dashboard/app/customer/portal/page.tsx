@@ -215,6 +215,62 @@ export default function CustomerPortal() {
     router.push('/customer/login')
   }
 
+  const handleRedeemRewards = () => {
+    const availableRewards = Math.floor((customer?.loyalty_points || 0) / 100)
+    if (availableRewards === 0) return
+    
+    alert(`🎁 Redeem Rewards\n\nYou have ${availableRewards} rewards available!\n\nReward options:\n• $5 service credit (100 points)\n• $15 service credit (250 points)\n• $35 service credit (500 points)\n• Free basic service (1000 points)\n\nPlease mention this at your next appointment or call us to redeem.`)
+  }
+
+  const handleShareSMS = () => {
+    const referralCode = `${customer?.first_name?.toUpperCase().slice(0,3) || 'REF'}${customer?.phone?.slice(-4) || '0000'}`
+    const message = encodeURIComponent(`Hey! I found this amazing salon with AI booking. Use my referral code "${referralCode}" and get $10 off your first service! Book 24/7 at (424) 351-9304 📱✨`)
+    
+    // Open SMS app with pre-filled message
+    window.open(`sms:?&body=${message}`, '_blank')
+  }
+
+  const handleShareEmail = () => {
+    const referralCode = `${customer?.first_name?.toUpperCase().slice(0,3) || 'REF'}${customer?.phone?.slice(-4) || '0000'}`
+    const businessName = localStorage.getItem('customer_business_name') || 'Our Salon'
+    const subject = encodeURIComponent(`Check out ${businessName} - $10 off with my referral!`)
+    const body = encodeURIComponent(`Hi!
+
+I wanted to share this amazing salon I discovered - ${businessName}! They have incredible AI-powered booking that works 24/7.
+
+🎁 Use my referral code: ${referralCode}
+💰 You'll get $10 off your first service
+📱 Book anytime by calling (424) 351-9304
+
+The AI assistant is so convenient - you can book appointments, reschedule, or ask questions anytime. I love that I can book even at midnight!
+
+Hope you check them out!
+
+Best,
+${customer?.first_name || 'Your friend'}`)
+
+    // Open email client with pre-filled message
+    window.open(`mailto:?subject=${subject}&body=${body}`, '_blank')
+  }
+
+  const handleCopyCode = () => {
+    const referralCode = `${customer?.first_name?.toUpperCase().slice(0,3) || 'REF'}${customer?.phone?.slice(-4) || '0000'}`
+    
+    // Copy to clipboard
+    navigator.clipboard.writeText(referralCode).then(() => {
+      alert(`✅ Referral code copied!\n\n"${referralCode}"\n\nShare this code with friends to give them $10 off and earn 50 loyalty points for yourself!`)
+    }).catch(() => {
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea')
+      textArea.value = referralCode
+      document.body.appendChild(textArea)
+      textArea.select()
+      document.execCommand('copy')
+      document.body.removeChild(textArea)
+      alert(`✅ Referral code copied!\n\n"${referralCode}"\n\nShare this code with friends to give them $10 off and earn 50 loyalty points for yourself!`)
+    })
+  }
+
   const handleProfileUpdate = async () => {
     if (!customer) return
     
@@ -814,7 +870,10 @@ export default function CustomerPortal() {
 
                       {(customer.loyalty_points || 0) >= 100 && (
                         <div className="mt-4">
-                          <button className="w-full px-4 py-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-white rounded-lg hover:shadow-md transition-all">
+                          <button 
+                            onClick={handleRedeemRewards}
+                            className="w-full px-4 py-2 bg-gradient-to-r from-yellow-400 to-orange-500 text-white rounded-lg hover:shadow-md transition-all"
+                          >
                             🎁 Redeem {Math.floor((customer.loyalty_points || 0) / 100)} Available Rewards
                           </button>
                         </div>
@@ -845,13 +904,22 @@ export default function CustomerPortal() {
                       </div>
 
                       <div className="space-y-2">
-                        <button className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-all">
+                        <button 
+                          onClick={handleShareSMS}
+                          className="w-full px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-all"
+                        >
                           📱 Share via SMS
                         </button>
-                        <button className="w-full px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-all">
+                        <button 
+                          onClick={handleShareEmail}
+                          className="w-full px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-all"
+                        >
                           📧 Share via Email  
                         </button>
-                        <button className="w-full px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-all">
+                        <button 
+                          onClick={handleCopyCode}
+                          className="w-full px-4 py-2 bg-purple-500 text-white rounded-lg hover:bg-purple-600 transition-all"
+                        >
                           📋 Copy Code
                         </button>
                       </div>
