@@ -2,6 +2,9 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import Layout from '../../../../components/Layout'
+import { BusinessAPI } from '../../../../lib/supabase'
+import { getCurrentBusinessId } from '../../../../lib/auth-utils'
 import { 
   PlusIcon, 
   FunnelIcon, 
@@ -26,15 +29,28 @@ interface Campaign {
 }
 
 export default function CampaignsPage() {
+  const [business, setBusiness] = useState<any>(null)
   const [campaigns, setCampaigns] = useState<Campaign[]>([])
   const [loading, setLoading] = useState(true)
   const [searchTerm, setSearchTerm] = useState('')
   const [statusFilter, setStatusFilter] = useState<string>('all')
   const [selectedCampaigns, setSelectedCampaigns] = useState<string[]>([])
 
+  const businessId = getCurrentBusinessId() || '8424aa26-4fd5-4d4b-92aa-8a9c5ba77dad'
+
   useEffect(() => {
+    loadBusiness()
     loadCampaigns()
   }, [])
+
+  const loadBusiness = async () => {
+    try {
+      const businessData = await BusinessAPI.getBusiness(businessId)
+      setBusiness(businessData)
+    } catch (error) {
+      console.error('Failed to load business:', error)
+    }
+  }
 
   const loadCampaigns = async () => {
     try {
@@ -157,14 +173,18 @@ export default function CampaignsPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
-      </div>
+      <Layout business={business}>
+        <div className="flex items-center justify-center min-h-screen">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
+        </div>
+      </Layout>
     )
   }
 
   return (
-    <div className="space-y-6">
+    <Layout business={business}>
+      <div className="p-8">
+        <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -404,6 +424,8 @@ export default function CampaignsPage() {
           </div>
         </div>
       </div>
-    </div>
+        </div>
+      </div>
+    </Layout>
   )
 }

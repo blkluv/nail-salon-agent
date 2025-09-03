@@ -194,6 +194,12 @@ export class BusinessAPI {
       console.error('Error fetching business:', error)
       return null
     }
+    
+    // Default subscription tier to professional if not set
+    if (data && !data.subscription_tier) {
+      data.subscription_tier = 'professional'
+    }
+    
     return data
   }
 

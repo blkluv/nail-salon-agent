@@ -372,7 +372,10 @@ export default function AppointmentsPage() {
             >
               Refresh
             </button>
-            <button className="btn-primary">
+            <button 
+              onClick={() => alert('New Appointment feature coming soon!\n\nFor now, customers can book appointments through:\n• Phone: (424) 351-9304\n• Customer Portal: /customer/login\n• Voice AI Assistant')}
+              className="btn-primary"
+            >
               <PlusIcon className="h-4 w-4 mr-2" />
               New Appointment
             </button>
