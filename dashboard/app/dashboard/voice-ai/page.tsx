@@ -39,8 +39,8 @@ export default function VoiceAIPage() {
   const [showCallModal, setShowCallModal] = useState(false)
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
   
-  // For demo, assume professional tier (shared agent)
-  const subscriptionTier: 'starter' | 'professional' | 'business' = 'professional'
+  // For demo, assume professional tier (shared agent) - could be loaded from API in real app
+  const [subscriptionTier] = useState<'starter' | 'professional' | 'business'>('professional')
 
   const formatDuration = (seconds: number) => {
     const minutes = Math.floor(seconds / 60)
