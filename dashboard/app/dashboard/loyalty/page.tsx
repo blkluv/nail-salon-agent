@@ -219,8 +219,6 @@ export default function LoyaltyPage() {
     )
   }
 
-  // Always show loyalty page but gate the content based on tier
-
   return (
     <Layout business={business}>
       <div className="p-6 max-w-7xl mx-auto">
