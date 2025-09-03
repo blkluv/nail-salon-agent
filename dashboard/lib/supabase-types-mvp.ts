@@ -56,7 +56,7 @@ export interface PaymentProcessor {
   id: string
   business_id: string
   location_id: string
-  processor_type: 'square' | 'stripe'
+  processor_type: 'square' | 'stripe' | 'paypal'
   
   // Status
   is_active: boolean
@@ -95,7 +95,7 @@ export interface PaymentWithDetails {
   total_amount: number
   
   // Processing
-  processor_type: 'square' | 'stripe' | 'cash'
+  processor_type: 'square' | 'stripe' | 'paypal' | 'cash'
   processor_transaction_id?: string
   processor_fee_amount: number
   currency: string
@@ -320,7 +320,7 @@ export interface CreatePaymentRequest {
   discount_amount?: number
   
   payment_method: string
-  processor_type: 'square' | 'stripe' | 'cash'
+  processor_type: 'square' | 'stripe' | 'paypal' | 'cash'
   
   // For loyalty point redemption
   loyalty_points_to_redeem?: number
@@ -477,7 +477,7 @@ export interface LocationFormData {
 }
 
 export interface PaymentProcessorFormData {
-  processor_type: 'square' | 'stripe'
+  processor_type: 'square' | 'stripe' | 'paypal'
   is_live_mode: boolean
   api_key_public: string
   api_key_secret: string
