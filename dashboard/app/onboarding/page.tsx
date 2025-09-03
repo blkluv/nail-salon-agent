@@ -884,13 +884,88 @@ export default function OnboardingPage() {
 
       console.log('✅ All enhanced database operations completed');
       
-      // 7. Handle phone setup based on strategy
+      // 7. Handle phone setup and assistant creation based on tier
+      let assistantId = SHARED_ASSISTANT_ID; // Default for Starter/Professional
+      
+      // Create custom assistant for Business tier
+      if (subscriptionTier === 'business') {
+        console.log('🤖 Creating CUSTOM AI assistant for Business tier...');
+        try {
+          const vapiApiKey = process.env.NEXT_PUBLIC_VAPI_API_KEY || '';
+          const webhookBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://web-production-60875.up.railway.app';
+          
+          const assistantResponse = await fetch('https://api.vapi.ai/assistant', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${vapiApiKey}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              name: `${businessInfo.name} Custom AI Concierge`,
+              model: {
+                provider: 'openai',
+                model: 'gpt-4o',
+                messages: [
+                  {
+                    role: 'system',
+                    content: `You are the personalized AI concierge for ${businessInfo.name}, a premium nail salon.
+
+🏢 About ${businessInfo.name}:
+You represent this specific business with their unique personality and services. Always identify yourself as calling from ${businessInfo.name}.
+
+💼 Your Role:
+1. Help customers book appointments with ${businessInfo.name}
+2. Answer questions about our specific services
+3. Provide personalized, professional customer service
+4. Collect complete customer information for bookings
+
+🎯 Available Services:
+${selectedServices.map(s => `- ${s.name}: ${s.duration} minutes, $${s.price}`).join('\n')}
+
+📋 For Every Booking, Collect:
+- Customer name and phone number  
+- Preferred date and time
+- Specific service requested
+- Any special requests or preferences
+
+🎨 Personality: Professional, warm, and knowledgeable about ${businessInfo.name}'s specific offerings.
+
+Business ID: ${business.id}
+Webhook: ${webhookBaseUrl}/webhook/vapi/${business.id}
+
+Always represent ${businessInfo.name} with excellence!`
+                  }
+                ]
+              },
+              voice: {
+                provider: '11labs',
+                voiceId: 'sarah'
+              },
+              serverUrl: `${webhookBaseUrl}/webhook/vapi/${business.id}`,
+              serverUrlSecret: business.id
+            })
+          });
+          
+          if (assistantResponse.ok) {
+            const assistantData = await assistantResponse.json();
+            assistantId = assistantData.id;
+            console.log('✅ CUSTOM Assistant created for Business tier:', assistantId);
+          } else {
+            console.warn('Failed to create custom assistant, using shared:', await assistantResponse.text());
+          }
+        } catch (err) {
+          console.error('Error creating custom assistant:', err);
+          // Fall back to shared assistant
+        }
+      }
+      
       if (phonePrefs.strategy === 'new_number') {
         console.log('🔄 Attempting to assign new phone number with Vapi...');
         try {
           const phoneResult = await VapiPhoneService.assignPhoneToSalon(
             business.id, 
-            business.name
+            business.name,
+            assistantId // Pass the assistant ID (custom for Business, shared for others)
           );
           
           if (phoneResult.success) {
@@ -917,17 +992,18 @@ export default function OnboardingPage() {
           // Update business with new phone number and Vapi configuration
           const vapiSettings = {
             ...updatedSettings,
-            vapi_assistant_id: SHARED_ASSISTANT_ID,
+            vapi_assistant_id: assistantId, // Use the appropriate assistant ID
             vapi_phone_number_id: phoneResult.vapiData?.phoneNumberId || phoneResult.phoneId,
             vapi_phone_number: phoneResult.phoneNumber,
-            vapi_configured: true
+            vapi_configured: true,
+            is_custom_assistant: subscriptionTier === 'business' // Track if custom
           }
           
           await supabase
             .from('businesses')
             .update({ 
               phone: phoneResult.phoneNumber,
-              vapi_assistant_id: SHARED_ASSISTANT_ID,
+              vapi_assistant_id: assistantId, // Use the appropriate assistant ID
               settings: vapiSettings
             })
             .eq('id', business.id);
@@ -955,8 +1031,9 @@ export default function OnboardingPage() {
           forward_after_hours: phonePrefs.forwardAfterHours,
           forward_complex_calls: phonePrefs.forwardComplexCalls,
           ai_phone_number: assignedPhoneNumber,
-          vapi_assistant_id: SHARED_ASSISTANT_ID,
+          vapi_assistant_id: assistantId, // Use the appropriate assistant ID
           vapi_configured: true,
+          is_custom_assistant: subscriptionTier === 'business', // Track if custom
           forwarding_instructions: `Forward busy/no-answer calls from ${phonePrefs.existingNumber} to ${assignedPhoneNumber}`
         }
         

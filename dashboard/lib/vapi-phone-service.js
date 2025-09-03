@@ -57,7 +57,7 @@ export class VapiPhoneService {
     }
   }
 
-  static async configurePhoneNumber(phoneId, businessId, businessName) {
+  static async configurePhoneNumber(phoneId, businessId, businessName, assistantId = null) {
     try {
       console.log(`🔄 Configuring phone ${phoneId} for business: ${businessName}`);
       
@@ -68,7 +68,7 @@ export class VapiPhoneService {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          assistantId: SHARED_ASSISTANT_ID,
+          assistantId: assistantId || SHARED_ASSISTANT_ID, // Use provided assistant or default to shared
           serverUrl: WEBHOOK_URL,
           // Add business context in metadata (if supported)
           metadata: {
@@ -100,9 +100,10 @@ export class VapiPhoneService {
     }
   }
 
-  static async assignPhoneToSalon(businessId, businessName, preferredAreaCode = null) {
+  static async assignPhoneToSalon(businessId, businessName, assistantId = null, preferredAreaCode = null) {
     try {
       console.log(`🎯 Assigning phone number to salon: ${businessName}`);
+      console.log(`📞 Using assistant: ${assistantId || SHARED_ASSISTANT_ID} (${assistantId ? 'custom' : 'shared'})`);
 
       // Step 1: Purchase a new phone number
       const purchaseResult = await this.purchasePhoneNumber(preferredAreaCode);
@@ -114,7 +115,8 @@ export class VapiPhoneService {
       const configResult = await this.configurePhoneNumber(
         purchaseResult.phoneId, 
         businessId, 
-        businessName
+        businessName,
+        assistantId // Pass the assistant ID
       );
       
       if (!configResult.success) {
