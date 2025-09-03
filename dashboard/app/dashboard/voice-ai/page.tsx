@@ -40,7 +40,7 @@ export default function VoiceAIPage() {
   const [showUpgradeModal, setShowUpgradeModal] = useState(false)
   
   // For demo, assume professional tier (shared agent)
-  const subscriptionTier = 'professional'
+  const subscriptionTier: 'starter' | 'professional' | 'business' = 'professional'
 
   const formatDuration = (seconds: number) => {
     const minutes = Math.floor(seconds / 60)
