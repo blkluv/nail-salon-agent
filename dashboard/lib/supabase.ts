@@ -1214,30 +1214,62 @@ export class LoyaltyAPIImpl implements LoyaltyAPI {
   }
 }
 
-// Plan tier configuration
+// Plan tier configuration - Updated pricing and features
 export const PLAN_TIER_LIMITS: PlanTierLimits = {
   starter: {
     max_locations: 1,
-    payment_processors: [],
-    loyalty_program: false,
-    monthly_price: 47
+    payment_processors: [], // No payment processing in starter
+    loyalty_program: false, // No loyalty in starter
+    monthly_price: 67,
+    max_appointments: 200, // New limit for starter
+    analytics_dashboard: false, // No analytics in starter
+    marketing_campaigns: false, // No marketing in starter
+    custom_branding: false, // No branding in starter
+    automated_reminders: false, // Basic SMS only, no automated
+    voice_ai_type: 'shared' // Shared AI assistant
   },
   professional: {
     max_locations: 1,
     payment_processors: ['square', 'stripe'],
     loyalty_program: true,
-    monthly_price: 97
+    monthly_price: 147,
+    max_appointments: -1, // Unlimited appointments
+    analytics_dashboard: true, // Full analytics
+    marketing_campaigns: true, // Email & SMS campaigns
+    custom_branding: true, // Logo and colors
+    automated_reminders: true, // 24-hour automated reminders
+    voice_ai_type: 'shared' // Still shared AI
   },
   business: {
     max_locations: 3,
     payment_processors: ['square', 'stripe'],
     loyalty_program: true,
-    monthly_price: 197
+    monthly_price: 297,
+    max_appointments: -1, // Unlimited
+    analytics_dashboard: true,
+    marketing_campaigns: true,
+    custom_branding: true,
+    automated_reminders: true,
+    voice_ai_type: 'custom', // CUSTOM AI assistant
+    white_label: true, // White-label option
+    api_access: true, // API access
+    priority_support: true // Priority support
   },
   enterprise: {
-    max_locations: -1, // unlimited
+    max_locations: -1, // unlimited locations
     payment_processors: ['square', 'stripe'],
     loyalty_program: true,
-    monthly_price: 397
+    monthly_price: 597, // Higher price for unlimited
+    max_appointments: -1,
+    analytics_dashboard: true,
+    marketing_campaigns: true,
+    custom_branding: true,
+    automated_reminders: true,
+    voice_ai_type: 'custom',
+    white_label: true,
+    api_access: true,
+    priority_support: true,
+    dedicated_support: true, // Dedicated account manager
+    custom_integrations: true // Custom development
   }
 }

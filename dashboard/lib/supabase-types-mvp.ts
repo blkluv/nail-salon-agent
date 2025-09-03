@@ -365,25 +365,57 @@ export interface PlanTierLimits {
     max_locations: 1
     payment_processors: []
     loyalty_program: false
-    monthly_price: 47
+    monthly_price: number
+    max_appointments?: number
+    analytics_dashboard?: boolean
+    marketing_campaigns?: boolean
+    custom_branding?: boolean
+    automated_reminders?: boolean
+    voice_ai_type?: 'shared' | 'custom'
   }
   professional: {
     max_locations: 1
-    payment_processors: ['square', 'stripe']
+    payment_processors: string[]
     loyalty_program: true
-    monthly_price: 97
+    monthly_price: number
+    max_appointments?: number
+    analytics_dashboard?: boolean
+    marketing_campaigns?: boolean
+    custom_branding?: boolean
+    automated_reminders?: boolean
+    voice_ai_type?: 'shared' | 'custom'
   }
   business: {
-    max_locations: 3
-    payment_processors: ['square', 'stripe']
+    max_locations: number
+    payment_processors: string[]
     loyalty_program: true
-    monthly_price: 197
+    monthly_price: number
+    max_appointments?: number
+    analytics_dashboard?: boolean
+    marketing_campaigns?: boolean
+    custom_branding?: boolean
+    automated_reminders?: boolean
+    voice_ai_type?: 'shared' | 'custom'
+    white_label?: boolean
+    api_access?: boolean
+    priority_support?: boolean
   }
   enterprise: {
-    max_locations: -1 // unlimited
-    payment_processors: ['square', 'stripe']
+    max_locations: number // -1 for unlimited
+    payment_processors: string[]
     loyalty_program: true
-    monthly_price: 397
+    monthly_price: number
+    max_appointments?: number
+    analytics_dashboard?: boolean
+    marketing_campaigns?: boolean
+    custom_branding?: boolean
+    automated_reminders?: boolean
+    voice_ai_type?: 'shared' | 'custom'
+    white_label?: boolean
+    api_access?: boolean
+    priority_support?: boolean
+    dedicated_support?: boolean
+    custom_integrations?: boolean
   }
 }
 

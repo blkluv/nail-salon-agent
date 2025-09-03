@@ -153,50 +153,54 @@ const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 
 const PRICING_PLANS: PricingPlan[] = [
   {
     id: 'starter',
-    name: 'Starter',
-    price: 47,
+    name: 'AI Starter',
+    price: 67,
     channels: ['web', 'voice'],
-    description: 'Perfect for solo techs & small salons',
+    description: 'Never miss another booking',
     features: [
-      '24/7 AI Voice Assistant',
-      'Smart Web Booking Widget', 
-      'Unlimited Appointments',
-      'SMS Text Confirmations',
-      'Customer Management',
+      '24/7 AI Voice Assistant (Shared)',
+      'Dedicated Phone Number',
+      'Web Booking Widget',
+      'Up to 200 Appointments/Month',
+      'Basic SMS Confirmations',
+      'Customer Database',
       'Single Location'
     ]
   },
   {
     id: 'professional',
-    name: 'Professional',
-    price: 97,
+    name: 'AI Professional',
+    price: 147,
     channels: ['web', 'voice', 'sms'],
-    description: 'Everything you need to grow',
+    description: 'Grow smarter with AI & analytics',
     features: [
       'Everything in Starter',
-      'Square/Stripe Payments',
+      'UNLIMITED Appointments',
+      'Full Analytics Dashboard',
+      'Automated 24-Hour Reminders',
       'Loyalty Points Program',
-      'Advanced Analytics',
-      'Staff Management',
-      'Email Marketing',
-      'Custom Branding'
+      'Email & SMS Marketing',
+      'Custom Branding',
+      'Square/Stripe Payments',
+      'Revenue Tracking'
     ],
     popular: true
   },
   {
     id: 'business',
-    name: 'Business',
-    price: 197,
+    name: 'AI Business',
+    price: 297,
     channels: ['web', 'voice', 'sms'],
-    description: 'Scale with multiple locations',
+    description: 'Multi-location & custom AI',
     features: [
       'Everything in Professional',
+      'CUSTOM AI Assistant',
       'Up to 3 Locations',
+      'White-Label Options',
       'Cross-Location Analytics',
-      'Advanced Reporting',
-      'Priority Phone Support',
-      'Custom Integrations',
-      'White-Label Options'
+      'API Access',
+      'Priority Support',
+      'Custom Domain Support'
     ]
   }
 ]

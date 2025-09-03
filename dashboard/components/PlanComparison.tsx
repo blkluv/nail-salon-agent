@@ -26,69 +26,71 @@ interface PlanFeature {
 }
 
 const PLAN_FEATURES: PlanFeature[] = [
-  // Core Features
-  { name: '24/7 AI Voice Booking', starter: true, professional: true, business: true, category: 'core' },
+  // Core Features - AI Voice
+  { name: '24/7 AI Voice Assistant', starter: 'Shared AI', professional: 'Shared AI', business: 'CUSTOM AI', category: 'core' },
+  { name: 'Dedicated Phone Number', starter: true, professional: true, business: true, category: 'core' },
   { name: 'Web Booking Widget', starter: true, professional: true, business: true, category: 'core' },
-  { name: 'Customer Management', starter: true, professional: true, business: true, category: 'core' },
-  { name: 'Staff Management', starter: true, professional: true, business: true, category: 'core' },
-  { name: 'Appointment Scheduling', starter: 'Unlimited', professional: 'Unlimited', business: 'Unlimited', category: 'core' },
-  
-  // Location Management
-  { name: 'Business Locations', starter: '1 Location', professional: '1 Location', business: 'Up to 3 Locations', category: 'business' },
-  
-  // Communication
-  { name: 'SMS Notifications', starter: true, professional: true, business: true, category: 'communication' },
-  { name: 'Email Confirmations', starter: true, professional: true, business: true, category: 'communication' },
-  { name: 'Email Marketing Campaigns', starter: false, professional: true, business: true, category: 'communication' },
-  { name: 'Customer Segmentation', starter: false, professional: true, business: true, category: 'communication' },
-  { name: 'Automated Email Workflows', starter: false, professional: true, business: true, category: 'communication' },
-  
-  // Payment & Loyalty
-  { name: 'Online Payment Processing', starter: false, professional: true, business: true, category: 'payment' },
-  { name: 'Stripe Integration', starter: false, professional: true, business: true, category: 'payment' },
-  { name: 'Square Integration', starter: false, professional: true, business: true, category: 'payment' },
-  { name: 'Loyalty Points Program', starter: false, professional: true, business: true, category: 'payment' },
-  { name: 'Customer Rewards', starter: false, professional: true, business: true, category: 'payment' },
+  { name: 'Monthly Appointments', starter: 'Up to 200', professional: 'Unlimited', business: 'Unlimited', category: 'core' },
+  { name: 'Customer Database', starter: true, professional: true, business: true, category: 'core' },
   
   // Analytics & Reporting
-  { name: 'Basic Analytics', starter: true, professional: true, business: true, category: 'analytics' },
-  { name: 'Advanced Analytics', starter: false, professional: true, business: true, category: 'analytics' },
-  { name: 'Revenue Reporting', starter: false, professional: true, business: true, category: 'analytics' },
-  { name: 'Customer Insights', starter: false, professional: true, business: true, category: 'analytics' },
-  { name: 'Cross-Location Reporting', starter: false, professional: false, business: true, category: 'analytics' },
+  { name: 'Analytics Dashboard', starter: false, professional: true, business: true, category: 'analytics' },
+  { name: 'Revenue Tracking', starter: false, professional: true, business: true, category: 'analytics' },
+  { name: 'Staff Performance', starter: false, professional: true, business: true, category: 'analytics' },
+  { name: 'Service Analytics', starter: false, professional: true, business: true, category: 'analytics' },
+  { name: 'Cross-Location Analytics', starter: false, professional: false, business: true, category: 'analytics' },
   
-  // Business Features
-  { name: 'API Access', starter: false, professional: false, business: true, category: 'business' },
-  { name: 'Custom Integrations', starter: false, professional: false, business: true, category: 'business' },
-  { name: 'Webhook Management', starter: false, professional: false, business: true, category: 'business' },
+  // Communication & Marketing
+  { name: 'Basic SMS Confirmations', starter: true, professional: true, business: true, category: 'communication' },
+  { name: 'Automated 24hr Reminders', starter: false, professional: true, business: true, category: 'communication' },
+  { name: 'Email Marketing Campaigns', starter: false, professional: true, business: true, category: 'communication' },
+  { name: 'SMS Marketing Campaigns', starter: false, professional: true, business: true, category: 'communication' },
+  { name: 'Customer Segmentation', starter: false, professional: true, business: true, category: 'communication' },
+  
+  // Payment & Loyalty
+  { name: 'Square Payment Processing', starter: false, professional: true, business: true, category: 'payment' },
+  { name: 'Stripe Payment Processing', starter: false, professional: true, business: true, category: 'payment' },
+  { name: 'Loyalty Points Program', starter: false, professional: true, business: true, category: 'payment' },
+  { name: 'Tier-Based Rewards', starter: false, professional: true, business: true, category: 'payment' },
+  { name: 'Points Auto-Award', starter: false, professional: true, business: true, category: 'payment' },
+  
+  // Branding & Customization
+  { name: 'Custom Branding', starter: false, professional: true, business: true, category: 'business' },
+  { name: 'Logo Upload', starter: false, professional: true, business: true, category: 'business' },
+  { name: 'Color Customization', starter: false, professional: true, business: true, category: 'business' },
+  
+  // Multi-Location & Enterprise
+  { name: 'Business Locations', starter: '1 Location', professional: '1 Location', business: 'Up to 3', category: 'business' },
   { name: 'White-Label Options', starter: false, professional: false, business: true, category: 'business' },
-  { name: 'Priority Phone Support', starter: false, professional: false, business: true, category: 'business' },
+  { name: 'Custom Domain Support', starter: false, professional: false, business: true, category: 'business' },
+  { name: 'API Access', starter: false, professional: false, business: true, category: 'business' },
+  { name: 'Priority Support', starter: false, professional: false, business: true, category: 'business' },
 ]
 
 const PLANS = {
   starter: {
-    name: 'Starter',
-    price: 47,
-    yearlyPrice: 40,
-    description: 'Perfect for single-location salons getting started',
+    name: 'AI Starter',
+    price: 67,
+    yearlyPrice: 57,
+    description: 'Never miss another booking with 24/7 AI',
     color: 'gray',
     icon: SparklesIcon,
     popular: false
   },
   professional: {
-    name: 'Professional', 
-    price: 97,
-    yearlyPrice: 82,
-    description: 'Complete solution for growing salons',
+    name: 'AI Professional', 
+    price: 147,
+    yearlyPrice: 125,
+    description: 'Grow smarter with AI, analytics & loyalty',
     color: 'blue',
     icon: CrownIcon,
     popular: true
   },
   business: {
-    name: 'Business',
-    price: 197,
-    yearlyPrice: 167,
-    description: 'Advanced features for salon chains',
+    name: 'AI Business',
+    price: 297,
+    yearlyPrice: 252,
+    description: 'Custom AI & multi-location management',
     color: 'purple',
     icon: BuildingStorefrontIcon,
     popular: false

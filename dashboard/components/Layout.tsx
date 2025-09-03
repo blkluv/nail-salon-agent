@@ -248,14 +248,19 @@ function SidebarContent({ business }: { business?: LayoutProps['business'] }) {
 
 // Helper function to determine if feature requires upgrade
 function isFeatureUpgradeRequired(featureName: string, subscriptionTier: string): boolean {
-  const professionalFeatureNames = ['Payments', 'Loyalty Program']
-  const businessFeatureNames = ['Locations']
+  // Features that require Professional tier or higher
+  const professionalFeatures = ['Analytics', 'Payments', 'Loyalty Program', 'Marketing']
   
-  if (professionalFeatureNames.includes(featureName)) {
-    return !['professional', 'business', 'enterprise'].includes(subscriptionTier)
+  // Features that require Business tier or higher  
+  const businessFeatures = ['Locations']
+  
+  // Check Professional features (not available in Starter)
+  if (professionalFeatures.includes(featureName)) {
+    return subscriptionTier === 'starter'
   }
   
-  if (businessFeatureNames.includes(featureName)) {
+  // Check Business features (not available in Starter or Professional)
+  if (businessFeatures.includes(featureName)) {
     return !['business', 'enterprise'].includes(subscriptionTier)
   }
   
@@ -265,9 +270,9 @@ function isFeatureUpgradeRequired(featureName: string, subscriptionTier: string)
 // Helper function to get plan badge
 function getPlanBadge(subscriptionTier: string) {
   const badges = {
-    starter: <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">Basic</span>,
-    professional: <span className="text-xs bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full">Pro</span>,
-    business: <span className="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full">Business</span>,
+    starter: <span className="text-xs bg-blue-100 text-blue-800 px-2 py-0.5 rounded-full">AI Starter</span>,
+    professional: <span className="text-xs bg-purple-100 text-purple-800 px-2 py-0.5 rounded-full">AI Pro</span>,
+    business: <span className="text-xs bg-green-100 text-green-800 px-2 py-0.5 rounded-full">AI Business</span>,
     enterprise: <span className="text-xs bg-yellow-100 text-yellow-800 px-2 py-0.5 rounded-full">Enterprise</span>
   }
   return badges[subscriptionTier as keyof typeof badges] || null
@@ -279,13 +284,13 @@ function getUpgradePrompt(subscriptionTier: string) {
     return (
       <div className="flex-shrink-0 p-4">
         <div className="bg-gradient-to-r from-purple-500 to-pink-600 rounded-lg p-4 text-white">
-          <h3 className="text-sm font-medium">Unlock More Features</h3>
+          <h3 className="text-sm font-medium">Unlock Analytics & More</h3>
           <p className="text-xs mt-1 opacity-90">
-            Upgrade to Professional for payments & loyalty programs
+            Upgrade to AI Professional for unlimited appointments, analytics & loyalty
           </p>
           <Link href="/dashboard/settings?tab=billing">
             <button className="mt-2 bg-white text-purple-600 text-xs font-medium px-3 py-1 rounded hover:bg-gray-100 transition-colors">
-              View Plans
+              Upgrade to Pro - $147/mo
             </button>
           </Link>
         </div>
@@ -297,13 +302,13 @@ function getUpgradePrompt(subscriptionTier: string) {
     return (
       <div className="flex-shrink-0 p-4">
         <div className="bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg p-4 text-white">
-          <h3 className="text-sm font-medium">Scale Your Business</h3>
+          <h3 className="text-sm font-medium">Get Custom AI & Scale</h3>
           <p className="text-xs mt-1 opacity-90">
-            Upgrade to Business for multi-location management
+            Upgrade to AI Business for custom assistant & multi-location
           </p>
           <Link href="/dashboard/settings?tab=billing">
             <button className="mt-2 bg-white text-green-600 text-xs font-medium px-3 py-1 rounded hover:bg-gray-100 transition-colors">
-              Upgrade
+              Upgrade to Business - $297/mo
             </button>
           </Link>
         </div>
