@@ -355,7 +355,7 @@ export default function AnalyticsPage() {
         )}
 
         {activeTab === 'reports' && (
-          <DailyReport businessId={DEMO_BUSINESS_ID} />
+          <DailyReport businessId={getBusinessId()} />
         )}
 
         {/* Advanced Analytics for Professional+ */}

@@ -114,7 +114,7 @@ export default function LoyaltyCustomersPage() {
         limit: 50
       }
 
-      const customersData = await loyaltyAPI.getLoyaltyCustomers(DEMO_BUSINESS_ID)
+      const customersData = await loyaltyAPI.getLoyaltyCustomers(getBusinessId())
       
       // Apply client-side search filter
       let filteredCustomers = customersData
