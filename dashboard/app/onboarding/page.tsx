@@ -758,7 +758,35 @@ export default function OnboardingPage() {
       }
 
       // 3. Add staff members (enhanced with proper roles and default settings)
-      const validStaff = staff.filter(s => s.first_name && s.last_name)
+      console.log('👥 STAFF DATA DEBUG:');
+      console.log('Total staff members from form:', staff.length);
+      console.log('Raw staff data:', staff);
+      
+      let validStaff = staff.filter(s => s.first_name && s.last_name)
+      console.log('Valid staff after filtering:', validStaff.length);
+      
+      // If no valid staff, create default owner from business info
+      if (validStaff.length === 0) {
+        console.log('⚠️  NO VALID STAFF - Creating default owner from business info');
+        const ownerNames = businessInfo.name.split(' ');
+        const defaultOwner: StaffMember = {
+          first_name: businessInfo.ownerFirstName || ownerNames[0] || 'Business',
+          last_name: businessInfo.ownerLastName || ownerNames.slice(1).join(' ') || 'Owner',
+          email: businessInfo.email,
+          phone: businessInfo.phone,
+          role: 'owner'
+        };
+        
+        validStaff = [defaultOwner];
+        console.log('✅ Created default owner:', defaultOwner);
+        
+        if (staff.length > 0) {
+          console.log('⚠️  Original staff data existed but failed validation:');
+          staff.forEach((s, index) => {
+            console.log(`   Staff ${index + 1}: first_name="${s.first_name}", last_name="${s.last_name}", role="${s.role}"`);
+          });
+        }
+      }
       if (validStaff.length > 0) {
         const { error: staffError } = await supabase
           .from('staff')
@@ -785,7 +813,12 @@ export default function OnboardingPage() {
           console.error('Staff error:', staffError);
           console.error('Staff data being inserted:', validStaff);
           throw new Error('SUPABASE_STAFF_ERROR: ' + staffError.message);
+        } else {
+          console.log(`✅ Successfully inserted ${validStaff.length} staff members`);
         }
+      } else {
+        console.log('❌ CRITICAL ERROR: validStaff.length = 0 after default owner creation!');
+        console.log('This should never happen now that we create default owner');
       }
 
       // 4. Add business hours
