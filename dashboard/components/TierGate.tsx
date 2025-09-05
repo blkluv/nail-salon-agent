@@ -220,7 +220,7 @@ function getFeatureDescription(feature: string): string {
     analytics: 'Advanced analytics, revenue tracking, and performance insights',
     marketing: 'Email campaigns, SMS marketing, and customer segmentation',
     payments: 'Square and Stripe integration with automated processing',
-    multi_location: 'Manage multiple salon locations with cross-location analytics',
+    multi_location: 'Manage multiple business locations with cross-location analytics',
     loyalty: 'Points-based rewards system with automatic tier progression',
     branding: 'Custom logo, colors, and branded customer communications'
   }

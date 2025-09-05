@@ -122,7 +122,7 @@ export default function BusinessProfileSetup({
               <textarea
                 value={profileData.description}
                 onChange={(e) => setProfileData(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="Describe your salon's atmosphere, experience, and what makes you unique..."
+                placeholder="Describe your business's atmosphere, experience, and what makes you unique..."
                 rows={4}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
@@ -151,7 +151,7 @@ export default function BusinessProfileSetup({
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
-                Salon Atmosphere
+                Business Atmosphere
               </label>
               <div className="grid grid-cols-2 gap-2">
                 {['Relaxing & Spa-like', 'Modern & Trendy', 'Classic & Elegant', 'Fun & Social', 'Luxury & Upscale', 'Quick & Efficient'].map((atmosphere) => (

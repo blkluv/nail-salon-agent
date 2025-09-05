@@ -95,7 +95,7 @@ export class FeatureFlags {
       smart_scheduling: "Upgrade to access intelligent scheduling rules",
       advanced_reporting: "Upgrade to Professional for detailed reports and insights!",
       loyalty_program: "Upgrade to Professional to build customer loyalty and increase retention!",
-      multi_location: "Upgrade to Business to manage multiple salon locations!",
+      multi_location: "Upgrade to Business to manage multiple business locations!",
       team_management: "Upgrade to Business for advanced team management features!",
       white_label: "Contact sales for white-label solutions",
       api_access: "Contact sales for API access and custom integrations",

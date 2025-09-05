@@ -12,6 +12,7 @@ import {
 interface SocialMediaKitProps {
   businessId: string
   businessName: string
+  businessType: string
   phoneNumber?: string
   bookingUrl: string
 }
@@ -19,10 +20,86 @@ interface SocialMediaKitProps {
 export default function SocialMediaKit({ 
   businessId, 
   businessName, 
+  businessType,
   phoneNumber, 
   bookingUrl 
 }: SocialMediaKitProps) {
   const [copiedItem, setCopiedItem] = useState<string | null>(null)
+
+  // Dynamic content based on business type
+  const getBusinessContent = (type: string) => {
+    const contentMap: Record<string, {
+      service: string
+      emoji: string
+      hashtags: string
+      action: string
+    }> = {
+      'nail salon': {
+        service: 'nail appointment',
+        emoji: '💅',
+        hashtags: '#nails #manicure #pedicure #nailart #nailsalon',
+        action: 'nail services'
+      },
+      'hair salon': {
+        service: 'hair appointment', 
+        emoji: '💇',
+        hashtags: '#hair #haircut #hairstylist #haircolor #salon',
+        action: 'hair services'
+      },
+      'day spa': {
+        service: 'spa appointment',
+        emoji: '🧖',
+        hashtags: '#spa #massage #facial #relaxation #wellness',
+        action: 'spa treatments'
+      },
+      'medical spa': {
+        service: 'treatment appointment',
+        emoji: '💫',
+        hashtags: '#medspa #botox #skincare #aesthetics #beauty',
+        action: 'aesthetic treatments'
+      },
+      'beauty salon': {
+        service: 'beauty appointment',
+        emoji: '✨',
+        hashtags: '#beauty #makeup #skincare #facials #beautysalon',
+        action: 'beauty services'
+      },
+      'massage therapy': {
+        service: 'massage appointment',
+        emoji: '💆',
+        hashtags: '#massage #therapy #relaxation #wellness #selfcare',
+        action: 'massage sessions'
+      },
+      'barbershop': {
+        service: 'haircut appointment',
+        emoji: '💈',
+        hashtags: '#barbershop #haircut #menshair #beard #grooming',
+        action: 'grooming services'
+      },
+      'esthetics': {
+        service: 'skincare appointment',
+        emoji: '🌟',
+        hashtags: '#skincare #facial #esthetics #antiaging #glowup',
+        action: 'skincare treatments'
+      },
+      'wellness center': {
+        service: 'wellness appointment',
+        emoji: '🧘',
+        hashtags: '#wellness #health #fitness #nutrition #selfcare',
+        action: 'wellness services'
+      },
+      'other': {
+        service: 'appointment',
+        emoji: '📅',
+        hashtags: '#booking #appointment #business #service',
+        action: 'services'
+      }
+    }
+    
+    return contentMap[type.toLowerCase()] || contentMap['other']
+  }
+  
+  const businessContent = getBusinessContent(businessType)
 
   const copyToClipboard = (text: string, item: string) => {
     navigator.clipboard.writeText(text)
@@ -35,20 +112,20 @@ export default function SocialMediaKit({
       platform: 'Instagram',
       icon: '📸',
       color: 'from-purple-400 to-pink-400',
-      caption: `✨ Book your next nail appointment instantly! ✨
+      caption: `${businessContent.emoji} Book your next ${businessContent.service} instantly! ${businessContent.emoji}
 
 📱 Click the link in our bio or call ${phoneNumber || '(phone number)'}
 ⏰ Available 24/7 - even when we're closed!
-💅 Full service menu available online
+${businessContent.emoji} Full service menu available online
 
-#NailSalon #BookOnline #NailArt #ManicurePedicure #${businessName.replace(/\s+/g, '')}`,
-      hashtags: '#nails #manicure #pedicure #bookings #nailart #nailsalon'
+#BookOnline #${businessName.replace(/\s+/g, '')} ${businessContent.hashtags}`,
+      hashtags: businessContent.hashtags
     },
     {
       platform: 'Facebook',
       icon: '👍',
       color: 'from-blue-500 to-blue-600',
-      caption: `🎉 Exciting News! You can now book your nail appointments online 24/7!
+      caption: `🎉 Exciting News! You can now book your ${businessContent.service}s online 24/7!
 
 No more waiting on hold or playing phone tag. Our new booking system lets you:
 ✅ See real-time availability
@@ -59,29 +136,29 @@ No more waiting on hold or playing phone tag. Our new booking system lets you:
 Book now: ${bookingUrl}
 Or call: ${phoneNumber || '(phone number)'}
 
-#NailSalon #OnlineBooking #Convenience #CustomerService`,
+#OnlineBooking #Convenience #CustomerService ${businessContent.hashtags}`,
       hashtags: ''
     },
     {
       platform: 'TikTok',
       icon: '🎵',
       color: 'from-black to-gray-800',
-      caption: `POV: You can finally book your nail appointment at 2am 🌙
+      caption: `POV: You can finally book your ${businessContent.service} at 2am 🌙
 
 ✨ 24/7 online booking now available
 📱 Link in bio
-💅 Your nails will thank you
+${businessContent.emoji} You'll thank yourself later
 
-#NailTok #BookingHack #NailSalon #ConvenienceQueen #NightOwlBooking`,
-      hashtags: '#nailtok #booking #nailsalon #convenience'
+#BookingHack #ConvenienceQueen #NightOwlBooking ${businessContent.hashtags}`,
+      hashtags: businessContent.hashtags
     },
     {
       platform: 'Stories/General',
       icon: '📱',
       color: 'from-gradient-to-r from-purple-500 to-blue-500',
-      caption: `Book your appointment online!
+      caption: `Book your ${businessContent.service} online!
 ${bookingUrl}
-Available 24/7 💅✨`,
+Available 24/7 ${businessContent.emoji}✨`,
       hashtags: ''
     }
   ]
@@ -194,7 +271,7 @@ Available 24/7 💅✨`,
           </div>
           <div className="flex items-start space-x-2">
             <span className="text-yellow-600">📸</span>
-            <span><strong>Post nail work photos</strong> with booking call-to-action</span>
+            <span><strong>Post photos of your work</strong> with booking call-to-action</span>
           </div>
           <div className="flex items-start space-x-2">
             <span className="text-yellow-600">⏰</span>
@@ -212,7 +289,7 @@ Available 24/7 💅✨`,
         <div className="flex items-center justify-between mb-4">
           <div>
             <h4 className="font-semibold">📱 QR Code for In-Store Use</h4>
-            <p className="text-sm text-gray-600">Print and display in your salon</p>
+            <p className="text-sm text-gray-600">Print and display in your business</p>
           </div>
         </div>
         
