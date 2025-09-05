@@ -93,10 +93,54 @@ function generateServicesForBusinessType(businessType: string): Array<{name: str
       { name: 'Makeup Application', price: 65, duration: 45, description: 'Professional makeup application' },
       { name: 'Waxing Service', price: 35, duration: 30, description: 'Professional waxing treatment' },
       { name: 'Skin Consultation', price: 50, duration: 30, description: 'Personalized skin analysis' }
+    ],
+    'Massage Therapy': [
+      { name: 'Swedish Massage', price: 90, duration: 60, description: 'Relaxing full body Swedish massage' },
+      { name: 'Deep Tissue Massage', price: 110, duration: 60, description: 'Therapeutic deep tissue massage' },
+      { name: 'Hot Stone Massage', price: 130, duration: 90, description: 'Heated stone massage therapy' },
+      { name: 'Sports Massage', price: 100, duration: 60, description: 'Athletic recovery massage' },
+      { name: 'Prenatal Massage', price: 95, duration: 60, description: 'Pregnancy-safe massage therapy' },
+      { name: 'Chair Massage', price: 60, duration: 30, description: 'Quick upper body massage' }
+    ],
+    'Barbershop': [
+      { name: 'Classic Haircut', price: 25, duration: 30, description: 'Traditional mens haircut' },
+      { name: 'Beard Trim', price: 15, duration: 20, description: 'Professional beard shaping' },
+      { name: 'Hot Towel Shave', price: 35, duration: 45, description: 'Traditional straight razor shave' },
+      { name: 'Haircut & Beard', price: 40, duration: 45, description: 'Complete grooming service' },
+      { name: 'Hair Wash & Style', price: 20, duration: 25, description: 'Shampoo and styling' },
+      { name: 'Mustache Trim', price: 10, duration: 15, description: 'Precision mustache grooming' }
+    ],
+    'Esthetics': [
+      { name: 'European Facial', price: 80, duration: 75, description: 'Deep cleansing facial treatment' },
+      { name: 'Anti-Aging Facial', price: 120, duration: 90, description: 'Advanced anti-aging treatment' },
+      { name: 'Acne Treatment', price: 90, duration: 60, description: 'Specialized acne facial' },
+      { name: 'Microdermabrasion', price: 100, duration: 60, description: 'Skin resurfacing treatment' },
+      { name: 'Chemical Peel', price: 130, duration: 45, description: 'Professional chemical peel' },
+      { name: 'Eyebrow Waxing', price: 25, duration: 20, description: 'Professional brow shaping' }
+    ],
+    'Wellness Center': [
+      { name: 'Wellness Consultation', price: 75, duration: 45, description: 'Comprehensive wellness assessment' },
+      { name: 'Nutritional Counseling', price: 90, duration: 60, description: 'Personalized nutrition guidance' },
+      { name: 'Stress Management', price: 80, duration: 50, description: 'Stress reduction techniques' },
+      { name: 'Meditation Session', price: 40, duration: 30, description: 'Guided meditation practice' },
+      { name: 'Yoga Class', price: 25, duration: 60, description: 'Group or individual yoga' },
+      { name: 'Health Coaching', price: 100, duration: 60, description: 'Lifestyle and wellness coaching' }
     ]
   }
 
-  return serviceMap[businessType] || serviceMap['Beauty Salon'] // Default to Beauty Salon services
+  // Handle "Other" and unknown business types with generic services
+  if (businessType === 'Other' || !serviceMap[businessType]) {
+    return [
+      { name: 'Consultation', price: 75, duration: 45, description: 'Initial consultation and assessment' },
+      { name: 'Basic Service', price: 50, duration: 30, description: 'Standard service offering' },
+      { name: 'Premium Service', price: 100, duration: 60, description: 'Enhanced service experience' },
+      { name: 'Package Deal', price: 150, duration: 90, description: 'Comprehensive service package' },
+      { name: 'Follow-up Session', price: 60, duration: 40, description: 'Ongoing care and maintenance' },
+      { name: 'Custom Treatment', price: 120, duration: 75, description: 'Personalized service approach' }
+    ]
+  }
+  
+  return serviceMap[businessType]
 }
 
 export async function POST(request: NextRequest) {
