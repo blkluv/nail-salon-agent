@@ -233,6 +233,11 @@ export default function PaymentProcessorsPage() {
               ) as Partial<PaymentProcessor> & { processor_type: 'square' | 'stripe' }}
               onSave={handleSaveProcessor}
               onTest={handleTestConnection}
+              businessId={business?.id}
+              onImportServices={async () => {
+                // Refresh services after import
+                window.location.href = '/dashboard/services'
+              }}
               isLoading={isLoading}
             />
 
@@ -244,6 +249,11 @@ export default function PaymentProcessorsPage() {
               ) as Partial<PaymentProcessor> & { processor_type: 'square' | 'stripe' }}
               onSave={handleSaveProcessor}
               onTest={handleTestConnection}
+              businessId={business?.id}
+              onImportServices={async () => {
+                // Refresh services after import
+                window.location.href = '/dashboard/services'
+              }}
               isLoading={isLoading}
             />
 

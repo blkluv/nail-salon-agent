@@ -7,7 +7,9 @@ import {
   EyeSlashIcon, 
   CheckCircleIcon,
   ExclamationTriangleIcon,
-  InformationCircleIcon
+  InformationCircleIcon,
+  ArrowDownTrayIcon,
+  SparklesIcon
 } from '@heroicons/react/24/outline'
 import type { PaymentProcessor } from '../lib/supabase-types-mvp'
 
@@ -15,21 +17,27 @@ interface PaymentProcessorConfigProps {
   processor: Partial<PaymentProcessor> & { processor_type: 'square' | 'stripe' | 'paypal' }
   onSave: (config: Partial<PaymentProcessor>) => Promise<void>
   onTest?: (config: Partial<PaymentProcessor>) => Promise<boolean>
+  onImportServices?: (processor: string, config: Partial<PaymentProcessor>) => Promise<void>
   isLoading?: boolean
   className?: string
+  businessId?: string
 }
 
 export default function PaymentProcessorConfig({
   processor,
   onSave,
   onTest,
+  onImportServices,
   isLoading = false,
-  className = ''
+  className = '',
+  businessId
 }: PaymentProcessorConfigProps) {
   const [config, setConfig] = useState<Partial<PaymentProcessor>>(processor)
   const [showSecrets, setShowSecrets] = useState(false)
   const [testStatus, setTestStatus] = useState<'idle' | 'testing' | 'success' | 'error'>('idle')
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [importStatus, setImportStatus] = useState<'idle' | 'importing' | 'success' | 'error'>('idle')
+  const [importResult, setImportResult] = useState<{ imported: number; skipped: number } | null>(null)
 
   const validateConfig = () => {
     const newErrors: Record<string, string> = {}
@@ -74,6 +82,45 @@ export default function PaymentProcessorConfig({
       setTestStatus('idle')
     } catch (error) {
       console.error('Failed to save processor config:', error)
+    }
+  }
+
+  const handleImportServices = async () => {
+    if (!businessId || !config.api_key_secret) {
+      alert('Please save your payment processor configuration first')
+      return
+    }
+
+    setImportStatus('importing')
+    setImportResult(null)
+    
+    try {
+      const response = await fetch('/api/payments/import-services', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          businessId,
+          processor: config.processor_type,
+          apiKey: config.processor_type === 'stripe' ? config.api_key_secret : undefined,
+          squareAccessToken: config.processor_type === 'square' ? config.api_key_secret : undefined
+        })
+      })
+
+      const data = await response.json()
+      
+      if (!response.ok) {
+        throw new Error(data.error || 'Import failed')
+      }
+
+      setImportStatus('success')
+      setImportResult({ imported: data.imported, skipped: data.skipped })
+      
+      if (onImportServices) {
+        await onImportServices(config.processor_type!, config)
+      }
+    } catch (error) {
+      console.error('Service import error:', error)
+      setImportStatus('error')
     }
   }
 
@@ -431,6 +478,32 @@ export default function PaymentProcessorConfig({
             </div>
           )}
 
+          {/* Import Status */}
+          {importStatus !== 'idle' && (
+            <div className={`p-3 rounded-md ${
+              importStatus === 'success' ? 'bg-green-50 border border-green-200' :
+              importStatus === 'error' ? 'bg-red-50 border border-red-200' :
+              'bg-blue-50 border border-blue-200'
+            }`}>
+              <div className="flex items-center">
+                {importStatus === 'success' && <SparklesIcon className="h-5 w-5 text-green-400" />}
+                {importStatus === 'error' && <ExclamationTriangleIcon className="h-5 w-5 text-red-400" />}
+                {importStatus === 'importing' && <ArrowDownTrayIcon className="h-5 w-5 text-blue-400 animate-bounce" />}
+                <div className="ml-3">
+                  <p className={`text-sm ${
+                    importStatus === 'success' ? 'text-green-700' :
+                    importStatus === 'error' ? 'text-red-700' :
+                    'text-blue-700'
+                  }`}>
+                    {importStatus === 'success' && importResult && `Successfully imported ${importResult.imported} services${importResult.skipped > 0 ? ` (${importResult.skipped} already existed)` : ''}!`}
+                    {importStatus === 'error' && 'Service import failed. Please check your configuration.'}
+                    {importStatus === 'importing' && 'Importing services from your catalog...'}
+                  </p>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Actions */}
           <div className="flex items-center justify-between pt-6 border-t border-gray-200">
             <a
@@ -443,6 +516,18 @@ export default function PaymentProcessorConfig({
             </a>
 
             <div className="flex items-center space-x-3">
+              {(config.processor_type === 'stripe' || config.processor_type === 'square') && businessId && (
+                <button
+                  type="button"
+                  onClick={handleImportServices}
+                  disabled={isLoading || importStatus === 'importing' || !config.api_key_secret}
+                  className="px-4 py-2 bg-gradient-to-r from-purple-500 to-indigo-500 text-white rounded-md text-sm font-medium hover:from-purple-600 hover:to-indigo-600 disabled:opacity-50 flex items-center space-x-2"
+                  title="Import your existing service catalog"
+                >
+                  <ArrowDownTrayIcon className="h-4 w-4" />
+                  <span>Import Services</span>
+                </button>
+              )}
               {onTest && (
                 <button
                   type="button"
