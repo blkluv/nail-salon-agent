@@ -48,7 +48,8 @@ export default function LandingPage() {
   const testimonials = [
     {
       name: "Sarah Johnson",
-      salon: "Glamour Nails NYC",
+      business: "Elite Hair Studio",
+      type: "Hair Salon",
       rating: 5,
       image: "SJ",
       quote: "We went from missing 40% of calls to capturing every single booking opportunity. Revenue up 35% in 2 months!",
@@ -56,7 +57,8 @@ export default function LandingPage() {
     },
     {
       name: "Michelle Kim",
-      salon: "Luxury Spa & Nails",
+      business: "Serenity Day Spa",
+      type: "Day Spa",
       rating: 5,
       image: "MK",
       quote: "The AI handles bookings so naturally, clients don't even realize they're not talking to a human. Absolutely game-changing!",
@@ -64,7 +66,8 @@ export default function LandingPage() {
     },
     {
       name: "Jessica Martinez",
-      salon: "Bella Vista Salon",
+      business: "Vintage Barbershop",
+      type: "Barbershop",
       rating: 5,
       image: "JM",
       quote: "I finally have my evenings back! The system handles everything while I'm home with my family.",
@@ -121,7 +124,7 @@ export default function LandingPage() {
       <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 text-center">
         <span className="font-semibold">✨ NEW: Free setup for early adopters</span>
         <span className="mx-2">•</span>
-        <span className="text-sm">Join salons already using AI to grow their business</span>
+        <span className="text-sm">Join service businesses already using AI to grow</span>
       </div>
 
       {/* Header */}
@@ -131,7 +134,7 @@ export default function LandingPage() {
             <div className="flex items-center space-x-2">
               <SparklesIcon className="h-8 w-8 text-purple-600" />
               <span className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                NailBooker AI
+                BookingAI Pro
               </span>
             </div>
             <nav className="flex items-center space-x-4">
@@ -171,11 +174,11 @@ export default function LandingPage() {
             {/* Trust Badge */}
             <div className="inline-flex items-center bg-blue-50 text-blue-800 px-4 py-2 rounded-full mb-6">
               <ShieldCheckIcon className="w-5 h-5 mr-2" />
-              <span className="text-sm font-semibold">Used by nail salons nationwide</span>
+              <span className="text-sm font-semibold">Used by service businesses nationwide</span>
             </div>
             
             <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-              Your Salon is Losing
+              Your Business is Losing
               <br />
               <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
                 $8,000/Month
@@ -188,7 +191,7 @@ export default function LandingPage() {
               60% of calls come after hours. Your competitors use AI to book them all.
             </p>
             <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
-              Join smart salon owners who never miss a booking with our AI receptionist that sounds completely human.
+              Join smart business owners who never miss a booking with our AI receptionist that sounds completely human.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
@@ -250,7 +253,7 @@ export default function LandingPage() {
         {/* Floating Elements */}
         <div className="absolute top-20 left-10 animate-bounce">
           <div className="bg-white rounded-lg shadow-lg p-3 transform rotate-3">
-            <span className="text-2xl">💅</span>
+            <span className="text-2xl">📅</span>
           </div>
         </div>
         <div className="absolute bottom-20 right-10 animate-bounce delay-150">
@@ -299,7 +302,7 @@ export default function LandingPage() {
                   <div className="w-6 h-6 rounded-full bg-red-100 text-red-600 flex items-center justify-center flex-shrink-0 mt-1">✕</div>
                   <div className="ml-3">
                     <p className="font-semibold">Customers go to competitors</p>
-                    <p className="text-gray-600 text-sm">They won't leave voicemails, they just call the next salon</p>
+                    <p className="text-gray-600 text-sm">They won't leave voicemails, they just call the next business</p>
                   </div>
                 </div>
                 <div className="flex items-start">
@@ -348,7 +351,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold mb-4">
-              Salon Owners <span className="text-purple-600">Love</span> The Results
+              Business Owners <span className="text-purple-600">Love</span> The Results
             </h2>
             <p className="text-xl text-gray-600">See what early adopters are saying</p>
           </div>
@@ -365,7 +368,7 @@ export default function LandingPage() {
                   </div>
                   <div className="ml-3">
                     <div className="font-semibold">{testimonial.name}</div>
-                    <div className="text-sm text-gray-600">{testimonial.salon}</div>
+                    <div className="text-sm text-gray-600">{testimonial.business} • {testimonial.type}</div>
                   </div>
                 </div>
                 <div className="flex mb-3">
@@ -384,7 +387,7 @@ export default function LandingPage() {
       <section className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold mb-4">Transform Your Salon in Minutes</h2>
+            <h2 className="text-4xl font-bold mb-4">Transform Your Business in Minutes</h2>
             <p className="text-xl text-gray-600">Everything you need to 10x your bookings</p>
           </div>
 
@@ -415,7 +418,7 @@ export default function LandingPage() {
           <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl overflow-hidden">
             <div className="grid grid-cols-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white">
               <div className="p-4"></div>
-              <div className="p-4 text-center font-bold">NailBooker AI</div>
+              <div className="p-4 text-center font-bold">BookingAI Pro</div>
               <div className="p-4 text-center font-bold">Old Way</div>
             </div>
             {comparisonPoints.map((point, index) => (
@@ -437,7 +440,7 @@ export default function LandingPage() {
       <section className="py-20 bg-gradient-to-br from-purple-600 to-pink-600 text-white">
         <div className="max-w-6xl mx-auto px-4 text-center">
           <h2 className="text-4xl font-bold mb-4">Simple, Transparent Pricing</h2>
-          <p className="text-xl mb-12 text-white/90">Choose the perfect plan to transform your salon</p>
+          <p className="text-xl mb-12 text-white/90">Choose the perfect plan to transform your business</p>
 
           <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
             {/* Starter Plan */}
@@ -498,7 +501,7 @@ export default function LandingPage() {
                 <div className="text-4xl font-bold mb-1">
                   $127<span className="text-lg text-gray-600">/month</span>
                 </div>
-                <p className="text-gray-600 text-sm">Best value for most salons</p>
+                <p className="text-gray-600 text-sm">Best value for most businesses</p>
               </div>
               
               <div className="space-y-3 mb-8">
@@ -543,7 +546,7 @@ export default function LandingPage() {
                 <div className="text-4xl font-bold mb-1">
                   $247<span className="text-lg text-gray-600">/month</span>
                 </div>
-                <p className="text-gray-600 text-sm">For growing salon chains</p>
+                <p className="text-gray-600 text-sm">For growing business chains</p>
               </div>
               
               <div className="space-y-3 mb-8">
@@ -643,7 +646,7 @@ export default function LandingPage() {
             <span className="text-purple-600"> Another Booking?</span>
           </h2>
           <p className="text-xl text-gray-700 mb-8">
-            Join forward-thinking salon owners who are already using AI to grow their business.
+            Join forward-thinking business owners who are already using AI to grow their business.
           </p>
 
           <button
@@ -667,10 +670,10 @@ export default function LandingPage() {
             <div>
               <div className="flex items-center space-x-2 mb-4">
                 <SparklesIcon className="h-8 w-8 text-purple-400" />
-                <span className="text-xl font-bold">NailBooker AI</span>
+                <span className="text-xl font-bold">BookingAI Pro</span>
               </div>
               <p className="text-gray-400 text-sm">
-                The smartest way to manage your nail salon bookings.
+                The smartest way to manage your business bookings.
               </p>
             </div>
 
@@ -708,7 +711,7 @@ export default function LandingPage() {
           <div className="border-t border-gray-800 mt-12 pt-8">
             <div className="flex flex-col md:flex-row justify-between items-center">
               <p className="text-gray-400 text-sm mb-4 md:mb-0">
-                © 2025 NailBooker AI. All rights reserved.
+                © 2025 BookingAI Pro. All rights reserved.
               </p>
               <div className="flex space-x-6 text-gray-400 text-sm">
                 <a href="#" className="hover:text-white transition">Privacy Policy</a>

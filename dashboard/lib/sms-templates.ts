@@ -1,8 +1,9 @@
-// SMS Message Templates for Nail Salon Business
+// SMS Message Templates for Service Business Platform
 
 export interface SMSTemplateData {
   customerName?: string
   businessName?: string
+  businessType?: string
   appointmentDate?: string
   appointmentTime?: string
   serviceName?: string
@@ -33,7 +34,7 @@ export class SMSTemplates {
 
 ${data.businessName}
 📅 ${data.appointmentDate} at ${data.appointmentTime}
-💅 ${data.serviceName}${data.servicePrice ? ' - $' + data.servicePrice : ''}
+🎯 ${data.serviceName}${data.servicePrice ? ' - $' + data.servicePrice : ''}
 📍 ${data.location || 'Main Location'}
 
 Confirmation: #${data.confirmationCode}
@@ -51,7 +52,7 @@ Thank you for choosing ${data.businessName}! 💖`
 
 Hi ${data.customerName}! Your appointment at ${data.businessName} is tomorrow at ${data.appointmentTime}.
 
-💅 Service: ${data.serviceName}
+🎯 Service: ${data.serviceName}
 📍 ${data.location || 'Main Location'}
 
 We're excited to see you! ✨
@@ -67,7 +68,7 @@ Reply RESCHEDULE if you need to change your appointment.`
 
 Hi ${data.customerName}! Your appointment at ${data.businessName} is in 2 hours (${data.appointmentTime}).
 
-💅 ${data.serviceName}
+🎯 ${data.serviceName}
 📍 ${data.location || 'Main Location'}
 
 See you soon! 💖
@@ -100,7 +101,7 @@ Your appointment has been moved:
 FROM: ${data.oldDate} at ${data.oldTime}
 TO: ${data.appointmentDate} at ${data.appointmentTime}
 
-💅 Service: ${data.serviceName}
+🎯 Service: ${data.serviceName}
 📍 ${data.location || 'Main Location'}
 
 Thanks for your flexibility! See you then! ✨`
@@ -128,9 +129,9 @@ Questions? Just reply to this message.`
   static welcomeNewCustomer(data: SMSTemplateData): string {
     return `👋 Welcome to ${data.businessName}!
 
-Hi ${data.customerName}! Thank you for choosing us for your beauty needs. We're excited to pamper you!
+Hi ${data.customerName}! Thank you for choosing us for your service needs. We're excited to serve you!
 
-💅 Book anytime: ${process.env.NEXT_PUBLIC_APP_URL || 'Call us'}
+📱 Book anytime: ${process.env.NEXT_PUBLIC_APP_URL || 'Call us'}
 📞 Questions? Just reply to this message
 🎁 First-time customer discount available!
 
@@ -164,7 +165,7 @@ ${data.expiryDate ? `Valid until: ${data.expiryDate}` : ''}
 
 Book now: ${process.env.NEXT_PUBLIC_APP_URL || 'Call us'}
 
-Terms apply. One-time use. 💅✨
+Terms apply. One-time use. ✨
 
 Reply STOP to opt out of promotions.`
   }
@@ -179,7 +180,7 @@ Celebrate your special day with us! ${data.businessName} wants to treat you to s
 
 🎁 Birthday Special: ${data.discount || '20% OFF'} your next service
 📅 Valid for 30 days from today
-💅 Any service of your choice!
+🎯 Any service of your choice!
 
 Book your birthday treat: ${process.env.NEXT_PUBLIC_APP_URL || 'Call us'}
 
@@ -194,7 +195,7 @@ Make it a beautiful day! 💖✨`
 
 ${data.businessName}
 📅 ${data.appointmentDate} at ${data.appointmentTime}
-💅 ${data.serviceName}
+🎯 ${data.serviceName}
 📍 ${data.location || 'Main Location'}
 
 Book now: ${process.env.NEXT_PUBLIC_APP_URL || 'Call us'}
@@ -206,11 +207,11 @@ This spot won't last long! ⏰`
    * Service Reminder (maintenance appointments)
    */
   static serviceReminder(data: SMSTemplateData): string {
-    return `💅 Time for Your Touch-Up!
+    return `💫 Time for Your Service!
 
 Hi ${data.customerName}! It's been a while since your last visit to ${data.businessName}.
 
-Your nails deserve some love! ✨
+You deserve some pampering! ✨
 
 🎁 Come back special: ${data.discount || '15% OFF'} your next service
 📱 Book easily: ${process.env.NEXT_PUBLIC_APP_URL || 'Call us'}
@@ -240,7 +241,7 @@ Looking forward to seeing you soon! ✨`
   static reviewRequest(data: SMSTemplateData): string {
     return `⭐ How Was Your Experience?
 
-Hi ${data.customerName}! Thank you for visiting ${data.businessName}. We hope you love your new nails! 💅
+Hi ${data.customerName}! Thank you for visiting ${data.businessName}. We hope you love the results! ✨
 
 We'd love to hear about your experience:
 📱 Leave a review: [Review Link]
@@ -272,9 +273,9 @@ Happy Holidays! ✨💖`
    * Staff Appreciation Template
    */
   static staffAppreciation(data: SMSTemplateData): string {
-    return `👩‍💅 Your Technician Rocks!
+    return `🎆 Your Service Provider Rocks!
 
-Hi ${data.customerName}! We're so glad you enjoyed your service with [Technician Name] at ${data.businessName}!
+Hi ${data.customerName}! We're so glad you enjoyed your service with [Service Provider Name] at ${data.businessName}!
 
 🌟 Consider leaving them a great review
 💝 Tips can be added to your next visit
@@ -319,14 +320,14 @@ Mon-Sat: 9:00 AM - 7:00 PM
 Sunday: 11:00 AM - 5:00 PM
 Call us: [Phone Number] 💖`,
     
-    pricing: "For current pricing, please visit our website or call us. We offer competitive rates and package deals! 💅✨",
+    pricing: "For current pricing, please visit our website or call us. We offer competitive rates and package deals! ✨",
     
     location: `We're located at:
 [Business Address]
 Easy parking available!
 📍 [Google Maps Link]`,
     
-    services: "We offer: Manicures, Pedicures, Gel Polish, Nail Art, and more! Visit our website or call to learn about all our services. 💅",
+    services: "We offer a full range of professional services! Visit our website or call to learn about all our services. 🎯",
     
     default: "Thanks for your message! For immediate assistance, please call us. We'll get back to you soon! 💖"
   }

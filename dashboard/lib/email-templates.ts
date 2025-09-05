@@ -1,8 +1,9 @@
-// Email Templates for Nail Salon Business
+// Email Templates for Service Business Platform
 
 export interface EmailTemplateData {
   customerName?: string
   businessName?: string
+  businessType?: string
   appointmentDate?: string
   appointmentTime?: string
   serviceName?: string
@@ -172,9 +173,132 @@ export class EmailTemplates {
   }
 
   /**
+   * Get business-specific content based on business type
+   */
+  private static getBusinessContent(businessType?: string) {
+    const type = (businessType || 'other').toLowerCase()
+    
+    const contentMap: Record<string, {
+      serviceWord: string
+      plural: string
+      carePhrase: string
+      expertTitle: string
+      specialties: string[]
+      hashtag: string
+      emoji: string
+      actionPhrase: string
+    }> = {
+      'nail salon': {
+        serviceWord: 'nail care',
+        plural: 'nails',
+        carePhrase: 'nail care needs',
+        expertTitle: 'Expert nail technicians',
+        specialties: ['Latest nail art and techniques', 'Premium nail products', 'Relaxing nail spa experience', 'Professional manicure & pedicure'],
+        hashtag: 'Nails',
+        emoji: '💅',
+        actionPhrase: 'beautiful nails'
+      },
+      'hair salon': {
+        serviceWord: 'hair care',
+        plural: 'hair',
+        carePhrase: 'hair care needs',
+        expertTitle: 'Expert hair stylists',
+        specialties: ['Latest hair trends and techniques', 'Premium hair products', 'Professional color services', 'Custom cuts and styling'],
+        hashtag: 'Hair',
+        emoji: '💇',
+        actionPhrase: 'beautiful hair'
+      },
+      'day spa': {
+        serviceWord: 'wellness',
+        plural: 'treatments',
+        carePhrase: 'wellness needs',
+        expertTitle: 'Expert spa therapists',
+        specialties: ['Relaxing massage therapy', 'Premium spa treatments', 'Rejuvenating facial services', 'Holistic wellness approach'],
+        hashtag: 'Spa',
+        emoji: '🧘',
+        actionPhrase: 'ultimate relaxation'
+      },
+      'medical spa': {
+        serviceWord: 'aesthetic care',
+        plural: 'treatments',
+        carePhrase: 'aesthetic care needs',
+        expertTitle: 'Licensed medical professionals',
+        specialties: ['Advanced aesthetic treatments', 'Medical-grade procedures', 'Professional skincare', 'Cutting-edge technology'],
+        hashtag: 'MedSpa',
+        emoji: '✨',
+        actionPhrase: 'aesthetic goals'
+      },
+      'beauty salon': {
+        serviceWord: 'beauty care',
+        plural: 'treatments',
+        carePhrase: 'beauty care needs',
+        expertTitle: 'Expert beauty professionals',
+        specialties: ['Full-service beauty treatments', 'Premium beauty products', 'Professional makeup services', 'Complete beauty transformation'],
+        hashtag: 'Beauty',
+        emoji: '✨',
+        actionPhrase: 'beauty goals'
+      },
+      'massage therapy': {
+        serviceWord: 'therapeutic care',
+        plural: 'sessions',
+        carePhrase: 'therapeutic needs',
+        expertTitle: 'Licensed massage therapists',
+        specialties: ['Therapeutic massage techniques', 'Pain relief and recovery', 'Stress reduction therapy', 'Customized treatment plans'],
+        hashtag: 'Massage',
+        emoji: '💆',
+        actionPhrase: 'wellness and relief'
+      },
+      'barbershop': {
+        serviceWord: 'grooming',
+        plural: 'services',
+        carePhrase: 'grooming needs',
+        expertTitle: 'Master barbers',
+        specialties: ['Classic and modern cuts', 'Professional beard grooming', 'Traditional hot towel shaves', 'Personalized styling'],
+        hashtag: 'Barber',
+        emoji: '💈',
+        actionPhrase: 'perfect look'
+      },
+      'esthetics': {
+        serviceWord: 'skincare',
+        plural: 'treatments',
+        carePhrase: 'skincare needs',
+        expertTitle: 'Licensed estheticians',
+        specialties: ['Professional skincare treatments', 'Anti-aging procedures', 'Acne treatment programs', 'Customized facial services'],
+        hashtag: 'Skincare',
+        emoji: '🌟',
+        actionPhrase: 'glowing skin'
+      },
+      'wellness center': {
+        serviceWord: 'wellness',
+        plural: 'services',
+        carePhrase: 'wellness needs',
+        expertTitle: 'Certified wellness coaches',
+        specialties: ['Holistic health programs', 'Nutrition and fitness guidance', 'Stress management techniques', 'Mind-body wellness'],
+        hashtag: 'Wellness',
+        emoji: '🌿',
+        actionPhrase: 'optimal wellness'
+      },
+      'other': {
+        serviceWord: 'service',
+        plural: 'services',
+        carePhrase: 'service needs',
+        expertTitle: 'Expert professionals',
+        specialties: ['Professional service delivery', 'Personalized attention', 'Quality results', 'Exceptional customer experience'],
+        hashtag: 'Service',
+        emoji: '⭐',
+        actionPhrase: 'service goals'
+      }
+    }
+    
+    return contentMap[type] || contentMap['other']
+  }
+
+  /**
    * Welcome Email Template
    */
   static welcomeEmail(data: EmailTemplateData): string {
+    const businessContent = this.getBusinessContent(data.businessType)
+    
     return `
 <!DOCTYPE html>
 <html>
@@ -189,8 +313,8 @@ export class EmailTemplates {
     ${this.getEmailHeader('👋 Welcome to ' + data.businessName + '!')}
     
     <div class="content">
-      <h2>Hello ${data.customerName || 'Beautiful'}!</h2>
-      <p>Welcome to the ${data.businessName} family! We're absolutely thrilled you've chosen us for your nail care needs.</p>
+      <h2>Hello ${data.customerName || 'there'}!</h2>
+      <p>Welcome to the ${data.businessName} family! We're absolutely thrilled you've chosen us for your ${businessContent.carePhrase}.</p>
       
       <div class="highlight text-center">
         <div class="emoji">🎁</div>
@@ -201,10 +325,8 @@ export class EmailTemplates {
 
       <h3>What makes us special:</h3>
       <ul>
-        <li>💅 Expert nail technicians with years of experience</li>
-        <li>✨ Latest trends, techniques, and nail art designs</li>
-        <li>🏆 Premium products and state-of-the-art equipment</li>
-        <li>😊 Relaxing, clean, and welcoming environment</li>
+        <li>${businessContent.emoji} ${businessContent.expertTitle} with years of experience</li>
+        ${businessContent.specialties.map(specialty => `<li>✨ ${specialty}</li>`).join('\n        ')}
         <li>📱 Easy 24/7 online booking system</li>
         <li>🎯 Exclusive loyalty rewards program</li>
       </ul>
@@ -215,7 +337,7 @@ export class EmailTemplates {
 
       <p>Have questions about our services or want to learn more? We're here to help! Simply reply to this email or give us a call.</p>
       
-      <p>We can't wait to pamper you and help you achieve the beautiful nails you deserve!</p>
+      <p>We can't wait to pamper you and help you achieve the ${businessContent.actionPhrase} you deserve!</p>
       
       <p style="margin-top: 30px;">
         With love and excitement,<br>
@@ -233,6 +355,8 @@ export class EmailTemplates {
    * Appointment Confirmation Email Template
    */
   static appointmentConfirmation(data: EmailTemplateData): string {
+    const businessContent = this.getBusinessContent(data.businessType)
+    
     return `
 <!DOCTYPE html>
 <html>
@@ -265,7 +389,7 @@ export class EmailTemplates {
         <ul>
           <li>Please arrive 10 minutes early</li>
           <li>Bring your confirmation code: <strong>#${data.confirmationCode}</strong></li>
-          <li>Have any nail inspiration photos ready</li>
+          <li>Have any inspiration photos or preferences ready</li>
           <li>Let us know about any allergies or preferences</li>
         </ul>
       </div>
@@ -279,7 +403,7 @@ export class EmailTemplates {
       
       <p style="margin-top: 30px;">
         Can't wait to see you soon!<br>
-        <strong>The ${data.businessName} Team</strong> 💅
+        <strong>The ${data.businessName} Team</strong> ${businessContent.emoji}
       </p>
     </div>
     
@@ -293,6 +417,7 @@ export class EmailTemplates {
    * Appointment Reminder Email Template
    */
   static appointmentReminder(data: EmailTemplateData, hoursAhead: number = 24): string {
+    const businessContent = this.getBusinessContent(data.businessType)
     const reminderTime = hoursAhead === 24 ? 'tomorrow' : `in ${hoursAhead} hours`
     
     return `
@@ -327,7 +452,7 @@ export class EmailTemplates {
           <li>✅ Arrive 10 minutes early</li>
           <li>✅ Bring your confirmation code</li>
           <li>✅ Have inspiration photos ready</li>
-          <li>✅ Remove any existing nail polish</li>
+          <li>✅ Remove any existing products if needed</li>
           <li>✅ Inform us of any allergies</li>
         </ul>
       </div>
@@ -448,8 +573,8 @@ export class EmailTemplates {
 
       <h3>Why choose ${data.businessName}?</h3>
       <ul>
-        <li>💅 <strong>Expert Technicians:</strong> Skilled professionals with years of experience</li>
-        <li>✨ <strong>Latest Trends:</strong> Stay ahead with the newest nail art and techniques</li>
+        <li>${businessContent.emoji} <strong>Expert Professionals:</strong> Skilled professionals with years of experience</li>
+        <li>✨ <strong>Latest Trends:</strong> Stay ahead with the newest techniques and services</li>
         <li>🏆 <strong>Premium Products:</strong> We use only the best, safest products</li>
         <li>😊 <strong>Relaxing Environment:</strong> Clean, comfortable, and welcoming space</li>
         <li>⏰ <strong>Flexible Scheduling:</strong> Easy online booking available 24/7</li>
@@ -480,6 +605,7 @@ export class EmailTemplates {
    * Review Request Email Template
    */
   static reviewRequest(data: EmailTemplateData): string {
+    const businessContent = this.getBusinessContent(data.businessType)
     return `
 <!DOCTYPE html>
 <html>
@@ -495,7 +621,7 @@ export class EmailTemplates {
     
     <div class="content">
       <h2>Hi ${data.customerName || 'there'}!</h2>
-      <p>Thank you for visiting ${data.businessName}! We hope you absolutely love your beautiful new nails.</p>
+      <p>Thank you for visiting ${data.businessName}! We hope you absolutely love your ${businessContent.actionPhrase}.</p>
       
       <div class="card text-center">
         <div class="review-stars">⭐⭐⭐⭐⭐</div>
@@ -509,12 +635,12 @@ export class EmailTemplates {
         ` : ''}
       </div>
 
-      <h3>📸 Show off your gorgeous nails!</h3>
+      <h3>📸 Show off your amazing results!</h3>
       <ul>
-        <li><strong>Take a photo</strong> of your beautiful nail art</li>
+        <li><strong>Take a photo</strong> of your ${businessContent.plural}</li>
         <li><strong>Tag us</strong> on Instagram, Facebook, or TikTok</li>
-        <li><strong>Share with friends</strong> and spread the nail love!</li>
-        <li><strong>Use hashtag</strong> #${data.businessName?.replace(/\s+/g, '')}Nails</li>
+        <li><strong>Share with friends</strong> and spread the love!</li>
+        <li><strong>Use hashtag</strong> #${data.businessName?.replace(/\s+/g, '')}${businessContent.hashtag}</li>
       </ul>
 
       <div class="highlight text-center">
@@ -545,6 +671,8 @@ export class EmailTemplates {
    * Birthday Special Email Template
    */
   static birthdaySpecial(data: EmailTemplateData): string {
+    const businessContent = this.getBusinessContent(data.businessType)
+    
     return `
 <!DOCTYPE html>
 <html>
@@ -582,18 +710,15 @@ export class EmailTemplates {
       <h3 style="text-align: center;">🎁 Make Your Day Extra Special</h3>
       <p style="text-align: center;">Treat yourself to:</p>
       <ul>
-        <li>💅 <strong>Luxury Manicure:</strong> Pamper your hands with our premium service</li>
-        <li>🦶 <strong>Relaxing Pedicure:</strong> Unwind with our spa pedicure experience</li>
-        <li>🎨 <strong>Birthday Nail Art:</strong> Custom designs to celebrate your day</li>
-        <li>✨ <strong>Full Nail Makeover:</strong> Complete transformation for your special day</li>
+        ${businessContent.specialties.map(specialty => `<li>${businessContent.emoji} <strong>${specialty.split(' ').slice(0,2).join(' ')}:</strong> ${specialty}</li>`).join('\n        ')}
       </ul>
 
       <div class="text-center" style="margin: 30px 0;">
-        <p style="font-size: 18px; color: #e91e63; font-weight: bold;">🌟 "Because every birthday deserves beautiful nails!" 🌟</p>
+        <p style="font-size: 18px; color: #e91e63; font-weight: bold;">🌟 "Because every birthday deserves ${businessContent.actionPhrase}!" 🌟</p>
       </div>
       
       <p style="margin-top: 30px; text-align: center; font-size: 18px;">
-        Wishing you a year filled with beauty, happiness, and fabulous nails!<br>
+        Wishing you a year filled with beauty, happiness, and amazing ${businessContent.plural}!<br>
         <strong>The ${data.businessName} Team</strong> 🎂💖
       </p>
     </div>
