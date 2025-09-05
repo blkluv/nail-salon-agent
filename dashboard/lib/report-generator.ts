@@ -132,7 +132,7 @@ export class ReportGenerator {
       topServices: [
         { name: 'Gel Manicure', bookings: 45, revenue: 3600 },
         { name: 'Pedicure', bookings: 32, revenue: 2560 },
-        { name: 'Nail Art', bookings: 28, revenue: 2240 }
+        { name: 'Signature Service', bookings: 28, revenue: 2240 }
       ],
       staffPerformance: [
         { name: 'Sarah Johnson', appointments: 52, revenue: 4160, utilizationRate: 88 },
@@ -173,7 +173,7 @@ export class ReportGenerator {
       topServices: [
         { name: 'Gel Manicure', bookings: 195, revenue: 15600 },
         { name: 'Pedicure', bookings: 142, revenue: 11360 },
-        { name: 'Nail Art', bookings: 128, revenue: 10240 },
+        { name: 'Signature Service', bookings: 128, revenue: 10240 },
         { name: 'French Tips', bookings: 89, revenue: 7120 },
         { name: 'Polish Change', bookings: 58, revenue: 2320 }
       ],

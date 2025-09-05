@@ -900,7 +900,7 @@ export class BusinessAPI {
               { ...customer, id: customerId },
               pointsEarned,
               newBalance,
-              businessData || { name: 'Your Salon' }
+              businessData || { name: 'Your Business' }
             )
           } catch (emailError) {
             console.error('Failed to send loyalty points email:', emailError)

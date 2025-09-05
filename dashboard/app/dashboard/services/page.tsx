@@ -163,7 +163,7 @@ export default function ServicesPage() {
             <p className="text-gray-600 mt-1">
               {services.length === 0 
                 ? 'No services yet - Add your first service to get started!'
-                : `Managing ${services.length} services for your salon`
+                : `Managing ${services.length} services for your business`
               }
             </p>
           </div>

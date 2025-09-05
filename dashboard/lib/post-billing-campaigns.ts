@@ -109,7 +109,7 @@ export const ACTIVATION_CAMPAIGNS: ActivationCampaign[] = [
     preheader: 'Missed calls = missed revenue',
     psychologyTrigger: 'You\'re paying $67/month but missing 40% of potential bookings',
     features: [
-      'Average salon misses 15 calls per week',
+      'Average business misses 15 calls per week',
       'That\'s $750 in lost revenue monthly',
       'Your AI could be capturing these NOW',
       'Full refund if not satisfied'

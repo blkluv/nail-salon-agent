@@ -136,15 +136,15 @@ export class PayPalService {
             currency_code: 'USD',
             value: data.amount.toFixed(2)
           },
-          description: data.description || `${business?.name || 'Nail Salon'} - ${appointment?.service?.name || 'Service'}`,
+          description: data.description || `${business?.name || 'Service Business'} - ${appointment?.service?.name || 'Service'}`,
           custom_id: data.appointmentId,
           invoice_id: `APP-${data.appointmentId}-${Date.now()}`,
-          soft_descriptor: business?.name?.substring(0, 22) || 'Nail Salon'
+          soft_descriptor: business?.name?.substring(0, 22) || 'Service Business'
         }],
         application_context: {
           return_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/payments/success`,
           cancel_url: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/payments/cancel`,
-          brand_name: business?.name || 'Nail Salon',
+          brand_name: business?.name || 'Service Business',
           landing_page: 'LOGIN',
           user_action: 'PAY_NOW'
         }

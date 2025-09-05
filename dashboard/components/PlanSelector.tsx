@@ -36,7 +36,7 @@ const PLANS: PlanDetails[] = [
     name: 'Starter',
     price: 67,
     yearlyPrice: 670,
-    description: 'Perfect for single-location salons',
+    description: 'Perfect for single-location businesses',
     features: [
       '24/7 AI Voice Assistant',
       'Smart Web Booking Widget', 

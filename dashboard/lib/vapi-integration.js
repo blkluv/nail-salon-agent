@@ -71,7 +71,7 @@ export async function createCustomAssistant(businessData) {
       body: JSON.stringify({
         name: `${businessData.name} Concierge`,
         firstMessage: `Thank you for calling ${businessData.name}! How can I help you today?`,
-        systemMessage: `You are a helpful booking assistant for ${businessData.name}, a nail salon. 
+        systemMessage: `You are a helpful booking assistant for ${businessData.name}, a service business. 
         Help customers book appointments, check availability, and answer questions about services.
         
         Business Hours: ${businessData.hours}
