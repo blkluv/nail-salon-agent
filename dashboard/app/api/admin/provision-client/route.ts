@@ -205,15 +205,12 @@ async function handleRapidSetup(body: RapidSetupRequest) {
         customer: customerId,
       })
 
-      // Perform $0 authorization to validate the payment method
-      const paymentIntent = await stripe.paymentIntents.create({
-        amount: 0, // $0 authorization
-        currency: 'usd',
+      // Use SetupIntent for $0 authorization (Stripe's recommended way for card validation)
+      const setupIntent = await stripe.setupIntents.create({
         customer: customerId,
         payment_method: body.paymentMethodId,
-        confirmation_method: 'manual',
         confirm: true,
-        setup_future_usage: 'off_session',
+        usage: 'off_session', // Allow future charges without customer present
         description: `Payment validation for ${body.businessInfo.name} - ${body.selectedPlan} plan trial`,
         metadata: {
           business_name: body.businessInfo.name,
@@ -222,7 +219,14 @@ async function handleRapidSetup(body: RapidSetupRequest) {
         }
       })
 
-      console.log('✅ $0 authorization successful - payment method validated')
+      // Set as default payment method for future subscription charges
+      await stripe.customers.update(customerId, {
+        invoice_settings: {
+          default_payment_method: body.paymentMethodId,
+        },
+      })
+
+      console.log('✅ Payment method validated and saved for future use')
 
     } catch (paymentError) {
       console.error('❌ Payment validation failed:', paymentError)
