@@ -3,9 +3,14 @@
 import React, { useState } from 'react'
 import { loadStripe } from '@stripe/stripe-js'
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js'
+import StripeDebugHelper from './StripeDebugHelper'
 
-// Initialize Stripe
-const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!)
+// Initialize Stripe with your publishable key
+const stripePromise = loadStripe(
+  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || 
+  // TODO: Replace this with your actual Stripe publishable key
+  'pk_test_51OYourActualStripePublishableKeyHere'
+)
 
 export type PlanTier = 'starter' | 'professional' | 'business'
 
@@ -90,6 +95,17 @@ function PaymentForm({ selectedPlan, isYearly, onPaymentComplete, loading }: Pay
   const elements = useElements()
   const [paymentError, setPaymentError] = useState<string | null>(null)
   const [processing, setProcessing] = useState(false)
+  const [stripeReady, setStripeReady] = useState(false)
+
+  // Check if Stripe is ready
+  React.useEffect(() => {
+    if (stripe && elements) {
+      setStripeReady(true)
+      console.log('Stripe is ready for input')
+    } else {
+      console.log('Stripe not ready yet...', { stripe: !!stripe, elements: !!elements })
+    }
+  }, [stripe, elements])
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault()
@@ -142,6 +158,26 @@ function PaymentForm({ selectedPlan, isYearly, onPaymentComplete, loading }: Pay
   const price = isYearly ? selectedPlan.yearlyPrice : selectedPlan.price
   const priceLabel = isYearly ? 'year' : 'month'
 
+  // Show loading state while Stripe initializes
+  if (!stripeReady) {
+    return (
+      <div className="bg-white rounded-lg border-2 border-blue-500 shadow-lg p-6">
+        <div className="text-center mb-6">
+          <h3 className="text-2xl font-bold text-gray-900 mb-2">
+            {selectedPlan.name} Plan
+          </h3>
+          <div className="text-3xl font-bold text-blue-600 mb-2">
+            ${price}<span className="text-lg text-gray-500">/{priceLabel}</span>
+          </div>
+        </div>
+        <div className="text-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto"></div>
+          <p className="text-gray-600 mt-2">Loading secure payment form...</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="bg-white rounded-lg border-2 border-blue-500 shadow-lg p-6">
       <div className="text-center mb-6">
@@ -159,22 +195,46 @@ function PaymentForm({ selectedPlan, isYearly, onPaymentComplete, loading }: Pay
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="p-4 border rounded-lg bg-gray-50">
-          <CardElement 
-            options={{
-              style: {
-                base: {
-                  fontSize: '16px',
-                  color: '#374151',
-                  '::placeholder': {
-                    color: '#9CA3AF',
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="space-y-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Card Information
+          </label>
+          <div className="p-4 border-2 border-gray-200 rounded-lg bg-white focus-within:border-blue-500 focus-within:ring-1 focus-within:ring-blue-500">
+            <CardElement 
+              options={{
+                style: {
+                  base: {
+                    fontSize: '16px',
+                    color: '#374151',
+                    fontFamily: 'system-ui, -apple-system, sans-serif',
+                    lineHeight: '24px',
+                    '::placeholder': {
+                      color: '#9CA3AF',
+                    },
+                  },
+                  invalid: {
+                    color: '#EF4444',
                   },
                 },
-              },
-            }}
-          />
+                hidePostalCode: false,
+              }}
+              onChange={(event) => {
+                if (event.error) {
+                  setPaymentError(event.error.message)
+                } else {
+                  setPaymentError(null)
+                }
+              }}
+            />
+          </div>
+          <p className="text-xs text-gray-500">
+            Enter your card number, expiry date, CVC, and postal code
+          </p>
         </div>
+
+        {/* Debug Helper - Remove in production */}
+        <StripeDebugHelper />
 
         {paymentError && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
