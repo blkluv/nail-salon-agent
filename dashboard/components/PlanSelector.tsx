@@ -7,9 +7,7 @@ import StripeDebugHelper from './StripeDebugHelper'
 
 // Initialize Stripe with your publishable key
 const stripePromise = loadStripe(
-  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY || 
-  // TODO: Replace this with your actual Stripe publishable key
-  'pk_test_51OYourActualStripePublishableKeyHere'
+  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
 )
 
 export type PlanTier = 'starter' | 'professional' | 'business'
