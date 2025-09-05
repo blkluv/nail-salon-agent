@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { XMarkIcon, ChevronRightIcon, SparklesIcon, ExclamationTriangleIcon, TrophyIcon, CurrencyDollarIcon } from '@heroicons/react/24/solid'
+import { XMarkIcon, ChevronRightIcon, SparklesIcon, ExclamationTriangleIcon, TrophyIcon, CurrencyDollarIcon, StarIcon, BuildingOffice2Icon } from '@heroicons/react/24/solid'
 import { useRouter } from 'next/navigation'
 
 interface Notification {
@@ -89,7 +89,7 @@ export default function DashboardNotifications({
           type: 'activation',
           priority: 'high',
           title: 'Ready to Forward Your Business Number?',
-          message: 'You've tested your AI - now start capturing real bookings by forwarding your business line.',
+          message: 'You\'ve tested your AI - now start capturing real bookings by forwarding your business line.',
           cta: {
             text: 'Setup Phone Forwarding',
             action: 'phone-forwarding'
@@ -106,7 +106,7 @@ export default function DashboardNotifications({
           type: 'activation',
           priority: 'high',
           title: '💳 Payment Processing Available',
-          message: 'Reduce no-shows by 70% with automatic payment collection. You're already paying for it!',
+          message: 'Reduce no-shows by 70% with automatic payment collection. You\'re already paying for it!',
           cta: {
             text: 'Activate Payments',
             action: 'payment-setup'
@@ -156,8 +156,8 @@ export default function DashboardNotifications({
         id: 'unused-features-warning',
         type: 'warning',
         priority: 'high',
-        title: '⚠️ You're Paying for Unused Features',
-        message: `You've invested $${tier === 'starter' ? 67 : tier === 'professional' ? 147 : 297}/month but haven't activated key features.`,
+        title: '⚠️ You\'re Paying for Unused Features',
+        message: `You\'ve invested $${tier === 'starter' ? 67 : tier === 'professional' ? 147 : 297}/month but haven\'t activated key features.`,
         cta: {
           text: 'Get Setup Help',
           action: 'request-help'

@@ -26,12 +26,12 @@ export const PSYCHOLOGY_TRIGGERS = {
   professional: {
     primary: 'Your advanced features are now unlocked',
     secondary: 'Analytics, loyalty programs, and payment processing are waiting',
-    motivation: 'You're paying for premium features - let's activate them to boost revenue'
+    motivation: 'You\'re paying for premium features - let\'s activate them to boost revenue'
   },
   business: {
     primary: 'Your enterprise system is fully activated',
     secondary: 'Custom AI, multi-location support, and white-label options are ready',
-    motivation: 'Your investment in growth is active - let's scale your business'
+    motivation: 'Your investment in growth is active - let\'s scale your business'
   }
 }
 
@@ -74,7 +74,7 @@ export const ACTIVATION_CAMPAIGNS: ActivationCampaign[] = [
     day: 3,
     subject: '📞 Have You Tested Your AI Yet?',
     preheader: 'Your dedicated number is waiting for calls',
-    psychologyTrigger: 'You're paying for an AI that could be booking appointments right now',
+    psychologyTrigger: 'You\'re paying for an AI that could be booking appointments right now',
     features: [
       'Make a test call to see how professional it sounds',
       'Share the number with friends for feedback',
@@ -89,8 +89,8 @@ export const ACTIVATION_CAMPAIGNS: ActivationCampaign[] = [
     tier: 'starter',
     day: 7,
     subject: '🚀 Ready to Forward Your Business Number?',
-    preheader: 'You've been paying for a week - time to go live',
-    psychologyTrigger: 'You've invested in 24/7 coverage - don't leave it unused',
+    preheader: 'You\'ve been paying for a week - time to go live',
+    psychologyTrigger: 'You\'ve invested in 24/7 coverage - don\'t leave it unused',
     features: [
       'Simple 2-minute forwarding setup',
       'Instant rollback if needed',

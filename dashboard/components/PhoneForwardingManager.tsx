@@ -544,7 +544,7 @@ function PhoneForwardingSetupWizard({
                 disabled={isProcessing}
                 className="bg-green-600 text-white px-6 py-3 rounded-lg font-semibold hover:bg-green-700 transition-colors disabled:opacity-50"
               >
-                {isProcessing ? '⏳ Setting Up...' : '✅ I've Set Up Forwarding'}
+                {isProcessing ? '⏳ Setting Up...' : '✅ I\'ve Set Up Forwarding'}
               </button>
               <button
                 onClick={() => setStep(1)}
@@ -581,12 +581,12 @@ function ConfidenceBuilderModal({
         <div className="space-y-3 mb-6">
           <div className="bg-blue-50 p-3 rounded-lg">
             <p className="font-medium text-blue-900">Scenario 1: Basic Booking</p>
-            <p className="text-blue-800 text-sm">"Hi, I'd like to book a manicure for tomorrow afternoon"</p>
+            <p className="text-blue-800 text-sm">"Hi, I\'d like to book a manicure for tomorrow afternoon"</p>
           </div>
           
           <div className="bg-green-50 p-3 rounded-lg">
             <p className="font-medium text-green-900">Scenario 2: Complex Request</p>
-            <p className="text-green-800 text-sm">"I need gel polish removal and a new set, what's your availability this week?"</p>
+            <p className="text-green-800 text-sm">"I need gel polish removal and a new set, what\'s your availability this week?"</p>
           </div>
           
           <div className="bg-purple-50 p-3 rounded-lg">
