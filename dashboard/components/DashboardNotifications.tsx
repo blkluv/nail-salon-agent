@@ -326,4 +326,3 @@ export default function DashboardNotifications({
 }
 
 // Import for missing icon
-import { BuildingOffice2Icon, StarIcon } from '@heroicons/react/24/solid'
