@@ -6,9 +6,9 @@ import { Elements, CardElement, useStripe, useElements } from '@stripe/react-str
 import StripeDebugHelper from './StripeDebugHelper'
 
 // Initialize Stripe with your publishable key
-const stripePromise = loadStripe(
-  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
-)
+const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY 
+  ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
+  : Promise.resolve(null)
 
 export type PlanTier = 'starter' | 'professional' | 'business'
 
@@ -102,6 +102,16 @@ function PaymentForm({ selectedPlan, isYearly, onPaymentComplete, loading }: Pay
       console.log('Stripe is ready for input')
     } else {
       console.log('Stripe not ready yet...', { stripe: !!stripe, elements: !!elements })
+      
+      // Add timeout to detect if Stripe fails to load
+      const timeout = setTimeout(() => {
+        if (!stripe || !elements) {
+          console.error('Stripe failed to load after 10 seconds')
+          setPaymentError('Payment system failed to load. Please check your internet connection and try again.')
+        }
+      }, 10000)
+      
+      return () => clearTimeout(timeout)
     }
   }, [stripe, elements])
 
@@ -156,7 +166,33 @@ function PaymentForm({ selectedPlan, isYearly, onPaymentComplete, loading }: Pay
   const price = isYearly ? selectedPlan.yearlyPrice : selectedPlan.price
   const priceLabel = isYearly ? 'year' : 'month'
 
-  // Show loading state while Stripe initializes
+  // Check if Stripe publishable key is available
+  const hasStripeKey = !!process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
+
+  // Show error state if Stripe key is missing
+  if (!hasStripeKey) {
+    return (
+      <div className="bg-white rounded-lg border-2 border-red-500 shadow-lg p-6">
+        <div className="text-center mb-6">
+          <h3 className="text-2xl font-bold text-gray-900 mb-2">
+            {selectedPlan.name} Plan
+          </h3>
+          <div className="text-3xl font-bold text-blue-600 mb-2">
+            ${price}<span className="text-lg text-gray-500">/{priceLabel}</span>
+          </div>
+        </div>
+        <div className="text-center py-8">
+          <div className="text-red-600 mb-4">⚠️ Payment Configuration Issue</div>
+          <p className="text-gray-600 mb-4">The payment system is not properly configured.</p>
+          <p className="text-sm text-gray-500">
+            Please contact support or set up the Stripe integration in the environment variables.
+          </p>
+        </div>
+      </div>
+    )
+  }
+
+  // Show loading state while Stripe initializes  
   if (!stripeReady) {
     return (
       <div className="bg-white rounded-lg border-2 border-blue-500 shadow-lg p-6">
