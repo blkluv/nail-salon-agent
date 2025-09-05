@@ -541,6 +541,7 @@ export class EmailTemplates {
    * Promotional Email Template
    */
   static promotionalEmail(data: EmailTemplateData): string {
+    const businessContent = this.getBusinessContent(data.businessType)
     return `
 <!DOCTYPE html>
 <html>
