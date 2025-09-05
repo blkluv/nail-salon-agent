@@ -11,6 +11,7 @@ import PhoneForwardingIntro from './steps/PhoneForwardingIntro'
 import AdvancedAnalytics from './steps/AdvancedAnalytics'
 import BusinessProfileSetup from './steps/BusinessProfileSetup'
 import EmailMarketingSetup from './steps/EmailMarketingSetup'
+import StaffManagementSetup from './steps/StaffManagementSetup'
 
 export interface BusinessTourProps {
   businessName: string
@@ -161,6 +162,23 @@ export default function BusinessTour({
       skipMessage: 'Set up email marketing when ready to engage customers',
       estimatedTime: 6,
       completedMessage: 'Your email marketing campaigns are ready across all locations!'
+    },
+    {
+      id: 'staff-management-enterprise',
+      title: 'Enterprise Staff Management',
+      description: 'Set up unlimited staff across all your locations',
+      component: (props) => (
+        <StaffManagementSetup 
+          {...props}
+          planTier="business"
+          businessName={businessName}
+        />
+      ),
+      required: false,
+      canSkip: true,
+      skipMessage: 'Add staff anytime from Dashboard → Staff',
+      estimatedTime: 6,
+      completedMessage: 'Your staff can now take bookings across all locations!'
     },
     {
       id: 'loyalty-program-enterprise', 

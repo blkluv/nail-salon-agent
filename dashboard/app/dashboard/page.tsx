@@ -1,6 +1,7 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
 import Layout from '../../components/Layout'
 import ProtectedRoute from '../../components/ProtectedRoute'
 import { BusinessAPI, LocationAPIImpl, PaymentAPIImpl, LoyaltyAPIImpl, type Business, type DashboardStats, type Appointment } from '../../lib/supabase'
@@ -23,6 +24,11 @@ import { format, isToday, isTomorrow } from 'date-fns'
 import { getCurrentBusinessId } from '../../lib/auth-utils'
 import { getSecureBusinessId, redirectToLoginIfUnauthenticated } from '../../lib/multi-tenant-auth'
 
+// Import tour components
+import StarterTour from '../../components/tours/StarterTour'
+import ProfessionalTour from '../../components/tours/ProfessionalTour'
+import BusinessTour from '../../components/tours/BusinessTour'
+
 // Get business ID with multi-tenant security
 const getBusinessId = () => {
   return getSecureBusinessId()
@@ -30,6 +36,7 @@ const getBusinessId = () => {
 
 
 function DashboardPage() {
+  const searchParams = useSearchParams()
   const [business, setBusiness] = useState<Business | null>(null)
   const [stats, setStats] = useState<DashboardStats>({
     totalAppointments: 0,
@@ -44,10 +51,39 @@ function DashboardPage() {
   const [loyaltyStats, setLoyaltyStats] = useState({ totalMembers: 0, pointsAwarded: 0 })
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  
+  // Tour state management
+  const [showOnboardingTour, setShowOnboardingTour] = useState(false)
+  const [onboardingPlan, setOnboardingPlan] = useState<'starter' | 'professional' | 'business' | null>(null)
+  const [businessPhoneNumber, setBusinessPhoneNumber] = useState<string>('')
+  const [existingPhoneNumber, setExistingPhoneNumber] = useState<string>('')
 
   useEffect(() => {
     loadDashboardData()
   }, [])
+
+  // Check for onboarding query parameter
+  useEffect(() => {
+    const shouldShowTour = searchParams.get('onboarding') === 'true'
+    const planFromUrl = searchParams.get('plan') as 'starter' | 'professional' | 'business' | null
+    
+    console.log('🎯 Dashboard checking onboarding params:', { shouldShowTour, planFromUrl })
+    
+    if (shouldShowTour && planFromUrl && business) {
+      console.log('✅ Triggering Phase 2 onboarding tour for plan:', planFromUrl)
+      setOnboardingPlan(planFromUrl)
+      setShowOnboardingTour(true)
+      
+      // Get phone numbers from localStorage if available
+      const storedBusinessId = localStorage.getItem('authenticated_business_id')
+      if (storedBusinessId) {
+        // We'll need to get the actual phone numbers from the business data
+        // For now, use placeholder values
+        setBusinessPhoneNumber('(424) 351-9304') // This should come from business data
+        setExistingPhoneNumber(business.phone || 'Not available')
+      }
+    }
+  }, [searchParams, business])
 
   useEffect(() => {
     // Reload appointments when location filter changes
@@ -152,6 +188,27 @@ function DashboardPage() {
       case 'cancelled': return 'bg-red-100 text-red-800'
       default: return 'bg-gray-100 text-gray-800'
     }
+  }
+
+  const handleTourComplete = () => {
+    console.log('🎉 Phase 2 onboarding tour completed!')
+    setShowOnboardingTour(false)
+    setOnboardingPlan(null)
+    
+    // Clear onboarding query parameters from URL
+    const newUrl = new URL(window.location.href)
+    newUrl.searchParams.delete('onboarding')
+    newUrl.searchParams.delete('plan')
+    window.history.replaceState({}, '', newUrl.toString())
+    
+    // Show success message or redirect to normal dashboard
+    console.log('✅ User is now ready to use the full dashboard!')
+  }
+
+  const handleTourExit = () => {
+    console.log('🔄 User exited onboarding tour - saving progress')
+    setShowOnboardingTour(false)
+    // Keep tour state for resume later
   }
 
   if (loading) {
@@ -746,15 +803,63 @@ function DashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* Phase 2 Onboarding Tours */}
+      {showOnboardingTour && onboardingPlan && business && (
+        <>
+          {onboardingPlan === 'starter' && (
+            <StarterTour
+              businessName={business.name}
+              phoneNumber={businessPhoneNumber}
+              existingPhoneNumber={existingPhoneNumber}
+              onComplete={handleTourComplete}
+              onExit={handleTourExit}
+            />
+          )}
+          
+          {onboardingPlan === 'professional' && (
+            <ProfessionalTour
+              businessName={business.name}
+              phoneNumber={businessPhoneNumber}
+              existingPhoneNumber={existingPhoneNumber}
+              onComplete={handleTourComplete}
+              onExit={handleTourExit}
+            />
+          )}
+          
+          {onboardingPlan === 'business' && (
+            <BusinessTour
+              businessName={business.name}
+              phoneNumber={businessPhoneNumber}
+              existingPhoneNumber={existingPhoneNumber}
+              onComplete={handleTourComplete}
+              onExit={handleTourExit}
+            />
+          )}
+        </>
+      )}
     </Layout>
   )
 }
 
-// Wrap the entire component with ProtectedRoute
+// Wrap the entire component with ProtectedRoute and Suspense
 function ProtectedDashboardPage() {
   return (
     <ProtectedRoute>
-      <DashboardPage />
+      <Suspense fallback={
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 rounded w-1/4 mb-8"></div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+              {[1,2,3,4].map((i) => (
+                <div key={i} className="h-24 bg-gray-200 rounded"></div>
+              ))}
+            </div>
+          </div>
+        </div>
+      }>
+        <DashboardPage />
+      </Suspense>
     </ProtectedRoute>
   )
 }

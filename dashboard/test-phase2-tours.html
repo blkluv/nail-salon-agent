@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phase 2 Tour Testing Guide</title>
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        .test-section {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .step {
+            background: white;
+            border-left: 4px solid #007bff;
+            padding: 15px;
+            margin: 10px 0;
+        }
+        .code {
+            background: #f1f3f4;
+            border-radius: 4px;
+            padding: 10px;
+            font-family: 'Monaco', 'Consolas', monospace;
+            font-size: 14px;
+            margin: 10px 0;
+            overflow-x: auto;
+        }
+        .success { border-left-color: #28a745; }
+        .warning { border-left-color: #ffc107; }
+        .danger { border-left-color: #dc3545; }
+        .button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        .button:hover { background: #0056b3; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Phase 2 Tour Testing Guide</h1>
+    <p><strong>Status:</strong> Testing Option C implementation with staff management integration</p>
+
+    <div class="test-section">
+        <h2>📋 Test Overview</h2>
+        <p>This guide will help you test the complete Phase 2 tour system including:</p>
+        <ul>
+            <li>✅ Tour triggering from dashboard with query parameters</li>
+            <li>✅ Staff management step in Professional and Business tours</li>
+            <li>✅ "Apply Settings" buttons that create real database records</li>
+            <li>✅ Data persistence verification in dashboard</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h2>🚀 Quick Test Triggers</h2>
+        <p>Use these buttons to directly trigger each tour type:</p>
+        
+        <button class="button" onclick="triggerStarterTour()">Test Starter Tour (10 min)</button>
+        <button class="button" onclick="triggerProfessionalTour()">Test Professional Tour (20 min)</button>
+        <button class="button" onclick="triggerBusinessTour()">Test Business Tour (30 min)</button>
+        
+        <div class="code">
+            <strong>What these buttons do:</strong><br>
+            - Open dashboard with onboarding=true&plan={tier}<br>
+            - Dashboard detects parameters and triggers Phase 2 tour<br>
+            - You can test the complete guided experience
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>📝 Manual Testing Steps</h2>
+        
+        <div class="step">
+            <h3>Step 1: Start Development Server</h3>
+            <div class="code">
+cd /path/to/vapi-nail-salon-agent/dashboard
+npm run dev
+            </div>
+            <p>Ensure your dashboard is running on http://localhost:3000</p>
+        </div>
+
+        <div class="step">
+            <h3>Step 2: Set Up Test Authentication</h3>
+            <div class="code">
+// Open browser console (F12) and run:
+localStorage.setItem("authenticated_business_id", "bb18c6ca-7e97-449d-8245-e3c28a6b6971")
+localStorage.setItem("authenticated_business_name", "Bella's Nails Studio")  
+localStorage.setItem("authenticated_user_email", "bella@bellasnails.com")
+
+// Then refresh the page
+location.reload()
+            </div>
+            <p>This authenticates you as the test business "Bella's Nails Studio"</p>
+        </div>
+
+        <div class="step success">
+            <h3>Step 3: Test Professional Tour (Staff Management Focus)</h3>
+            <p>Navigate to: <code>http://localhost:3000/dashboard?onboarding=true&plan=professional</code></p>
+            <p><strong>Expected Behavior:</strong></p>
+            <ul>
+                <li>Dashboard triggers Professional tour automatically</li>
+                <li>Tour includes "Add Your Team Members" step (#4)</li>
+                <li>Staff management step shows default team member (Alex Johnson)</li>
+                <li>"Apply Settings" button creates real staff records</li>
+                <li>Tour continues to remaining Professional features</li>
+            </ul>
+        </div>
+
+        <div class="step success">
+            <h3>Step 4: Test Business Tour (Full Staff Management)</h3>
+            <p>Navigate to: <code>http://localhost:3000/dashboard?onboarding=true&plan=business</code></p>
+            <p><strong>Expected Behavior:</strong></p>
+            <ul>
+                <li>Dashboard triggers Business tour automatically</li>
+                <li>Tour includes "Enterprise Staff Management" step</li>
+                <li>Staff management allows unlimited team members</li>
+                <li>Can add multiple staff with specialties and hours</li>
+                <li>"Apply Settings" saves all staff to database</li>
+            </ul>
+        </div>
+
+        <div class="step warning">
+            <h3>Step 5: Verify Data Persistence</h3>
+            <p>After using "Apply Settings" in staff management:</p>
+            <ol>
+                <li>Complete or exit the tour</li>
+                <li>Navigate to <code>http://localhost:3000/dashboard/staff</code> (if exists)</li>
+                <li>Check that created staff members appear</li>
+                <li>Verify specialties and working hours are saved</li>
+            </ol>
+            
+            <p><strong>Database Verification:</strong></p>
+            <div class="code">
+// Check staff table in Supabase
+SELECT * FROM staff WHERE business_id = 'bb18c6ca-7e97-449d-8245-e3c28a6b6971';
+
+// Check staff specialties  
+SELECT * FROM staff_specialties ss
+JOIN staff s ON ss.staff_id = s.id
+WHERE s.business_id = 'bb18c6ca-7e97-449d-8245-e3c28a6b6971';
+
+// Check working hours
+SELECT * FROM staff_working_hours swh  
+JOIN staff s ON swh.staff_id = s.id
+WHERE s.business_id = 'bb18c6ca-7e97-449d-8245-e3c28a6b6971';
+            </div>
+        </div>
+
+        <div class="step">
+            <h3>Step 6: Test Loyalty Program Integration</h3>
+            <p>During Professional/Business tours, test the loyalty program step:</p>
+            <ul>
+                <li>Find "Loyalty Program Setup" step in tour</li>
+                <li>Click "Apply Settings" button</li>
+                <li>Verify loyalty program is created with tiers and rewards</li>
+            </ul>
+            
+            <div class="code">
+// Verify loyalty program creation
+SELECT * FROM loyalty_programs WHERE business_id = 'bb18c6ca-7e97-449d-8245-e3c28a6b6971';
+SELECT * FROM loyalty_tiers WHERE loyalty_program_id IN (SELECT id FROM loyalty_programs WHERE business_id = 'bb18c6ca-7e97-449d-8245-e3c28a6b6971');
+SELECT * FROM loyalty_rewards WHERE loyalty_program_id IN (SELECT id FROM loyalty_programs WHERE business_id = 'bb18c6ca-7e97-449d-8245-e3c28a6b6971');
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>🔍 API Endpoint Testing</h2>
+        <p>Test the backend APIs directly:</p>
+        
+        <div class="step">
+            <h3>Staff Creation API</h3>
+            <div class="code">
+// Test POST /api/staff/bulk-create
+curl -X POST http://localhost:3000/api/staff/bulk-create \
+  -H "Content-Type: application/json" \
+  -d '{
+    "business_id": "bb18c6ca-7e97-449d-8245-e3c28a6b6971",
+    "staff_members": [{
+      "firstName": "Test",
+      "lastName": "Staff",
+      "email": "test@bellasnails.com",
+      "phone": "+1-555-123-4567",
+      "role": "Senior Technician",
+      "specialties": ["Manicures", "Pedicures"],
+      "workingHours": {
+        "monday": {"start": "09:00", "end": "17:00", "enabled": true},
+        "tuesday": {"start": "09:00", "end": "17:00", "enabled": true},
+        "wednesday": {"start": "09:00", "end": "17:00", "enabled": true},
+        "thursday": {"start": "09:00", "end": "17:00", "enabled": true},
+        "friday": {"start": "09:00", "end": "17:00", "enabled": true},
+        "saturday": {"start": "10:00", "end": "16:00", "enabled": true},
+        "sunday": {"start": "10:00", "end": "16:00", "enabled": false}
+      }
+    }]
+  }'
+            </div>
+        </div>
+
+        <div class="step">
+            <h3>Loyalty Program API</h3>
+            <div class="code">
+// Test POST /api/loyalty/program
+curl -X POST http://localhost:3000/api/loyalty/program \
+  -H "Content-Type: application/json" \
+  -d '{
+    "business_id": "bb18c6ca-7e97-449d-8245-e3c28a6b6971",
+    "name": "Bella's Rewards",
+    "points_per_dollar": 1,
+    "bonus_points_per_visit": 10,
+    "is_active": true,
+    "tiers": [
+      {"name": "Bronze", "requirement": 0, "benefits": ["5% discount on services"]},
+      {"name": "Silver", "requirement": 500, "benefits": ["10% discount", "Priority booking"]},
+      {"name": "Gold", "requirement": 1500, "benefits": ["15% discount", "Free nail art"]},
+      {"name": "Platinum", "requirement": 3000, "benefits": ["20% discount", "VIP treatment"]}
+    ],
+    "rewards": [
+      {"points": 100, "reward": "$5 off next service"},
+      {"points": 250, "reward": "$15 off next service"},
+      {"points": 500, "reward": "$35 off next service"},
+      {"points": 1000, "reward": "Free manicure service"}
+    ]
+  }'
+            </div>
+        </div>
+    </div>
+
+    <div class="test-section">
+        <h2>✅ Success Criteria</h2>
+        <p>The test is successful if:</p>
+        <ul>
+            <li>✅ All three tour types trigger correctly from dashboard URLs</li>
+            <li>✅ Staff management step appears in Professional and Business tours</li>
+            <li>✅ "Apply Settings" button creates actual database records</li>
+            <li>✅ Created staff members have specialties and working hours</li>
+            <li>✅ Loyalty program is created with tiers and rewards</li>
+            <li>✅ Data persists and appears in dashboard after tour completion</li>
+            <li>✅ No errors in browser console or API responses</li>
+        </ul>
+    </div>
+
+    <div class="test-section">
+        <h2>🐛 Troubleshooting</h2>
+        
+        <div class="step danger">
+            <h3>Common Issues</h3>
+            <p><strong>Tour doesn't trigger:</strong></p>
+            <ul>
+                <li>Check browser console for errors</li>
+                <li>Verify authentication is set properly</li>
+                <li>Ensure URL parameters are exactly: ?onboarding=true&plan=professional</li>
+            </ul>
+            
+            <p><strong>"Apply Settings" doesn't work:</strong></p>
+            <ul>
+                <li>Check browser network tab for API errors</li>
+                <li>Verify Supabase credentials in .env.local</li>
+                <li>Check database permissions and RLS policies</li>
+            </ul>
+            
+            <p><strong>Data doesn't appear in dashboard:</strong></p>
+            <ul>
+                <li>Refresh dashboard after creating records</li>
+                <li>Check database directly via Supabase console</li>
+                <li>Verify business_id matches in all records</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function triggerStarterTour() {
+            const url = 'http://localhost:3000/dashboard?onboarding=true&plan=starter';
+            window.open(url, '_blank');
+        }
+        
+        function triggerProfessionalTour() {
+            const url = 'http://localhost:3000/dashboard?onboarding=true&plan=professional';
+            window.open(url, '_blank');
+        }
+        
+        function triggerBusinessTour() {
+            const url = 'http://localhost:3000/dashboard?onboarding=true&plan=business';
+            window.open(url, '_blank');
+        }
+        
+        // Add helpful debugging
+        console.log('🧪 Phase 2 Tour Testing Guide Loaded');
+        console.log('Available functions: triggerStarterTour(), triggerProfessionalTour(), triggerBusinessTour()');
+    </script>
+</body>
+</html>

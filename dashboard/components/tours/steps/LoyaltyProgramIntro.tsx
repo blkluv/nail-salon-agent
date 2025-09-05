@@ -1,7 +1,8 @@
 'use client'
 
 import React, { useState } from 'react'
-import { StarIcon, GiftIcon, TrophyIcon, ArrowRightIcon } from '@heroicons/react/24/solid'
+import { StarIcon, GiftIcon, TrophyIcon, ArrowRightIcon, CheckCircleIcon, ExclamationTriangleIcon } from '@heroicons/react/24/solid'
+import { getCurrentBusinessId } from '../../../lib/auth-utils'
 
 interface LoyaltyProgramIntroProps {
   planTier: 'professional' | 'business'
@@ -18,11 +19,67 @@ export default function LoyaltyProgramIntro({
     enabled: true,
     pointsPerDollar: 1,
     bonusPointsPerVisit: 10,
-    tierSystem: 'standard'
+    tierSystem: 'standard',
+    programName: `${businessName} Rewards`
   })
+
+  // Apply Settings state management
+  const [isApplying, setIsApplying] = useState(false)
+  const [applied, setApplied] = useState(false)
+  const [applyError, setApplyError] = useState<string | null>(null)
+  const [showCustomization, setShowCustomization] = useState(false)
 
   const handleContinue = () => {
     onStepComplete()
+  }
+
+  const applyLoyaltyProgram = async () => {
+    setIsApplying(true)
+    setApplyError(null)
+
+    try {
+      const businessId = getCurrentBusinessId()
+      if (!businessId) {
+        throw new Error('No business ID found')
+      }
+
+      const loyaltyProgramData = {
+        business_id: businessId,
+        name: programSettings.programName,
+        points_per_dollar: programSettings.pointsPerDollar,
+        bonus_points_per_visit: programSettings.bonusPointsPerVisit,
+        is_active: true,
+        tiers: loyaltyTiers.map(tier => ({
+          name: tier.name,
+          requirement: parseInt(tier.requirement.replace(/\D/g, '')) || 0,
+          benefits: tier.benefits,
+          icon: tier.icon
+        })),
+        rewards: rewardOptions
+      }
+
+      const response = await fetch('/api/loyalty/program', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(loyaltyProgramData)
+      })
+
+      if (!response.ok) {
+        const errorData = await response.text()
+        throw new Error(errorData || 'Failed to create loyalty program')
+      }
+
+      setApplied(true)
+      console.log('✅ Loyalty program created and will appear in dashboard!')
+      
+    } catch (error) {
+      console.error('❌ Failed to create loyalty program:', error)
+      setApplyError(error instanceof Error ? error.message : 'Setup failed')
+    } finally {
+      setIsApplying(false)
+    }
   }
 
   const loyaltyTiers = [
@@ -259,35 +316,139 @@ export default function LoyaltyProgramIntro({
         </ul>
       </div>
 
-      {/* Setup Options */}
-      <div className="space-y-4">
-        <h4 className="font-semibold text-gray-900">Choose Your Setup Approach:</h4>
+      {/* Apply Settings Section - Option C Implementation */}
+      <div className="border-t border-gray-200 pt-6 mt-6">
+        <h4 className="font-semibold text-gray-900 mb-4">💡 Want to activate this loyalty program now?</h4>
         
-        <div className="space-y-3">
-          <div className="border border-green-500 bg-green-50 rounded-lg p-4">
-            <div className="flex items-center space-x-3">
-              <input type="radio" name="setup" value="now" defaultChecked />
+        {!applied ? (
+          <div className="space-y-4">
+            {/* Quick Setup Option */}
+            <div className="bg-green-50 border border-green-200 rounded-lg p-4">
+              <div className="flex items-start justify-between">
+                <div className="flex-1">
+                  <h5 className="font-semibold text-green-900 mb-2">🚀 Quick Setup</h5>
+                  <p className="text-green-800 text-sm mb-3">
+                    We'll create "{programSettings.programName}" with these settings:
+                  </p>
+                  <ul className="text-green-700 text-xs space-y-1 mb-4">
+                    <li>• {programSettings.pointsPerDollar} point per $1 spent + {programSettings.bonusPointsPerVisit} bonus points per visit</li>
+                    <li>• 4-tier system (Bronze → Silver → Gold → Platinum)</li>
+                    <li>• 6 reward options ($5 credit to Spa Package)</li>
+                    <li>• Appears immediately in your Loyalty dashboard</li>
+                  </ul>
+                  
+                  {applyError && (
+                    <div className="bg-red-100 border border-red-300 text-red-800 px-3 py-2 rounded text-sm mb-3">
+                      <ExclamationTriangleIcon className="w-4 h-4 inline mr-2" />
+                      {applyError}
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={applyLoyaltyProgram}
+                  disabled={isApplying}
+                  className="bg-green-600 text-white px-4 py-2 rounded-lg font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed inline-flex items-center"
+                >
+                  {isApplying ? (
+                    <>
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                      Creating Program...
+                    </>
+                  ) : (
+                    <>
+                      <GiftIcon className="w-4 h-4 mr-2" />
+                      Activate Loyalty Program
+                    </>
+                  )}
+                </button>
+                
+                <button
+                  onClick={() => setShowCustomization(!showCustomization)}
+                  className="text-green-600 hover:text-green-700 text-sm font-medium"
+                >
+                  Customize First
+                </button>
+              </div>
+            </div>
+
+            {/* Customization Panel */}
+            {showCustomization && (
+              <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                <h6 className="font-medium text-gray-900 mb-3">Customize Program Settings:</h6>
+                <div className="space-y-3">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Program Name</label>
+                    <input
+                      type="text"
+                      value={programSettings.programName}
+                      onChange={(e) => setProgramSettings(prev => ({ ...prev, programName: e.target.value }))}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Points per $1</label>
+                      <select
+                        value={programSettings.pointsPerDollar}
+                        onChange={(e) => setProgramSettings(prev => ({ ...prev, pointsPerDollar: parseInt(e.target.value) }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                      >
+                        <option value={1}>1 point</option>
+                        <option value={2}>2 points</option>
+                        <option value={5}>5 points</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Bonus per visit</label>
+                      <select
+                        value={programSettings.bonusPointsPerVisit}
+                        onChange={(e) => setProgramSettings(prev => ({ ...prev, bonusPointsPerVisit: parseInt(e.target.value) }))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm"
+                      >
+                        <option value={5}>5 points</option>
+                        <option value={10}>10 points</option>
+                        <option value={20}>20 points</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Skip Option */}
+            <div className="bg-gray-50 border border-gray-200 rounded-lg p-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h5 className="font-medium text-gray-900">📅 Setup Later</h5>
+                  <p className="text-gray-600 text-sm">Configure from Dashboard → Loyalty anytime</p>
+                </div>
+                <button
+                  onClick={handleContinue}
+                  className="text-gray-600 hover:text-gray-800 font-medium text-sm"
+                >
+                  Skip for Now
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : (
+          // Success State
+          <div className="bg-green-100 border border-green-300 rounded-lg p-4">
+            <div className="flex items-center">
+              <CheckCircleIcon className="w-6 h-6 text-green-600 mr-3" />
               <div>
-                <h5 className="font-semibold text-gray-900">🚀 Activate Now</h5>
-                <p className="text-gray-600 text-sm">
-                  Start building customer loyalty immediately. Points begin earning with next appointment.
+                <h5 className="font-semibold text-green-900">✅ Loyalty Program Activated!</h5>
+                <p className="text-green-800 text-sm">
+                  "{programSettings.programName}" is now active and will appear in your Dashboard → Loyalty section.
+                  Customer points will start earning automatically!
                 </p>
               </div>
             </div>
           </div>
-          
-          <div className="border border-gray-200 rounded-lg p-4">
-            <div className="flex items-center space-x-3">
-              <input type="radio" name="setup" value="later" />
-              <div>
-                <h5 className="font-semibold text-gray-900">📅 Setup Later</h5>
-                <p className="text-gray-600 text-sm">
-                  Configure loyalty program from Settings → Marketing when ready.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
+        )}
       </div>
 
       {/* Next Steps */}

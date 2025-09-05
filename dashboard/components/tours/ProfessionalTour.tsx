@@ -9,6 +9,7 @@ import LoyaltyProgramIntro from './steps/LoyaltyProgramIntro'
 import EmailMarketingSetup from './steps/EmailMarketingSetup'
 import PhoneForwardingIntro from './steps/PhoneForwardingIntro'
 import AdvancedAnalytics from './steps/AdvancedAnalytics'
+import StaffManagementSetup from './steps/StaffManagementSetup'
 
 export interface ProfessionalTourProps {
   businessName: string
@@ -88,6 +89,22 @@ export default function ProfessionalTour({
       skipMessage: 'Configure loyalty program anytime from Marketing → Loyalty',
       estimatedTime: 4,
       completedMessage: 'Your loyalty program will keep customers coming back!'
+    },
+    {
+      id: 'staff-management-setup',
+      title: 'Add Your Team Members',
+      description: 'Set up staff schedules and specialties for customer bookings',
+      component: (props) => (
+        <StaffManagementSetup 
+          {...props}
+          planTier="professional"
+        />
+      ),
+      required: false,
+      canSkip: true,
+      skipMessage: 'Add staff anytime from Dashboard → Staff',
+      estimatedTime: 5,
+      completedMessage: 'Your staff can now take bookings individually!'
     },
     {
       id: 'email-marketing',
