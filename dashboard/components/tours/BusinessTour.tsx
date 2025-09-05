@@ -7,10 +7,10 @@ import BookingManagementDemo from './steps/BookingManagementDemo'
 import PaymentProcessingIntro from './steps/PaymentProcessingIntro'
 import LoyaltyProgramIntro from './steps/LoyaltyProgramIntro'
 import MultiLocationSetup from './steps/MultiLocationSetup'
-import EnterprisePhoneSetup from './steps/EnterprisePhoneSetup'
-import WhiteLabelDemo from './steps/WhiteLabelDemo'
-import AdvancedReporting from './steps/AdvancedReporting'
-import StaffManagement from './steps/StaffManagement'
+import PhoneForwardingIntro from './steps/PhoneForwardingIntro'
+import AdvancedAnalytics from './steps/AdvancedAnalytics'
+import BusinessProfileSetup from './steps/BusinessProfileSetup'
+import EmailMarketingSetup from './steps/EmailMarketingSetup'
 
 export interface BusinessTourProps {
   businessName: string
@@ -93,31 +93,33 @@ export default function BusinessTour({
       completedMessage: 'You\'re ready to manage multiple locations!'
     },
     {
-      id: 'staff-management',
-      title: 'Multi-Location Staff Management',
-      description: 'Manage staff across all your locations',
+      id: 'business-profile-setup',
+      title: 'Complete Business Profile',
+      description: 'Set up your complete business profile with branding',
       component: (props) => (
-        <StaffManagement 
+        <BusinessProfileSetup 
           {...props}
+          businessName={businessName}
           planTier="business"
         />
       ),
       required: false,
       canSkip: true,
-      skipMessage: 'Setup staff management as you expand locations',
+      skipMessage: 'Complete your profile when ready',
       estimatedTime: 5,
-      completedMessage: 'Staff management is ready for your growing team!'
+      completedMessage: 'Your business profile is complete and professional!'
     },
     {
       id: 'enterprise-phone-setup',
       title: 'Enterprise Phone Management',
       description: 'Forward multiple location numbers to AI system',
       component: (props) => (
-        <EnterprisePhoneSetup 
+        <PhoneForwardingIntro 
           {...props}
           phoneNumber={phoneNumber}
           existingPhoneNumber={existingPhoneNumber}
           businessName={businessName}
+          planTier="business"
         />
       ),
       required: false,
@@ -131,7 +133,7 @@ export default function BusinessTour({
       title: 'Advanced Business Intelligence',
       description: 'Cross-location analytics and automated reporting',
       component: (props) => (
-        <AdvancedReporting 
+        <AdvancedAnalytics 
           {...props}
           planTier="business"
           businessName={businessName}
@@ -144,20 +146,21 @@ export default function BusinessTour({
       completedMessage: 'You have powerful insights to scale your business!'
     },
     {
-      id: 'white-label-options',
-      title: 'White-Label Branding',
-      description: 'Custom domains and complete rebranding options',
+      id: 'email-marketing-enterprise',
+      title: 'Enterprise Email Marketing',
+      description: 'Advanced email campaigns across all locations',
       component: (props) => (
-        <WhiteLabelDemo 
+        <EmailMarketingSetup 
           {...props}
           businessName={businessName}
+          planTier="business"
         />
       ),
       required: false,
       canSkip: true,
-      skipMessage: 'Explore white-label options when ready for custom branding',
+      skipMessage: 'Set up email marketing when ready to engage customers',
       estimatedTime: 6,
-      completedMessage: 'Your platform can be completely customized to your brand!'
+      completedMessage: 'Your email marketing campaigns are ready across all locations!'
     },
     {
       id: 'loyalty-program-enterprise', 

@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState } from 'react'
-import { ChartBarIcon, TrendingUpIcon, EyeIcon, ArrowRightIcon } from '@heroicons/react/24/solid'
+import { ChartBarIcon, ArrowTrendingUpIcon, EyeIcon, ArrowRightIcon } from '@heroicons/react/24/solid'
 
 interface AdvancedAnalyticsProps {
   planTier: 'professional' | 'business'
@@ -160,7 +160,7 @@ export default function AdvancedAnalytics({
       {/* Key Metrics Dashboard */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-green-50 border border-green-200 rounded-lg p-4 text-center">
-          <TrendingUpIcon className="w-8 h-8 text-green-600 mx-auto mb-2" />
+          <ArrowTrendingUpIcon className="w-8 h-8 text-green-600 mx-auto mb-2" />
           <div className="text-2xl font-bold text-green-600">{currentData.revenue}</div>
           <div className="text-sm text-green-800">Total Revenue</div>
           <div className="text-xs text-green-600 font-medium">{currentData.growth} vs last period</div>

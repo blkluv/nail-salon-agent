@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { CalculatorIcon, TrendingUpIcon, CurrencyDollarIcon, ChartBarIcon } from '@heroicons/react/24/solid'
+import { CalculatorIcon, ArrowTrendingUpIcon, CurrencyDollarIcon, ChartBarIcon } from '@heroicons/react/24/solid'
 
 interface ROICalculatorProps {
   planTier: 'starter' | 'professional' | 'business'
@@ -238,7 +238,7 @@ export default function ROICalculator({
         
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
           <div className="bg-white rounded-lg p-4 text-center">
-            <TrendingUpIcon className="w-8 h-8 text-blue-600 mx-auto mb-2" />
+            <ArrowTrendingUpIcon className="w-8 h-8 text-blue-600 mx-auto mb-2" />
             <div className="text-2xl font-bold text-gray-900">
               +{projectedMetrics.additionalBookings}
             </div>
