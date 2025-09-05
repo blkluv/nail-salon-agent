@@ -209,6 +209,7 @@ async function handleRapidSetup(body: RapidSetupRequest) {
       const setupIntent = await stripe.setupIntents.create({
         customer: customerId,
         payment_method: body.paymentMethodId,
+        payment_method_types: ['card'], // Only accept card payments
         confirm: true,
         usage: 'off_session', // Allow future charges without customer present
         description: `Payment validation for ${body.businessInfo.name} - ${body.selectedPlan} plan trial`,
