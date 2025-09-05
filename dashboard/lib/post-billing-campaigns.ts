@@ -105,17 +105,17 @@ export const ACTIVATION_CAMPAIGNS: ActivationCampaign[] = [
     id: 'starter-day-14',
     tier: 'starter',
     day: 14,
-    subject: '💰 You're Losing Money Every Day',
+    subject: '💰 You\'re Losing Money Every Day',
     preheader: 'Missed calls = missed revenue',
-    psychologyTrigger: 'You're paying $67/month but missing 40% of potential bookings',
+    psychologyTrigger: 'You\'re paying $67/month but missing 40% of potential bookings',
     features: [
       'Average salon misses 15 calls per week',
-      'That's $750 in lost revenue monthly',
+      'That\'s $750 in lost revenue monthly',
       'Your AI could be capturing these NOW',
       'Full refund if not satisfied'
     ],
     cta: 'Activate Full Potential',
-    urgency: 'Day 14 is the #1 cancellation point - don't give up now',
+    urgency: 'Day 14 is the #1 cancellation point - don\'t give up now',
     roi: 'ROI break-even: just 2 extra bookings per month'
   },
 
@@ -126,7 +126,7 @@ export const ACTIVATION_CAMPAIGNS: ActivationCampaign[] = [
     day: 1,
     subject: '🎯 Your Professional Features Are Unlocked!',
     preheader: '$147/month of premium tools now active',
-    psychologyTrigger: 'You're investing in growth - these features will 3x your ROI',
+    psychologyTrigger: 'You\'re investing in growth - these features will 3x your ROI',
     features: [
       'Advanced analytics dashboard ready',
       'Payment processing can start today',
@@ -143,7 +143,7 @@ export const ACTIVATION_CAMPAIGNS: ActivationCampaign[] = [
     day: 3,
     subject: '💳 Activate Payment Processing = Instant Revenue',
     preheader: 'Get paid automatically when customers book',
-    psychologyTrigger: 'You're already paying for payment processing - turn it on!',
+    psychologyTrigger: 'You\'re already paying for payment processing - turn it on!',
     features: [
       'Reduce no-shows by 70% with upfront payment',
       'Automatic payment collection',
@@ -242,7 +242,7 @@ export const ACTIVATION_CAMPAIGNS: ActivationCampaign[] = [
     day: 30,
     subject: '🚀 Your First Month Results & Optimization',
     preheader: 'Enterprise insights and growth opportunities',
-    psychologyTrigger: 'Your $297 investment delivered - here's how to 10x it',
+    psychologyTrigger: 'Your $297 investment delivered - here\'s how to 10x it',
     features: [
       'Custom performance report',
       'Optimization recommendations',
@@ -271,8 +271,8 @@ export const CANCELLATION_PREVENTION: CancellationPreventionCampaign[] = [
     id: 'unused-features-starter',
     tier: 'starter',
     trigger: 'unused_features',
-    subject: '⚠️ You're paying for features you're not using',
-    psychologyTrigger: 'You're wasting $67/month on unused potential',
+    subject: '⚠️ You\'re paying for features you\'re not using',
+    psychologyTrigger: 'You\'re wasting $67/month on unused potential',
     unusedFeatures: [
       'Phone forwarding not activated',
       'AI assistant sitting idle',
@@ -285,8 +285,8 @@ export const CANCELLATION_PREVENTION: CancellationPreventionCampaign[] = [
     id: 'unused-features-professional',
     tier: 'professional',
     trigger: 'unused_features',
-    subject: '💸 You're leaving money on the table',
-    psychologyTrigger: 'You invested $147/month but haven't activated key features',
+    subject: '💸 You\'re leaving money on the table',
+    psychologyTrigger: 'You invested $147/month but haven\'t activated key features',
     unusedFeatures: [
       'Payment processing (worth $200+/month)',
       'Loyalty program (35% retention boost)',
@@ -399,7 +399,7 @@ export function buildActivationEmail(campaign: ActivationCampaign, businessName:
 
         <div style="border-top: 1px solid #e2e8f0; padding-top: 20px; margin-top: 32px;">
           <p style="color: #718096; font-size: 14px;">
-            You're receiving this because your ${businessName} subscription is now active. 
+            You\'re receiving this because your ${businessName} subscription is now active. 
             Need help? Reply to this email or call our success team.
           </p>
         </div>
