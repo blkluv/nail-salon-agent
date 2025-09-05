@@ -7,9 +7,15 @@ const supabase = createClient(
   process.env.SUPABASE_SERVICE_ROLE_KEY!
 )
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2025-08-27.basil',
-})
+// Lazy initialization to prevent build-time errors
+const getStripeClient = () => {
+  if (!process.env.STRIPE_SECRET_KEY) {
+    throw new Error('STRIPE_SECRET_KEY environment variable is not set')
+  }
+  return new Stripe(process.env.STRIPE_SECRET_KEY!, {
+    apiVersion: '2025-08-27.basil',
+  })
+}
 
 const VAPI_API_KEY = process.env.VAPI_API_KEY!
 const WEBHOOK_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://web-production-60875.up.railway.app'
@@ -135,6 +141,7 @@ async function handleRapidSetup(body: RapidSetupRequest) {
       console.log('💳 Processing payment method with $0 authorization...')
       
       // Create or retrieve Stripe customer
+      const stripe = getStripeClient()
       const customer = await stripe.customers.create({
         email: body.businessInfo.email,
         name: body.businessInfo.name,
