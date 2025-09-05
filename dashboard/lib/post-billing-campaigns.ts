@@ -301,14 +301,14 @@ export const CANCELLATION_PREVENTION: CancellationPreventionCampaign[] = [
     tier: 'all',
     trigger: 'low_engagement',
     subject: '🤝 Let us help you succeed',
-    psychologyTrigger: 'Your investment isn't delivering yet - we can fix that',
+    psychologyTrigger: 'Your investment isn\'t delivering yet - we can fix that',
     alternativeAction: 'Free consultation to maximize your ROI'
   },
   {
     id: 'competitor-research',
     tier: 'all',
     trigger: 'competitor_research',
-    subject: '🎯 Why we're different (and better)',
+    subject: '🎯 Why we\'re different (and better)',
     psychologyTrigger: 'You already learned our system - switching means starting over',
     savings: 'Competitors charge 2x more for half the features',
     alternativeAction: 'Match any competitor price for 3 months'
