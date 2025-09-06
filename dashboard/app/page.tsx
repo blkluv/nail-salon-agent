@@ -75,9 +75,9 @@ export default function LandingPage() {
 
   const stats = [
     { number: "24/7", label: "Availability", icon: ClockIcon },
-    { number: "2 min", label: "Setup Time", icon: BoltIcon },
+    { number: "3 min", label: "Setup Time", icon: BoltIcon },
     { number: "98%", label: "Customer Satisfaction", icon: HeartIcon },
-    { number: "$0", label: "Upfront Cost", icon: CurrencyDollarIcon }
+    { number: "7 days", label: "Free Trial", icon: CurrencyDollarIcon }
   ]
 
   const benefits = [
@@ -220,11 +220,11 @@ export default function LandingPage() {
             <div className="flex flex-wrap justify-center gap-4 text-sm">
               <div className="flex items-center text-gray-600">
                 <CheckIcon className="w-4 h-4 text-green-500 mr-1" />
-                <span>No credit card required</span>
+                <span>7-day free trial</span>
               </div>
               <div className="flex items-center text-gray-600">
                 <CheckIcon className="w-4 h-4 text-green-500 mr-1" />
-                <span>2-minute setup</span>
+                <span>3-minute setup</span>
               </div>
               <div className="flex items-center text-gray-600">
                 <CheckIcon className="w-4 h-4 text-green-500 mr-1" />
@@ -601,7 +601,7 @@ export default function LandingPage() {
           <div className="space-y-6">
             <div className="bg-gray-50 rounded-xl p-6">
               <h3 className="font-bold mb-2">How quickly can I get started?</h3>
-              <p className="text-gray-600">Setup takes just 2 minutes. Add your services, hours, and phone number. Your AI receptionist starts working immediately.</p>
+              <p className="text-gray-600">Setup takes just 3 minutes. Add your business info and payment method (no charge during trial). Your AI receptionist starts working immediately with a dedicated phone number.</p>
             </div>
             
             <div className="bg-gray-50 rounded-xl p-6">
@@ -616,7 +616,7 @@ export default function LandingPage() {
             
             <div className="bg-gray-50 rounded-xl p-6">
               <h3 className="font-bold mb-2">Can I try it before committing?</h3>
-              <p className="text-gray-600">Absolutely! Start with our 7-day free trial. No credit card required. Plus, we offer a 30-day money-back guarantee.</p>
+              <p className="text-gray-600">Absolutely! Start with our 7-day free trial. We'll ask for your card but won't charge until after the trial ends. Plus, we offer a 30-day money-back guarantee.</p>
             </div>
           </div>
         </div>
@@ -642,7 +642,7 @@ export default function LandingPage() {
           </button>
 
           <p className="mt-6 text-sm text-gray-600">
-            7-day free trial • No credit card required • Cancel anytime
+            7-day free trial • No charge during trial • Cancel anytime
           </p>
         </div>
       </section>
