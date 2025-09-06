@@ -74,10 +74,10 @@ export default function LandingPage() {
   ]
 
   const stats = [
-    { number: "24/7", label: "Availability", icon: ClockIcon },
-    { number: "3 min", label: "Setup Time", icon: BoltIcon },
-    { number: "98%", label: "Customer Satisfaction", icon: HeartIcon },
-    { number: "7 days", label: "Free Trial", icon: CurrencyDollarIcon }
+    { number: "15+", label: "Extra Bookings/Month", icon: PhoneIcon },
+    { number: "$1,125", label: "Avg Monthly Revenue Boost", icon: CurrencyDollarIcon },
+    { number: "0", label: "Missed Calls", icon: CheckIcon },
+    { number: "3 min", label: "Setup to Working AI", icon: BoltIcon }
   ]
 
   const benefits = [
@@ -108,12 +108,12 @@ export default function LandingPage() {
   ]
 
   const comparisonPoints = [
-    { us: "24/7 AI receptionist", them: "Voicemail after hours", winning: true },
-    { us: "Instant booking confirmation", them: "Call back required", winning: true },
-    { us: "Handles multiple calls", them: "One call at a time", winning: true },
-    { us: "Smart upselling", them: "Missed revenue opportunities", winning: true },
-    { us: "Starting at $67/month all-inclusive", them: "$2000+/month for receptionist", winning: true },
-    { us: "Never sick, never late", them: "Staff availability issues", winning: true }
+    { us: "Working AI in 3 minutes", them: "Weeks to hire & train staff", winning: true },
+    { us: "Books appointments at 2 AM", them: "Voicemail = $0 revenue", winning: true },
+    { us: "Dedicated number instantly", them: "Complex phone setup", winning: true },
+    { us: "Test without risk", them: "Forward business line immediately", winning: true },
+    { us: "Pays for itself in 2 bookings", them: "$2000+/month for receptionist", winning: true },
+    { us: "Never sick, never quits", them: "Staff turnover & training", winning: true }
   ]
 
   return (
@@ -180,10 +180,10 @@ export default function LandingPage() {
             </h1>
             
             <p className="text-xl md:text-2xl text-gray-700 mb-4 max-w-3xl mx-auto font-medium">
-              60% of calls come after hours. Your competitors use AI to book them all.
+              Get an AI assistant answering calls in 3 minutes - it pays for itself in just 2 bookings.
             </p>
             <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
-              Join smart business owners who never miss a booking with our AI receptionist that sounds completely human.
+              Average appointment = $75. Just 15 extra bookings per month = $1,125 more revenue.
             </p>
             
             <div className="flex justify-center mb-8">
@@ -220,15 +220,15 @@ export default function LandingPage() {
             <div className="flex flex-wrap justify-center gap-4 text-sm">
               <div className="flex items-center text-gray-600">
                 <CheckIcon className="w-4 h-4 text-green-500 mr-1" />
-                <span>7-day free trial</span>
+                <span>Working AI in 3 minutes</span>
               </div>
               <div className="flex items-center text-gray-600">
                 <CheckIcon className="w-4 h-4 text-green-500 mr-1" />
-                <span>3-minute setup</span>
+                <span>Test without risk</span>
               </div>
               <div className="flex items-center text-gray-600">
                 <CheckIcon className="w-4 h-4 text-green-500 mr-1" />
-                <span>Cancel anytime</span>
+                <span>Pays for itself</span>
               </div>
             </div>
           </div>
@@ -272,56 +272,56 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>
-              <span className="text-red-600 font-semibold uppercase tracking-wide text-sm">The Problem</span>
-              <h2 className="text-3xl font-bold mt-2 mb-6">You're Losing Money Every Single Day</h2>
+              <span className="text-red-600 font-semibold uppercase tracking-wide text-sm">Stop Losing Money</span>
+              <h2 className="text-3xl font-bold mt-2 mb-6">Every Missed Call = $75 Lost Forever</h2>
               <div className="space-y-4">
                 <div className="flex items-start">
                   <div className="w-6 h-6 rounded-full bg-red-100 text-red-600 flex items-center justify-center flex-shrink-0 mt-1">✕</div>
                   <div className="ml-3">
-                    <p className="font-semibold">Missing 60% of calls</p>
-                    <p className="text-gray-600 text-sm">After hours, during appointments, lunch breaks</p>
+                    <p className="font-semibold">"All operators are busy" = Customer hangs up</p>
+                    <p className="text-gray-600 text-sm">67% won't leave voicemail, they call your competitor instead</p>
                   </div>
                 </div>
                 <div className="flex items-start">
                   <div className="w-6 h-6 rounded-full bg-red-100 text-red-600 flex items-center justify-center flex-shrink-0 mt-1">✕</div>
                   <div className="ml-3">
-                    <p className="font-semibold">Customers go to competitors</p>
-                    <p className="text-gray-600 text-sm">They won't leave voicemails, they just call the next business</p>
+                    <p className="font-semibold">After-hours calls go to voicemail = $0</p>
+                    <p className="text-gray-600 text-sm">Your competitor's AI books them at 11 PM</p>
                   </div>
                 </div>
                 <div className="flex items-start">
                   <div className="w-6 h-6 rounded-full bg-red-100 text-red-600 flex items-center justify-center flex-shrink-0 mt-1">✕</div>
                   <div className="ml-3">
-                    <p className="font-semibold">Staff overwhelmed</p>
-                    <p className="text-gray-600 text-sm">Juggling walk-ins while answering phones</p>
+                    <p className="font-semibold">Staff can't answer = Lost revenue</p>
+                    <p className="text-gray-600 text-sm">Busy with clients but phone keeps ringing</p>
                   </div>
                 </div>
               </div>
             </div>
 
             <div>
-              <span className="text-green-600 font-semibold uppercase tracking-wide text-sm">The Solution</span>
-              <h2 className="text-3xl font-bold mt-2 mb-6">AI That Never Stops Booking</h2>
+              <span className="text-green-600 font-semibold uppercase tracking-wide text-sm">Start Earning More</span>
+              <h2 className="text-3xl font-bold mt-2 mb-6">Your AI Pays for Itself in 2 Bookings</h2>
               <div className="space-y-4">
                 <div className="flex items-start">
                   <div className="w-6 h-6 rounded-full bg-green-100 text-green-600 flex items-center justify-center flex-shrink-0 mt-1">✓</div>
                   <div className="ml-3">
-                    <p className="font-semibold">Answers in 2 seconds, 24/7</p>
-                    <p className="text-gray-600 text-sm">Never miss another opportunity</p>
+                    <p className="font-semibold">Get a working AI in 3 minutes</p>
+                    <p className="text-gray-600 text-sm">Dedicated phone number, test it yourself immediately</p>
                   </div>
                 </div>
                 <div className="flex items-start">
                   <div className="w-6 h-6 rounded-full bg-green-100 text-green-600 flex items-center justify-center flex-shrink-0 mt-1">✓</div>
                   <div className="ml-3">
-                    <p className="font-semibold">Books while you sleep</p>
-                    <p className="text-gray-600 text-sm">Wake up to a full calendar</p>
+                    <p className="font-semibold">Books appointments at 2 AM</p>
+                    <p className="text-gray-600 text-sm">Wake up to 5 new bookings you would have missed</p>
                   </div>
                 </div>
                 <div className="flex items-start">
                   <div className="w-6 h-6 rounded-full bg-green-100 text-green-600 flex items-center justify-center flex-shrink-0 mt-1">✓</div>
                   <div className="ml-3">
-                    <p className="font-semibold">Handles unlimited calls</p>
-                    <p className="text-gray-600 text-sm">Never put anyone on hold again</p>
+                    <p className="font-semibold">Keep your phone number safe</p>
+                    <p className="text-gray-600 text-sm">Test with dedicated number, forward when YOU'RE ready</p>
                   </div>
                 </div>
               </div>
@@ -363,6 +363,67 @@ export default function LandingPage() {
                 <p className="text-gray-700 italic">"{testimonial.quote}"</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Speed to Value Section */}
+      <section className="py-20 bg-gradient-to-br from-blue-50 to-indigo-50">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="text-center mb-12">
+            <h2 className="text-4xl font-bold mb-4">From Signup to First Booking: <span className="text-blue-600">3 Minutes</span></h2>
+            <p className="text-xl text-gray-600">Seriously, time us. Here's exactly what happens:</p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-8">
+            <div className="text-center">
+              <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-white text-2xl font-bold">1</span>
+              </div>
+              <h3 className="text-xl font-semibold mb-2 text-blue-900">Minute 1</h3>
+              <p className="text-gray-700 mb-2">Enter business info, get instant phone number</p>
+              <p className="text-sm text-blue-600 font-medium">Call it right now - hear your AI working!</p>
+            </div>
+
+            <div className="text-center">
+              <div className="w-16 h-16 bg-gradient-to-r from-green-500 to-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-white text-2xl font-bold">2</span>
+              </div>
+              <h3 className="text-xl font-semibold mb-2 text-green-900">Minute 2</h3>
+              <p className="text-gray-700 mb-2">AI learns your services, prices, and availability</p>
+              <p className="text-sm text-green-600 font-medium">No training required - it just knows!</p>
+            </div>
+
+            <div className="text-center">
+              <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <span className="text-white text-2xl font-bold">3</span>
+              </div>
+              <h3 className="text-xl font-semibold mb-2 text-purple-900">Minute 3</h3>
+              <p className="text-gray-700 mb-2">Make a test call - book a real appointment</p>
+              <p className="text-sm text-purple-600 font-medium">Your AI is officially working!</p>
+            </div>
+          </div>
+
+          <div className="mt-12 bg-white rounded-2xl p-8 shadow-lg">
+            <h3 className="text-2xl font-bold text-center mb-6">Then Watch What Happens:</h3>
+            <div className="grid md:grid-cols-4 gap-6 text-center">
+              <div>
+                <div className="text-3xl font-bold text-blue-600">Hour 1</div>
+                <p className="text-sm text-gray-600">First real customer books</p>
+              </div>
+              <div>
+                <div className="text-3xl font-bold text-green-600">Day 1</div>
+                <p className="text-sm text-gray-600">Wake up to overnight bookings</p>
+              </div>
+              <div>
+                <div className="text-3xl font-bold text-purple-600">Week 1</div>
+                <p className="text-sm text-gray-600">15+ appointments you would've missed</p>
+              </div>
+              <div>
+                <div className="text-3xl font-bold text-orange-600">Month 1</div>
+                <p className="text-sm text-gray-600">$1,125+ in extra revenue</p>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -600,23 +661,23 @@ export default function LandingPage() {
           
           <div className="space-y-6">
             <div className="bg-gray-50 rounded-xl p-6">
-              <h3 className="font-bold mb-2">How quickly can I get started?</h3>
-              <p className="text-gray-600">Setup takes just 3 minutes. Add your business info and payment method (no charge during trial). Your AI receptionist starts working immediately with a dedicated phone number.</p>
+              <h3 className="font-bold mb-2">How quickly can I start booking appointments?</h3>
+              <p className="text-gray-600">3 minutes from signup to working AI. You'll get a dedicated phone number instantly - call it yourself and hear your AI booking appointments. No forwarding your business line until you're 100% confident.</p>
             </div>
             
             <div className="bg-gray-50 rounded-xl p-6">
-              <h3 className="font-bold mb-2">Does the AI sound robotic?</h3>
-              <p className="text-gray-600">Not at all! Our AI uses advanced voice technology that sounds completely natural. Most customers don't even realize they're talking to AI.</p>
+              <h3 className="font-bold mb-2">Does it really pay for itself?</h3>
+              <p className="text-gray-600">Yes! Average appointment = $75. Most businesses book 15+ extra appointments per month = $1,125 extra revenue. Your AI pays for itself with just 2 bookings.</p>
             </div>
             
             <div className="bg-gray-50 rounded-xl p-6">
-              <h3 className="font-bold mb-2">What if I need to change my schedule?</h3>
-              <p className="text-gray-600">Update your availability anytime from your dashboard. Changes take effect instantly.</p>
+              <h3 className="font-bold mb-2">What happens to my existing phone number?</h3>
+              <p className="text-gray-600">Keep it safe! You get a dedicated number to test with first. Only forward your business line when YOU decide you're ready. Test risk-free.</p>
             </div>
             
             <div className="bg-gray-50 rounded-xl p-6">
-              <h3 className="font-bold mb-2">Can I try it before committing?</h3>
-              <p className="text-gray-600">Absolutely! Start with our 7-day free trial. We'll ask for your card but won't charge until after the trial ends. Plus, we offer a 30-day money-back guarantee.</p>
+              <h3 className="font-bold mb-2">What if customers realize it's AI?</h3>
+              <p className="text-gray-600">They won't! Our AI sounds completely natural and knows your business inside-out. But even if they do, customers LOVE the instant response and 24/7 availability.</p>
             </div>
           </div>
         </div>
