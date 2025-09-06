@@ -33,9 +33,7 @@ export default function LandingPage() {
     router.push('/onboarding')
   }
 
-  const handleDemo = () => {
-    router.push('/demo')
-  }
+  // Removed demo handler - 7-day trial IS the demo now
 
   const handleBusinessLogin = () => {
     router.push('/login')
@@ -114,7 +112,7 @@ export default function LandingPage() {
     { us: "Instant booking confirmation", them: "Call back required", winning: true },
     { us: "Handles multiple calls", them: "One call at a time", winning: true },
     { us: "Smart upselling", them: "Missed revenue opportunities", winning: true },
-    { us: "$97/month all-inclusive", them: "$2000+/month for receptionist", winning: true },
+    { us: "Starting at $67/month all-inclusive", them: "$2000+/month for receptionist", winning: true },
     { us: "Never sick, never late", them: "Staff availability issues", winning: true }
   ]
 
@@ -139,12 +137,6 @@ export default function LandingPage() {
             </div>
             <nav className="flex items-center space-x-4">
               <button
-                onClick={handleDemo}
-                className="text-gray-700 hover:text-purple-600 transition font-medium"
-              >
-                See Demo
-              </button>
-              <button
                 onClick={handleBusinessLogin}
                 className="text-gray-700 hover:text-purple-600 transition font-medium"
               >
@@ -160,7 +152,7 @@ export default function LandingPage() {
                 onClick={handleOnboarding}
                 className="px-6 py-2.5 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-full hover:shadow-lg transition-all transform hover:scale-105 font-semibold"
               >
-                Get Started
+                Start Free Trial
               </button>
             </nav>
           </div>
@@ -194,22 +186,14 @@ export default function LandingPage() {
               Join smart business owners who never miss a booking with our AI receptionist that sounds completely human.
             </p>
             
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+            <div className="flex justify-center mb-8">
               <button
                 onClick={handleOnboarding}
-                className="group px-8 py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-lg font-bold rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:scale-105 flex items-center justify-center"
+                className="group px-10 py-5 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xl font-bold rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:scale-105 flex items-center justify-center"
               >
                 <RocketLaunchIcon className="w-6 h-6 mr-2" />
-                Start Free Trial
+                Start Your 7-Day Free Trial
                 <ArrowRightIcon className="w-5 h-5 ml-2 group-hover:translate-x-1 transition" />
-              </button>
-              
-              <button
-                onClick={handleDemo}
-                className="group px-8 py-4 bg-white border-2 border-purple-200 text-purple-600 text-lg font-semibold rounded-full hover:bg-purple-50 hover:border-purple-300 transition-all flex items-center justify-center"
-              >
-                <PlayIcon className="w-6 h-6 mr-2" />
-                See AI in Action
               </button>
             </div>
 
@@ -448,35 +432,35 @@ export default function LandingPage() {
               <div className="text-center mb-6">
                 <h3 className="text-xl font-bold mb-2">Starter</h3>
                 <div className="text-4xl font-bold mb-1">
-                  $39<span className="text-lg text-gray-600">/month</span>
+                  $67<span className="text-lg text-gray-600">/month</span>
                 </div>
-                <p className="text-gray-600 text-sm">Perfect for getting started</p>
+                <p className="text-gray-600 text-sm">Perfect for solo businesses</p>
               </div>
               
               <div className="space-y-3 mb-8">
+                <div className="flex items-center">
+                  <CheckIcon className="w-4 h-4 text-green-500 mr-3" />
+                  <span className="text-sm font-medium">24/7 AI Voice Assistant</span>
+                </div>
+                <div className="flex items-center">
+                  <CheckIcon className="w-4 h-4 text-green-500 mr-3" />
+                  <span className="text-sm">Unlimited Appointments</span>
+                </div>
+                <div className="flex items-center">
+                  <CheckIcon className="w-4 h-4 text-green-500 mr-3" />
+                  <span className="text-sm">SMS Text Confirmations</span>
+                </div>
+                <div className="flex items-center">
+                  <CheckIcon className="w-4 h-4 text-green-500 mr-3" />
+                  <span className="text-sm">Customer Management</span>
+                </div>
                 <div className="flex items-center">
                   <CheckIcon className="w-4 h-4 text-green-500 mr-3" />
                   <span className="text-sm">Web Booking Widget</span>
                 </div>
                 <div className="flex items-center">
                   <CheckIcon className="w-4 h-4 text-green-500 mr-3" />
-                  <span className="text-sm">SMS Reminders</span>
-                </div>
-                <div className="flex items-center">
-                  <CheckIcon className="w-4 h-4 text-green-500 mr-3" />
-                  <span className="text-sm">Customer Portal</span>
-                </div>
-                <div className="flex items-center">
-                  <CheckIcon className="w-4 h-4 text-green-500 mr-3" />
-                  <span className="text-sm">Smart Analytics</span>
-                </div>
-                <div className="flex items-center">
-                  <CheckIcon className="w-4 h-4 text-green-500 mr-3" />
-                  <span className="text-sm">Email Marketing</span>
-                </div>
-                <div className="flex items-center">
-                  <CheckIcon className="w-4 h-4 text-green-500 mr-3" />
-                  <span className="text-sm">Social Media Booking</span>
+                  <span className="text-sm">Single Location</span>
                 </div>
               </div>
               
@@ -484,7 +468,7 @@ export default function LandingPage() {
                 onClick={handleOnboarding}
                 className="w-full px-6 py-3 bg-gray-200 text-gray-800 font-semibold rounded-full hover:bg-gray-300 transition-all"
               >
-                Get Started
+                Start Free Trial
               </button>
             </div>
 
@@ -499,35 +483,35 @@ export default function LandingPage() {
               <div className="text-center mb-6 pt-2">
                 <h3 className="text-xl font-bold mb-2">Professional</h3>
                 <div className="text-4xl font-bold mb-1">
-                  $127<span className="text-lg text-gray-600">/month</span>
+                  $147<span className="text-lg text-gray-600">/month</span>
                 </div>
-                <p className="text-gray-600 text-sm">Best value for most businesses</p>
+                <p className="text-gray-600 text-sm">Best value for growing businesses</p>
               </div>
               
               <div className="space-y-3 mb-8">
-                <div className="flex items-center">
-                  <CheckIcon className="w-4 h-4 text-green-500 mr-3" />
-                  <span className="text-sm font-medium">24/7 Voice AI Receptionist</span>
-                </div>
                 <div className="flex items-center">
                   <CheckIcon className="w-4 h-4 text-green-500 mr-3" />
                   <span className="text-sm">Everything in Starter</span>
                 </div>
                 <div className="flex items-center">
                   <CheckIcon className="w-4 h-4 text-green-500 mr-3" />
-                  <span className="text-sm">Online Payments</span>
+                  <span className="text-sm font-medium">Advanced Analytics</span>
                 </div>
                 <div className="flex items-center">
                   <CheckIcon className="w-4 h-4 text-green-500 mr-3" />
-                  <span className="text-sm">Loyalty Program</span>
+                  <span className="text-sm">Staff Performance Tracking</span>
                 </div>
                 <div className="flex items-center">
                   <CheckIcon className="w-4 h-4 text-green-500 mr-3" />
-                  <span className="text-sm">Advanced Reporting</span>
+                  <span className="text-sm">Email Marketing</span>
                 </div>
                 <div className="flex items-center">
                   <CheckIcon className="w-4 h-4 text-green-500 mr-3" />
-                  <span className="text-sm">Unlimited Bookings</span>
+                  <span className="text-sm">Custom Branding</span>
+                </div>
+                <div className="flex items-center">
+                  <CheckIcon className="w-4 h-4 text-green-500 mr-3" />
+                  <span className="text-sm">Loyalty Points Program</span>
                 </div>
               </div>
               
@@ -544,35 +528,35 @@ export default function LandingPage() {
               <div className="text-center mb-6">
                 <h3 className="text-xl font-bold mb-2">Business</h3>
                 <div className="text-4xl font-bold mb-1">
-                  $247<span className="text-lg text-gray-600">/month</span>
+                  $297<span className="text-lg text-gray-600">/month</span>
                 </div>
-                <p className="text-gray-600 text-sm">For growing business chains</p>
+                <p className="text-gray-600 text-sm">For multi-location enterprises</p>
               </div>
               
               <div className="space-y-3 mb-8">
-                <div className="flex items-center">
-                  <CheckIcon className="w-4 h-4 text-green-500 mr-3" />
-                  <span className="text-sm font-medium">Up to 3 Locations</span>
-                </div>
                 <div className="flex items-center">
                   <CheckIcon className="w-4 h-4 text-green-500 mr-3" />
                   <span className="text-sm">Everything in Professional</span>
                 </div>
                 <div className="flex items-center">
                   <CheckIcon className="w-4 h-4 text-green-500 mr-3" />
-                  <span className="text-sm">Team Management</span>
+                  <span className="text-sm font-medium">Up to 3 Locations</span>
                 </div>
                 <div className="flex items-center">
                   <CheckIcon className="w-4 h-4 text-green-500 mr-3" />
-                  <span className="text-sm">Multi-Location Analytics</span>
+                  <span className="text-sm">Cross-Location Analytics</span>
                 </div>
                 <div className="flex items-center">
                   <CheckIcon className="w-4 h-4 text-green-500 mr-3" />
-                  <span className="text-sm">Priority Support</span>
+                  <span className="text-sm">Advanced Reporting</span>
                 </div>
                 <div className="flex items-center">
                   <CheckIcon className="w-4 h-4 text-green-500 mr-3" />
-                  <span className="text-sm">Custom Integrations</span>
+                  <span className="text-sm">Multi-Location Staff Management</span>
+                </div>
+                <div className="flex items-center">
+                  <CheckIcon className="w-4 h-4 text-green-500 mr-3" />
+                  <span className="text-sm">White-Label Options</span>
                 </div>
               </div>
               
@@ -580,7 +564,7 @@ export default function LandingPage() {
                 onClick={handleOnboarding}
                 className="w-full px-6 py-3 bg-purple-600 text-white font-semibold rounded-full hover:bg-purple-700 transition-all"
               >
-                Contact Sales
+                Start Free Trial
               </button>
             </div>
           </div>
@@ -680,10 +664,10 @@ export default function LandingPage() {
             <div>
               <h4 className="font-semibold mb-4">Product</h4>
               <ul className="space-y-2 text-gray-400 text-sm">
-                <li><button onClick={handleDemo} className="hover:text-white transition">Interactive Demo</button></li>
                 <li><a href="#" className="hover:text-white transition">Features</a></li>
                 <li><a href="#" className="hover:text-white transition">Pricing</a></li>
                 <li><a href="#" className="hover:text-white transition">Reviews</a></li>
+                <li><a href="#" className="hover:text-white transition">Case Studies</a></li>
               </ul>
             </div>
 
