@@ -3,7 +3,6 @@
 import React, { useState } from 'react'
 import { loadStripe } from '@stripe/stripe-js'
 import { Elements, CardElement, useStripe, useElements } from '@stripe/react-stripe-js'
-import StripeDebugHelper from './StripeDebugHelper'
 
 // Initialize Stripe with your publishable key
 const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY 
@@ -99,14 +98,10 @@ function PaymentForm({ selectedPlan, isYearly, onPaymentComplete, loading }: Pay
   React.useEffect(() => {
     if (stripe && elements) {
       setStripeReady(true)
-      console.log('Stripe is ready for input')
     } else {
-      console.log('Stripe not ready yet...', { stripe: !!stripe, elements: !!elements })
-      
       // Add timeout to detect if Stripe fails to load
       const timeout = setTimeout(() => {
         if (!stripe || !elements) {
-          console.error('Stripe failed to load after 10 seconds')
           setPaymentError('Payment system failed to load. Please check your internet connection and try again.')
         }
       }, 10000)
@@ -156,7 +151,6 @@ function PaymentForm({ selectedPlan, isYearly, onPaymentComplete, loading }: Pay
       await onPaymentComplete(paymentMethod.id)
 
     } catch (err) {
-      console.error('Payment processing error:', err)
       setPaymentError('Payment processing failed. Please try again.')
     } finally {
       setProcessing(false)
@@ -267,8 +261,6 @@ function PaymentForm({ selectedPlan, isYearly, onPaymentComplete, loading }: Pay
           </p>
         </div>
 
-        {/* Debug Helper - Remove in production */}
-        <StripeDebugHelper />
 
         {paymentError && (
           <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">

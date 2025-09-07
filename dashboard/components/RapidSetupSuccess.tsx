@@ -5,8 +5,8 @@ import { CheckCircleIcon, PhoneIcon, ArrowRightIcon } from '@heroicons/react/24/
 
 export interface RapidSetupSuccessProps {
   businessName: string
-  newPhoneNumber: string
-  existingPhoneNumber: string
+  newPhoneNumber: string | undefined | null
+  existingPhoneNumber: string | undefined | null
   selectedPlan: 'starter' | 'professional' | 'business'
   onContinueToDashboard: () => void
 }
@@ -33,7 +33,12 @@ export default function RapidSetupSuccess({
     return () => clearTimeout(timer)
   }, [])
 
-  const formatPhoneNumber = (phone: string) => {
+  const formatPhoneNumber = (phone: string | undefined | null) => {
+    // Safety check for undefined/null phone numbers
+    if (!phone || typeof phone !== 'string') {
+      return 'Phone number not available'
+    }
+    
     // Format phone number for display
     const cleaned = phone.replace(/\D/g, '')
     if (cleaned.length === 11 && cleaned.startsWith('1')) {
@@ -207,7 +212,10 @@ export default function RapidSetupSuccess({
       {/* Continue to Dashboard */}
       <div className="text-center">
         <button
-          onClick={onContinueToDashboard}
+          onClick={() => {
+            console.log('🎯 Dashboard button clicked in RapidSetupSuccess')
+            onContinueToDashboard()
+          }}
           className="bg-blue-600 text-white py-4 px-8 rounded-lg font-semibold text-lg hover:bg-blue-700 transition-colors inline-flex items-center"
         >
           Continue to Dashboard
