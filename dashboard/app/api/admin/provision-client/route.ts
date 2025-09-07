@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import Stripe from 'stripe'
+import { sendEmail, generateWelcomeEmail } from '@/lib/email-service-new'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -181,53 +182,65 @@ async function handleRapidSetup(body: RapidSetupRequest) {
     // Step 1: Handle Payment Method with $0 Authorization
     let customerId: string
     
+    // Check for test mode (skip payment validation for testing - development only)
+    const isTestMode = process.env.NODE_ENV === 'development' && body.paymentMethodId === 'skip_payment_validation'
+    
     try {
-      console.log('💳 Processing payment method with $0 authorization...')
-      
-      // Create or retrieve Stripe customer
-      const stripe = getStripeClient()
-      const customer = await stripe.customers.create({
-        email: body.businessInfo.email,
-        name: body.businessInfo.name,
-        phone: body.businessInfo.phone,
-        metadata: {
-          business_type: body.businessInfo.businessType,
-          plan: body.selectedPlan,
-          setup_type: 'rapid_setup'
-        }
-      })
-      
-      customerId = customer.id
-      console.log('✅ Stripe customer created:', customerId)
+      if (isTestMode) {
+        console.log('🧪 TEST MODE: Skipping payment validation for testing purposes')
+        customerId = 'test_customer_' + Date.now()
+        console.log('✅ Test customer ID created:', customerId)
+      } else {
+        console.log('💳 Processing payment method with $0 authorization...')
+        
+        // Create or retrieve Stripe customer
+        const stripe = getStripeClient()
+        const customer = await stripe.customers.create({
+          email: body.businessInfo.email,
+          name: body.businessInfo.name,
+          phone: body.businessInfo.phone,
+          metadata: {
+            business_type: body.businessInfo.businessType,
+            plan: body.selectedPlan,
+            setup_type: 'rapid_setup'
+          }
+        })
+        
+        customerId = customer.id
+        console.log('✅ Stripe customer created:', customerId)
 
-      // Attach payment method to customer
-      await stripe.paymentMethods.attach(body.paymentMethodId, {
-        customer: customerId,
-      })
+        // Attach payment method to customer
+        await stripe.paymentMethods.attach(body.paymentMethodId, {
+          customer: customerId,
+        })
 
-      // Use SetupIntent for $0 authorization (Stripe's recommended way for card validation)
-      const setupIntent = await stripe.setupIntents.create({
-        customer: customerId,
-        payment_method: body.paymentMethodId,
-        payment_method_types: ['card'], // Only accept card payments
-        confirm: true,
-        usage: 'off_session', // Allow future charges without customer present
-        description: `Payment validation for ${body.businessInfo.name} - ${body.selectedPlan} plan trial`,
-        metadata: {
-          business_name: body.businessInfo.name,
-          plan: body.selectedPlan,
-          validation_only: 'true'
-        }
-      })
+        // Use SetupIntent for $0 authorization (Stripe's recommended way for card validation)
+        const setupIntent = await stripe.setupIntents.create({
+          customer: customerId,
+          payment_method: body.paymentMethodId,
+          confirm: true,
+          usage: 'off_session', // Allow future charges without customer present
+          description: `Payment validation for ${body.businessInfo.name} - ${body.selectedPlan} plan trial`,
+          automatic_payment_methods: {
+            enabled: true,
+            allow_redirects: 'never' // Prevents redirect-based payment methods
+          },
+          metadata: {
+            business_name: body.businessInfo.name,
+            plan: body.selectedPlan,
+            validation_only: 'true'
+          }
+        })
 
-      // Set as default payment method for future subscription charges
-      await stripe.customers.update(customerId, {
-        invoice_settings: {
-          default_payment_method: body.paymentMethodId,
-        },
-      })
+        // Set as default payment method for future subscription charges
+        await stripe.customers.update(customerId, {
+          invoice_settings: {
+            default_payment_method: body.paymentMethodId,
+          },
+        })
 
-      console.log('✅ Payment method validated and saved for future use')
+        console.log('✅ Payment method validated and saved for future use')
+      }
 
     } catch (paymentError) {
       console.error('❌ Payment validation failed:', paymentError)
@@ -239,11 +252,24 @@ async function handleRapidSetup(body: RapidSetupRequest) {
 
     // Step 2: Create business record
     const businessId = crypto.randomUUID()
-    const slug = body.businessInfo.name
+    const baseSlug = body.businessInfo.name
       .toLowerCase()
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-+|-+$/g, '')
     
+    // Make slug unique by adding timestamp
+    const slug = `${baseSlug}-${Date.now().toString(36)}`
+    
+    // Map plan to subscription tier
+    const subscriptionTierMap: Record<string, 'starter' | 'professional' | 'business'> = {
+      'starter': 'starter',
+      'professional': 'professional',
+      'business': 'business'
+    }
+    
+    // Generate secure cancellation token
+    const cancellationToken = crypto.randomUUID()
+
     const { data: business, error: businessError } = await supabase
       .from('businesses')
       .insert({
@@ -251,17 +277,12 @@ async function handleRapidSetup(body: RapidSetupRequest) {
         slug: slug,
         name: body.businessInfo.name,
         email: body.businessInfo.email,
-        owner_first_name: body.businessInfo.ownerFirstName || body.businessInfo.name.split(' ')[0] || 'Business',
-        owner_last_name: body.businessInfo.ownerLastName || body.businessInfo.name.split(' ').slice(1).join(' ') || 'Owner',
-        owner_email: body.businessInfo.email,
         phone: body.businessInfo.phone,
-        existing_business_phone: body.businessInfo.phone, // Store for future forwarding
         business_type: body.businessInfo.businessType.toLowerCase().replace(/\s+/g, '_'),
-        plan_type: body.selectedPlan,
-        subscription_status: 'trial',
-        trial_start_date: new Date().toISOString(),
-        stripe_customer_id: customerId,
-        stripe_payment_method_id: body.paymentMethodId,
+        subscription_tier: subscriptionTierMap[body.selectedPlan] || 'starter',
+        subscription_status: 'trialing',
+        trial_ends_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days from now
+        cancellation_token: cancellationToken,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       })
@@ -270,6 +291,30 @@ async function handleRapidSetup(body: RapidSetupRequest) {
 
     if (businessError) {
       console.error('❌ Database error:', businessError)
+      
+      // Handle specific constraint violations with user-friendly messages
+      if (businessError.message.includes('duplicate key value violates unique constraint')) {
+        if (businessError.message.includes('businesses_email_key')) {
+          return NextResponse.json(
+            { 
+              error: 'Account already exists', 
+              details: 'An account with this email address already exists. Please use a different email or sign in to your existing account.',
+              errorType: 'duplicate_email'
+            },
+            { status: 409 } // 409 Conflict is more appropriate than 500
+          )
+        } else if (businessError.message.includes('businesses_slug_key')) {
+          return NextResponse.json(
+            { 
+              error: 'Business name conflict', 
+              details: 'A business with a similar name already exists. Please try a slightly different name.',
+              errorType: 'duplicate_slug'
+            },
+            { status: 409 }
+          )
+        }
+      }
+      
       return NextResponse.json(
         { error: 'Failed to create business record', details: businessError.message },
         { status: 500 }
@@ -287,7 +332,7 @@ async function handleRapidSetup(body: RapidSetupRequest) {
       business_id: businessId,
       name: service.name,
       duration_minutes: service.duration,
-      price_cents: service.price * 100, // Convert to cents
+      base_price: service.price, // Use base_price not price_cents
       description: service.description,
       category: 'general',
       is_active: true,
@@ -334,42 +379,59 @@ async function handleRapidSetup(body: RapidSetupRequest) {
       updated_at: new Date().toISOString()
     }))
 
-    await supabase.from('business_hours').insert(defaultHours)
-    console.log('✅ Default business hours set')
+    // Skip business hours for now - table doesn't exist in current schema
+    // await supabase.from('business_hours').insert(defaultHours)
+    console.log('⏰ Business hours setup skipped (table not in schema)')
 
     // Step 6: Provision NEW dedicated Vapi phone number for testing
     console.log('📞 Provisioning NEW dedicated phone number for AI testing...')
     
-    const phoneResponse = await fetch('https://api.vapi.ai/phone-number', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${VAPI_API_KEY}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        provider: 'vapi',
-        name: `${body.businessInfo.name} AI Test Line`,
-        assistantId: null // Will set based on plan tier
+    let phoneData: any
+    
+    if (isTestMode) {
+      // In test mode, simulate phone provisioning
+      console.log('🧪 TEST MODE: Simulating phone number provisioning')
+      phoneData = {
+        id: 'test_phone_' + Date.now(),
+        number: '+1555TEST' + Date.now().toString().slice(-3),
+        provider: 'vapi'
+      }
+      console.log('✅ TEST phone number simulated:', phoneData.number)
+    } else {
+      const phoneResponse = await fetch('https://api.vapi.ai/phone-number', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${VAPI_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          provider: 'vapi',
+          name: `${body.businessInfo.name} AI Test Line`,
+          assistantId: null // Will set based on plan tier
+        })
       })
-    })
 
-    if (!phoneResponse.ok) {
-      const phoneError = await phoneResponse.text()
-      console.error('❌ Vapi phone provisioning failed:', phoneError)
-      
-      await supabase
-        .from('businesses')
-        .update({ subscription_status: 'failed' })
-        .eq('id', businessId)
-      
-      return NextResponse.json(
-        { error: 'Failed to provision AI phone number', details: phoneError },
-        { status: 500 }
-      )
+      console.log('📊 Vapi phone response status:', phoneResponse.status)
+
+      if (!phoneResponse.ok) {
+        const phoneError = await phoneResponse.text()
+        console.error('❌ Vapi phone provisioning failed:', phoneError)
+        
+        await supabase
+          .from('businesses')
+          .update({ subscription_status: 'failed' })
+          .eq('id', businessId)
+        
+        return NextResponse.json(
+          { error: 'Failed to provision AI phone number', details: phoneError },
+          { status: 500 }
+        )
+      }
+
+      phoneData = await phoneResponse.json()
+      console.log('📱 Vapi phone response data:', JSON.stringify(phoneData, null, 2))
+      console.log('✅ NEW AI phone number provisioned:', phoneData.number)
     }
-
-    const phoneData = await phoneResponse.json()
-    console.log('✅ NEW AI phone number provisioned:', phoneData.number)
 
     // Step 7: Determine assistant strategy based on plan tier
     let assistantId: string
@@ -457,36 +519,44 @@ Always represent ${body.businessInfo.name} professionally!`
     // Step 8: Link assistant to phone number
     console.log('🔗 Linking assistant to phone number...')
     
-    const linkResponse = await fetch(`https://api.vapi.ai/phone-number/${phoneData.id}`, {
-      method: 'PATCH',
-      headers: {
-        'Authorization': `Bearer ${VAPI_API_KEY}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        assistantId: assistantId
-      })
-    })
-
-    if (!linkResponse.ok) {
-      const linkError = await linkResponse.text()
-      console.error('❌ Failed to link assistant to phone:', linkError)
+    if (isTestMode) {
+      console.log('🧪 TEST MODE: Simulating assistant-to-phone linking')
+      console.log(`✅ TEST link: ${assistantType} assistant (${assistantId}) → phone (${phoneData.id})`)
     } else {
-      console.log('✅ Assistant linked to phone number')
+      const linkResponse = await fetch(`https://api.vapi.ai/phone-number/${phoneData.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${VAPI_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          assistantId: assistantId
+        })
+      })
+
+      if (!linkResponse.ok) {
+        const linkError = await linkResponse.text()
+        console.error('❌ Failed to link assistant to phone:', linkError)
+      } else {
+        console.log('✅ Assistant linked to phone number')
+      }
     }
 
-    // Step 9: Update business record with all details
+    // Step 9: Update business record (using only columns that exist in schema)
     const { error: updateError } = await supabase
       .from('businesses')
       .update({
-        vapi_phone_number: phoneData.number, // NEW dedicated test number
-        vapi_phone_id: phoneData.id,
-        vapi_assistant_id: assistantId,
-        assistant_type: assistantType,
-        subscription_status: 'trial',
+        subscription_status: 'trialing', // Match enum value
         updated_at: new Date().toISOString()
       })
       .eq('id', businessId)
+
+    // Store Vapi details in a comment for now (would need separate table or schema update)
+    console.log('📱 Vapi Details (stored in logs for now):');
+    console.log('  Phone:', phoneData.number);
+    console.log('  Phone ID:', phoneData.id);
+    console.log('  Assistant ID:', assistantId);
+    console.log('  Assistant Type:', assistantType);
 
     if (updateError) {
       console.error('❌ Failed to update business record:', updateError)
@@ -497,6 +567,36 @@ Always represent ${body.businessInfo.name} professionally!`
     }
 
     console.log('🎉 RAPID SETUP completed successfully!')
+
+    // Send welcome email
+    try {
+      const trialEndDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+      const formattedTrialEndDate = trialEndDate.toLocaleDateString('en-US', { 
+        month: 'long', 
+        day: 'numeric', 
+        year: 'numeric' 
+      })
+      
+      const welcomeEmailHtml = generateWelcomeEmail(
+        body.businessInfo.name,
+        phoneData.number,
+        body.selectedPlan,
+        formattedTrialEndDate,
+        cancellationToken,
+        businessId
+      )
+      
+      await sendEmail({
+        to: body.businessInfo.email,
+        subject: `🎉 Welcome to Your AI Assistant - ${body.businessInfo.name}`,
+        html: welcomeEmailHtml
+      })
+      
+      console.log('✅ Welcome email sent to:', body.businessInfo.email)
+    } catch (emailError) {
+      console.error('⚠️ Failed to send welcome email:', emailError)
+      // Don't fail the provisioning if email fails
+    }
 
     return NextResponse.json({
       success: true,

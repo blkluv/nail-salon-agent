@@ -11,6 +11,7 @@ import {
   ArrowPathIcon
 } from '@heroicons/react/24/outline'
 import PlanComparison from '../../../../components/PlanComparison'
+import CancellationModal from '../../../../components/CancellationModal'
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
@@ -42,9 +43,11 @@ interface InvoiceHistory {
 function BillingContent() {
   const searchParams = useSearchParams()
   const [showPlanComparison, setShowPlanComparison] = useState(false)
+  const [showCancellationModal, setShowCancellationModal] = useState(false)
   const [billingInfo, setBillingInfo] = useState<BillingInfo | null>(null)
   const [invoiceHistory, setInvoiceHistory] = useState<InvoiceHistory[]>([])
   const [loading, setLoading] = useState(true)
+  const [businessInfo, setBusinessInfo] = useState<{id: string, name: string, phone: string} | null>(null)
 
   // Check if user came here to upgrade
   const upgradeParam = searchParams.get('upgrade')
@@ -53,12 +56,28 @@ function BillingContent() {
   useEffect(() => {
     loadBillingInfo()
     loadInvoiceHistory()
+    loadBusinessInfo()
     
     // Auto-open plan comparison if upgrade parameter is present
     if (upgradeParam) {
       setShowPlanComparison(true)
     }
   }, [upgradeParam])
+  
+  const loadBusinessInfo = () => {
+    // Get business info from localStorage or session
+    const businessId = localStorage.getItem('authenticated_business_id')
+    const businessName = localStorage.getItem('authenticated_business_name')
+    const businessPhone = localStorage.getItem('authenticated_business_phone') || '(424) 351-9304'
+    
+    if (businessId && businessName) {
+      setBusinessInfo({
+        id: businessId,
+        name: businessName,
+        phone: businessPhone
+      })
+    }
+  }
 
   const loadBillingInfo = async () => {
     try {
@@ -217,7 +236,10 @@ function BillingContent() {
                 >
                   Change Plan
                 </button>
-                <button className="px-4 py-2 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition-colors">
+                <button 
+                  onClick={() => setShowCancellationModal(true)}
+                  className="px-4 py-2 bg-gray-100 text-gray-700 font-medium rounded-lg hover:bg-gray-200 transition-colors"
+                >
                   Cancel Subscription
                 </button>
               </div>
@@ -345,6 +367,40 @@ function BillingContent() {
           highlightPlan={upgradeParam as 'starter' | 'professional' | 'business'}
           onClose={() => setShowPlanComparison(false)}
           showModal={true}
+        />
+      )}
+      
+      {/* Cancellation Modal */}
+      {showCancellationModal && businessInfo && (
+        <CancellationModal
+          isOpen={showCancellationModal}
+          onClose={() => setShowCancellationModal(false)}
+          businessName={businessInfo.name}
+          phoneNumber={businessInfo.phone}
+          onConfirmCancel={async (data) => {
+            try {
+              const response = await fetch('/api/subscription/cancel', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                  businessId: businessInfo.id,
+                  ...data
+                })
+              })
+              
+              if (response.ok) {
+                // Refresh the page or redirect
+                window.location.href = '/dashboard'
+              } else {
+                throw new Error('Cancellation failed')
+              }
+            } catch (error) {
+              console.error('Cancellation error:', error)
+              alert('Failed to cancel subscription. Please try again.')
+            }
+          }}
         />
       )}
     </div>
