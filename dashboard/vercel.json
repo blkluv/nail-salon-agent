@@ -12,10 +12,6 @@
     {
       "path": "/api/cron/daily-reports",
       "schedule": "0 21 * * *"
-    },
-    {
-      "path": "/api/campaigns/winback",
-      "schedule": "0 10 * * *"
     }
   ],
   "rewrites": [
