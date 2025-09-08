@@ -21,11 +21,10 @@ export async function GET() {
     yesterday.setDate(yesterday.getDate() - 1)
     const reportDate = yesterday.toISOString().split('T')[0]
 
-    // Get all businesses with daily reports enabled
+    // Get all businesses (daily reports enabled by default)
     const { data: businesses, error } = await supabase
       .from('businesses')
       .select('id, name, email')
-      .eq('daily_reports_enabled', true)
 
     if (error) {
       console.error('Failed to fetch businesses:', error)
