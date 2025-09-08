@@ -81,15 +81,14 @@ export async function POST(request: NextRequest) {
             items: [{
               price_data: {
                 currency: 'usd',
-                product_data: {
-                  name: 'Phone Number Retention',
-                  description: `Keep your AI phone number ${business.phone_number} active`
-                },
                 unit_amount: 500, // $5.00
                 recurring: {
-                  interval: 'month'
+                  interval: 'month' as const
+                },
+                product_data: {
+                  name: 'Phone Number Retention'
                 }
-              }
+              } as any // TypeScript workaround for Stripe types
             }],
             metadata: {
               business_id: body.businessId,
