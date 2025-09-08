@@ -149,6 +149,8 @@ export async function GET(request: NextRequest) {
 }
 
 // Optional: Add authentication for production
+// To enable authentication, set CRON_SECRET environment variable
+// and uncomment the authentication check in the POST function above
 function isValidCronRequest(request: NextRequest) {
   const authHeader = request.headers.get('authorization')
   const cronSecret = process.env.CRON_SECRET
@@ -158,13 +160,4 @@ function isValidCronRequest(request: NextRequest) {
   
   // Check for valid authorization
   return authHeader === `Bearer ${cronSecret}`
-}
-
-// Add authentication check if needed
-export async function authenticatedPOST(request: NextRequest) {
-  if (!isValidCronRequest(request)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-  
-  return POST(request)
 }
