@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Dashboard Access</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; }
+        .form-group { margin: 15px 0; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; }
+        button { background: #007cba; color: white; padding: 15px 30px; border: none; border-radius: 4px; cursor: pointer; margin-right: 10px; }
+        button:hover { background: #005a87; }
+        .result { margin-top: 20px; padding: 15px; border-radius: 4px; }
+        .success { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+        .error { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+        .info { background: #d1ecf1; border: 1px solid #b6d4db; color: #0c5460; }
+        .business-card { 
+            border: 1px solid #ddd; 
+            padding: 15px; 
+            margin: 10px 0; 
+            border-radius: 4px; 
+            background: #f9f9f9;
+        }
+    </style>
+</head>
+<body>
+    <h1>Test Dashboard Access</h1>
+    <p>This will test dashboard access for recently created businesses.</p>
+    
+    <div class="form-group">
+        <button onclick="loadRecentBusinesses()">Load Recent Test Businesses</button>
+        <button onclick="testDashboardPage()">Test Dashboard Page</button>
+        <button onclick="clearAuthData()">Clear Auth Data</button>
+    </div>
+    
+    <div id="result"></div>
+
+    <script>
+        async function loadRecentBusinesses() {
+            const resultDiv = document.getElementById('result');
+            resultDiv.innerHTML = '<div class="result info">Loading recent businesses...</div>';
+            
+            try {
+                // This won't work directly from client side due to CORS, but we'll show the concept
+                resultDiv.innerHTML = `
+                    <div class="result info">
+                        <h3>Recent Test Businesses (from our tests)</h3>
+                        <p>These businesses were created during our testing:</p>
+                        
+                        <div class="business-card">
+                            <strong>Test Beauty Salon</strong><br>
+                            Slug: test-beauty-salon-mf77ajmz<br>
+                            <button onclick="setAuthForBusiness('cb4fdf73-893f-4eb7-8877-a14bd593122b', 'Test Beauty Salon', 'test-unique-1757098854310-1@testsalon.com')">
+                                Set Auth & Test Dashboard
+                            </button>
+                        </div>
+                        
+                        <div class="business-card">
+                            <strong>Test Beauty Salon #2</strong><br>
+                            Slug: test-beauty-salon-2-mf779b4r<br>
+                            <button onclick="setAuthForBusiness('9635822d-0900-4a88-a500-bb764602811b', 'Test Beauty Salon #2', 'test-unique-12345@testsalon.com')">
+                                Set Auth & Test Dashboard
+                            </button>
+                        </div>
+                        
+                        <div class="business-card">
+                            <strong>Demo Business</strong><br>
+                            <button onclick="setAuthForBusiness('00000000-0000-0000-0000-000000000000', 'Demo Beauty Salon', 'demo@example.com')">
+                                Set Auth & Test Dashboard (Demo)
+                            </button>
+                        </div>
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="result error">Error: ${error.message}</div>`;
+            }
+        }
+        
+        function setAuthForBusiness(businessId, businessName, email) {
+            const resultDiv = document.getElementById('result');
+            
+            try {
+                // Set authentication data in localStorage
+                localStorage.setItem('authenticated_business_id', businessId);
+                localStorage.setItem('authenticated_business_name', businessName);
+                localStorage.setItem('authenticated_user_email', email);
+                
+                resultDiv.innerHTML = `
+                    <div class="result success">
+                        <h3>✅ Authentication Set</h3>
+                        <p><strong>Business:</strong> ${businessName}</p>
+                        <p><strong>ID:</strong> ${businessId}</p>
+                        <p><strong>Email:</strong> ${email}</p>
+                        <hr>
+                        <p>Now try accessing the dashboard:</p>
+                        <button onclick="window.open('http://localhost:3002/dashboard', '_blank')">
+                            Open Dashboard in New Tab
+                        </button>
+                        <br><br>
+                        <button onclick="testDashboardAPI()">Test Dashboard API Access</button>
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="result error">Failed to set auth: ${error.message}</div>`;
+            }
+        }
+        
+        async function testDashboardAPI() {
+            const resultDiv = document.getElementById('result');
+            const businessId = localStorage.getItem('authenticated_business_id');
+            
+            if (!businessId) {
+                resultDiv.innerHTML = '<div class="result error">No authentication data set. Please set auth first.</div>';
+                return;
+            }
+            
+            resultDiv.innerHTML = '<div class="result info">Testing dashboard API access...</div>';
+            
+            try {
+                // Test various dashboard API endpoints
+                const tests = [
+                    { name: 'Dashboard Page', url: 'http://localhost:3002/dashboard' },
+                    { name: 'Appointments API', url: `http://localhost:3002/api/appointments?business_id=${businessId}` },
+                    { name: 'Customers API', url: `http://localhost:3002/api/customers?business_id=${businessId}` },
+                    { name: 'Services API', url: `http://localhost:3002/api/services?business_id=${businessId}` }
+                ];
+                
+                let results = '<div class="result info"><h3>Dashboard Access Test Results:</h3>';
+                
+                for (const test of tests) {
+                    try {
+                        const response = await fetch(test.url);
+                        const status = response.status;
+                        const statusText = response.statusText;
+                        
+                        if (response.ok) {
+                            results += `<p>✅ <strong>${test.name}:</strong> ${status} ${statusText}</p>`;
+                        } else {
+                            results += `<p>❌ <strong>${test.name}:</strong> ${status} ${statusText}</p>`;
+                        }
+                    } catch (error) {
+                        results += `<p>❌ <strong>${test.name}:</strong> ${error.message}</p>`;
+                    }
+                }
+                
+                results += '</div>';
+                resultDiv.innerHTML = results;
+                
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="result error">API test error: ${error.message}</div>`;
+            }
+        }
+        
+        async function testDashboardPage() {
+            const resultDiv = document.getElementById('result');
+            
+            try {
+                const response = await fetch('http://localhost:3002/dashboard');
+                const status = response.status;
+                
+                if (response.ok) {
+                    const content = await response.text();
+                    const hasTitle = content.includes('Dashboard') || content.includes('DropFly');
+                    
+                    resultDiv.innerHTML = `
+                        <div class="result success">
+                            <h3>✅ Dashboard Page Access Test</h3>
+                            <p><strong>Status:</strong> ${status}</p>
+                            <p><strong>Content Check:</strong> ${hasTitle ? 'Page contains expected content' : 'Content check failed'}</p>
+                            <p><strong>Page Size:</strong> ${Math.round(content.length / 1024)}KB</p>
+                            <hr>
+                            <button onclick="window.open('http://localhost:3002/dashboard', '_blank')">Open Dashboard</button>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<div class="result error">Dashboard access failed: ${status}</div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="result error">Dashboard test error: ${error.message}</div>`;
+            }
+        }
+        
+        function clearAuthData() {
+            localStorage.removeItem('authenticated_business_id');
+            localStorage.removeItem('authenticated_business_name');
+            localStorage.removeItem('authenticated_user_email');
+            
+            document.getElementById('result').innerHTML = '<div class="result info">Authentication data cleared.</div>';
+        }
+        
+        // Auto-load businesses on page load
+        window.onload = function() {
+            loadRecentBusinesses();
+        };
+    </script>
+</body>
+</html>

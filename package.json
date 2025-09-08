@@ -41,7 +41,7 @@
   "author": "DropFly AI",
   "license": "MIT",
   "dependencies": {
-    "@supabase/supabase-js": "^2.56.1",
+    "@supabase/supabase-js": "^2.57.2",
     "axios": "^1.11.0",
     "chalk": "^4.1.2",
     "dotenv": "^16.3.1",

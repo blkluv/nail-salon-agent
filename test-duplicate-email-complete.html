@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Complete Duplicate Email Handling</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; }
+        .test-section { margin: 30px 0; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+        .form-group { margin: 15px 0; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; }
+        button { background: #007cba; color: white; padding: 15px 30px; border: none; border-radius: 4px; cursor: pointer; margin-right: 10px; }
+        button:hover { background: #005a87; }
+        .result { margin-top: 20px; padding: 15px; border-radius: 4px; }
+        .success { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+        .error { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+        .warning { background: #fff3cd; border: 1px solid #ffeaa7; color: #856404; }
+        .info { background: #d1ecf1; border: 1px solid #b6d4db; color: #0c5460; }
+    </style>
+</head>
+<body>
+    <h1>Complete Duplicate Email Error Handling Test</h1>
+    <p>This tests both API error handling and frontend user experience for duplicate email addresses.</p>
+    
+    <div class="test-section">
+        <h2>Step 1: API Error Response Test</h2>
+        <p>Test that the API returns proper HTTP 409 status and user-friendly error messages.</p>
+        
+        <div class="form-group">
+            <button onclick="testAPIErrorHandling()">Test API Error Response</button>
+        </div>
+        
+        <div id="apiResult"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Step 2: Frontend Error Handling Test</h2>
+        <p>Test how the onboarding form handles the duplicate email error.</p>
+        
+        <div class="form-group">
+            <button onclick="openOnboardingWithDuplicateEmail()">Test Frontend Error Handling</button>
+            <button onclick="openOnboardingWithNewEmail()">Test With New Email</button>
+        </div>
+        
+        <div id="frontendResult"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>Step 3: Available Existing Emails</h2>
+        <p>These emails already exist in the database (from our testing):</p>
+        
+        <ul>
+            <li><code>demo@example.com</code> - Demo business</li>
+            <li><code>bella@bellasnails.com</code> - Bella's Nails Studio</li>
+            <li><code>test2@testsalon.com</code> - Test Beauty Salon #2</li>
+            <li><code>tipsebartending@gmail.com</code> - Tester business</li>
+            <li><code>pamperpalace@yahoo.com</code> - Pamper Palace</li>
+        </ul>
+        
+        <p>Use any of these in the onboarding form to test duplicate email handling.</p>
+    </div>
+
+    <script>
+        async function testAPIErrorHandling() {
+            const resultDiv = document.getElementById('apiResult');
+            resultDiv.innerHTML = '<div class="result info">Testing API error response...</div>';
+            
+            const testData = {
+                businessInfo: {
+                    name: "Duplicate Email Test Business",
+                    email: "demo@example.com", // Known existing email
+                    phone: "+15557777777",
+                    businessType: "Beauty Salon",
+                    ownerFirstName: "Test",
+                    ownerLastName: "Owner"
+                },
+                selectedPlan: "professional",
+                paymentMethodId: "skip_payment_validation",
+                rapidSetup: true
+            };
+            
+            try {
+                const response = await fetch('http://localhost:3003/api/admin/provision-client', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(testData)
+                });
+                
+                const responseText = await response.text();
+                
+                try {
+                    const data = JSON.parse(responseText);
+                    
+                    if (response.status === 409 && data.errorType === 'duplicate_email') {
+                        resultDiv.innerHTML = `
+                            <div class="result success">
+                                <h3>✅ API Error Handling Working Perfectly!</h3>
+                                <p><strong>Status Code:</strong> ${response.status} (Correct - 409 Conflict)</p>
+                                <p><strong>Error Type:</strong> ${data.errorType}</p>
+                                <p><strong>User Message:</strong> "${data.error}"</p>
+                                <p><strong>Details:</strong> "${data.details}"</p>
+                                <hr>
+                                <p>🎉 The API is properly handling duplicate emails with user-friendly messages!</p>
+                            </div>
+                        `;
+                    } else if (data.success) {
+                        resultDiv.innerHTML = `
+                            <div class="result error">
+                                <h3>❌ Unexpected Success</h3>
+                                <p>The business was created despite using a duplicate email!</p>
+                                <p>This suggests the unique constraint might not be working.</p>
+                                <p><strong>Business ID:</strong> ${data.businessId}</p>
+                            </div>
+                        `;
+                    } else {
+                        resultDiv.innerHTML = `
+                            <div class="result warning">
+                                <h3>⚠️ Different Error Type</h3>
+                                <p><strong>Status:</strong> ${response.status}</p>
+                                <p><strong>Error:</strong> ${data.error}</p>
+                                <p><strong>Details:</strong> ${data.details}</p>
+                                <p><strong>Error Type:</strong> ${data.errorType || 'Not specified'}</p>
+                            </div>
+                        `;
+                    }
+                } catch (parseError) {
+                    resultDiv.innerHTML = `
+                        <div class="result error">
+                            <h3>❌ API Response Parse Error</h3>
+                            <p><strong>Status:</strong> ${response.status}</p>
+                            <p><strong>Response:</strong> ${responseText.substring(0, 500)}...</p>
+                        </div>
+                    `;
+                }
+                
+            } catch (error) {
+                resultDiv.innerHTML = `
+                    <div class="result error">
+                        <h3>❌ Network Error</h3>
+                        <p>${error.message}</p>
+                        <p>Make sure the development server is running on port 3003</p>
+                    </div>
+                `;
+            }
+        }
+        
+        function openOnboardingWithDuplicateEmail() {
+            const resultDiv = document.getElementById('frontendResult');
+            resultDiv.innerHTML = `
+                <div class="result info">
+                    <h3>🧪 Frontend Test Instructions</h3>
+                    <p>A new tab will open with the onboarding form. To test duplicate email handling:</p>
+                    <ol>
+                        <li>Fill out the form with any business name</li>
+                        <li>Use email: <strong>demo@example.com</strong> (this already exists)</li>
+                        <li>Complete the payment information</li>
+                        <li>Click "Create Assistant"</li>
+                        <li>You should see a user-friendly error message about account already existing</li>
+                    </ol>
+                    <p>Expected behavior: Clear, helpful error message with guidance to use different email.</p>
+                </div>
+            `;
+            
+            setTimeout(() => {
+                window.open('http://localhost:3003/onboarding', '_blank');
+            }, 1000);
+        }
+        
+        function openOnboardingWithNewEmail() {
+            const resultDiv = document.getElementById('frontendResult');
+            const uniqueEmail = `test-${Date.now()}@example.com`;
+            
+            resultDiv.innerHTML = `
+                <div class="result info">
+                    <h3>✅ New Email Test</h3>
+                    <p>Opening onboarding form for success test.</p>
+                    <p><strong>Suggested unique email:</strong> <code>${uniqueEmail}</code></p>
+                    <p>This email should work without conflicts.</p>
+                </div>
+            `;
+            
+            setTimeout(() => {
+                window.open('http://localhost:3003/onboarding', '_blank');
+            }, 1000);
+        }
+        
+        // Auto-run API test on page load
+        window.onload = function() {
+            setTimeout(testAPIErrorHandling, 1000);
+        };
+    </script>
+</body>
+</html>

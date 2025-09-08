@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Local Testing Helper</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; }
+        .test-section { margin: 20px 0; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+        button { 
+            background: #007cba; color: white; padding: 15px 30px; 
+            border: none; border-radius: 4px; cursor: pointer; margin-right: 10px; 
+            text-decoration: none; display: inline-block;
+        }
+        button:hover { background: #005a87; }
+        .email-box { 
+            background: #f8f9fa; padding: 15px; border-radius: 4px; 
+            border-left: 4px solid #007cba; margin: 10px 0;
+        }
+        code { background: #f1f1f1; padding: 2px 4px; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <h1>Local Testing Helper 🧪</h1>
+    <p>Server running on: <strong>http://localhost:3004</strong></p>
+    
+    <div class="test-section">
+        <h2>🎯 Test 1: Error Handling (Duplicate Email)</h2>
+        <p>Test the enhanced error handling by using an existing email.</p>
+        <div class="email-box">
+            <strong>Use this existing email:</strong><br>
+            <code>demo@example.com</code><br>
+            <small>Expected: User-friendly error message about account already existing</small>
+        </div>
+        <a href="http://localhost:3004/onboarding" target="_blank">
+            <button>Open Onboarding Form</button>
+        </a>
+    </div>
+    
+    <div class="test-section">
+        <h2>✅ Test 2: Success Flow (Unique Email)</h2>
+        <p>Test successful business creation with a unique email.</p>
+        <div class="email-box">
+            <strong>Use this unique email:</strong><br>
+            <code id="uniqueEmail"></code><br>
+            <small>Expected: Successful business creation and dashboard redirect</small>
+        </div>
+        <button onclick="copyEmail()">Copy Unique Email</button>
+        <a href="http://localhost:3004/onboarding" target="_blank">
+            <button>Open Onboarding Form</button>
+        </a>
+    </div>
+    
+    <div class="test-section">
+        <h2>📊 Test 3: Check Database</h2>
+        <p>After testing, check what businesses were created.</p>
+        <button onclick="checkDatabase()">Check Recent Businesses</button>
+        <div id="dbResults"></div>
+    </div>
+    
+    <div class="test-section">
+        <h2>🎛️ Quick Links</h2>
+        <a href="http://localhost:3004/onboarding" target="_blank"><button>Onboarding Form</button></a>
+        <a href="http://localhost:3004/dashboard" target="_blank"><button>Dashboard</button></a>
+        <button onclick="window.location.reload()">Refresh Page</button>
+    </div>
+
+    <script>
+        // Generate unique email
+        const uniqueEmail = `localtest-${Date.now()}@example.com`;
+        document.getElementById('uniqueEmail').textContent = uniqueEmail;
+        
+        function copyEmail() {
+            navigator.clipboard.writeText(uniqueEmail).then(() => {
+                alert('Email copied to clipboard!');
+            });
+        }
+        
+        async function checkDatabase() {
+            const resultDiv = document.getElementById('dbResults');
+            resultDiv.innerHTML = '<p>⏳ Checking database...</p>';
+            
+            try {
+                // This is a mock - you'd need to run the node script
+                resultDiv.innerHTML = `
+                    <div style="background: #f8f9fa; padding: 15px; border-radius: 4px; margin-top: 15px;">
+                        <p><strong>To check the database, run this command:</strong></p>
+                        <code>cd C:\\Users\\escot\\vapi-nail-salon-agent && node check-business-emails.js</code>
+                        <p><small>This will show all businesses and their email addresses.</small></p>
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `<p style="color: red;">Error: ${error.message}</p>`;
+            }
+        }
+        
+        // Auto-generate new unique email every 10 seconds
+        setInterval(() => {
+            const newEmail = `localtest-${Date.now()}@example.com`;
+            document.getElementById('uniqueEmail').textContent = newEmail;
+            uniqueEmail = newEmail;
+        }, 10000);
+    </script>
+</body>
+</html>

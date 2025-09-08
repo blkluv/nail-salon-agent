@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Onboarding Flow</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; padding: 20px; }
+        .form-group { margin: 15px 0; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        input, select, textarea { width: 100%; padding: 10px; border: 1px solid #ddd; border-radius: 4px; }
+        button { background: #007cba; color: white; padding: 15px 30px; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #005a87; }
+        .result { margin-top: 20px; padding: 15px; border-radius: 4px; }
+        .success { background: #d4edda; border: 1px solid #c3e6cb; color: #155724; }
+        .error { background: #f8d7da; border: 1px solid #f5c6cb; color: #721c24; }
+        .loading { background: #d1ecf1; border: 1px solid #b6d4db; color: #0c5460; }
+    </style>
+</head>
+<body>
+    <h1>Test Onboarding Flow</h1>
+    <p>This will test the business creation and slug uniqueness fix without requiring real Stripe payment methods.</p>
+    
+    <form id="testForm">
+        <div class="form-group">
+            <label for="businessName">Business Name:</label>
+            <input type="text" id="businessName" value="Test Beauty Salon #" required>
+            <small>Each test will append a number to ensure uniqueness testing</small>
+        </div>
+        
+        <div class="form-group">
+            <label for="email">Email:</label>
+            <input type="email" id="email" value="test@example.com" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="phone">Phone:</label>
+            <input type="tel" id="phone" value="+15551234567" required>
+        </div>
+        
+        <div class="form-group">
+            <label for="businessType">Business Type:</label>
+            <select id="businessType" required>
+                <option value="Beauty Salon">Beauty Salon</option>
+                <option value="Nail Salon">Nail Salon</option>
+                <option value="Hair Salon">Hair Salon</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="plan">Plan:</label>
+            <select id="plan" required>
+                <option value="starter">Starter ($67)</option>
+                <option value="professional" selected>Professional ($147)</option>
+                <option value="business">Business ($297)</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label>
+                <input type="checkbox" id="skipPayment" checked>
+                Skip payment validation (test mode)
+            </label>
+        </div>
+        
+        <button type="submit">Test Business Creation</button>
+    </form>
+    
+    <div id="result"></div>
+
+    <script>
+        let testNumber = 1;
+        
+        document.getElementById('testForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const resultDiv = document.getElementById('result');
+            const skipPayment = document.getElementById('skipPayment').checked;
+            
+            // Update business name with test number
+            const businessNameInput = document.getElementById('businessName');
+            const baseName = businessNameInput.value.replace(/#\d*$/, ''); // Remove existing number
+            businessNameInput.value = `${baseName}${testNumber}`;
+            
+            const testData = {
+                businessInfo: {
+                    name: businessNameInput.value,
+                    email: document.getElementById('email').value,
+                    phone: document.getElementById('phone').value,
+                    businessType: document.getElementById('businessType').value,
+                    ownerFirstName: "Test",
+                    ownerLastName: "Owner"
+                },
+                selectedPlan: document.getElementById('plan').value,
+                paymentMethodId: skipPayment ? "skip_payment_validation" : "pm_test_card_visa",
+                rapidSetup: true
+            };
+            
+            resultDiv.innerHTML = `
+                <div class="result loading">
+                    <h3>🧪 Testing Business Creation #${testNumber}</h3>
+                    <p>Creating business: <strong>${testData.businessInfo.name}</strong></p>
+                    <p>Payment mode: ${skipPayment ? 'SKIPPED (test mode)' : 'Stripe validation'}</p>
+                    <p>Please wait...</p>
+                </div>
+            `;
+            
+            try {
+                const response = await fetch('http://localhost:3002/api/admin/provision-client', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(testData)
+                });
+                
+                const responseText = await response.text();
+                
+                try {
+                    const data = JSON.parse(responseText);
+                    
+                    if (data.success) {
+                        resultDiv.innerHTML = `
+                            <div class="result success">
+                                <h3>✅ Success! Business Created #${testNumber}</h3>
+                                <p><strong>Business:</strong> ${data.businessName}</p>
+                                <p><strong>ID:</strong> ${data.businessId}</p>
+                                <p><strong>Phone:</strong> ${data.phoneNumber}</p>
+                                <p><strong>Assistant:</strong> ${data.assistantId} (${data.assistantType})</p>
+                                <p><strong>Plan:</strong> ${data.plan}</p>
+                                <p><strong>Trial Ends:</strong> ${new Date(data.trialEndsAt).toLocaleDateString()}</p>
+                                <hr>
+                                <p>✅ Slug uniqueness fix is working!</p>
+                                <p>✅ Auto-service generation completed</p>
+                                <p>✅ Phone number provisioned</p>
+                            </div>
+                        `;
+                        testNumber++;
+                    } else {
+                        resultDiv.innerHTML = `
+                            <div class="result error">
+                                <h3>❌ Error in Business Creation #${testNumber}</h3>
+                                <p><strong>Error:</strong> ${data.error}</p>
+                                <p><strong>Details:</strong> ${data.details}</p>
+                                
+                                ${responseText.includes('duplicate key') ? 
+                                    '<hr><p>🔍 <strong>Slug uniqueness issue detected!</strong> The timestamp suffix fix may not be working properly.</p>' : ''}
+                            </div>
+                        `;
+                    }
+                } catch (parseError) {
+                    resultDiv.innerHTML = `
+                        <div class="result error">
+                            <h3>❌ Response Parse Error #${testNumber}</h3>
+                            <p><strong>Status:</strong> ${response.status}</p>
+                            <p><strong>Raw Response:</strong></p>
+                            <pre>${responseText}</pre>
+                        </div>
+                    `;
+                }
+                
+            } catch (networkError) {
+                resultDiv.innerHTML = `
+                    <div class="result error">
+                        <h3>❌ Network Error #${testNumber}</h3>
+                        <p><strong>Error:</strong> ${networkError.message}</p>
+                        <p>Make sure the development server is running on port 3002</p>
+                    </div>
+                `;
+            }
+        });
+    </script>
+</body>
+</html>

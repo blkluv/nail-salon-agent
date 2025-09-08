@@ -253,8 +253,8 @@ type OnboardingStep = 'plan-selection' | 'business-info' | 'success'
 
 interface SetupResult {
   businessName: string
-  newPhoneNumber: string
-  existingPhoneNumber: string
+  newPhoneNumber: string | undefined
+  existingPhoneNumber: string | undefined
   businessId: string
 }
 
@@ -294,7 +294,22 @@ export default function OnboardingPage() {
 
       if (!response.ok) {
         const errorData = await response.text()
-        throw new Error(`Setup failed: ${errorData}`)
+        
+        // Try to parse as JSON for structured error handling
+        try {
+          const errorJson = JSON.parse(errorData)
+          
+          if (errorJson.errorType === 'duplicate_email') {
+            throw new Error(`Account Already Exists: ${errorJson.details}`)
+          } else if (errorJson.errorType === 'duplicate_slug') {
+            throw new Error(`Business Name Conflict: ${errorJson.details}`)
+          } else {
+            throw new Error(`Setup Failed: ${errorJson.error || errorJson.details || 'Unknown error'}`)
+          }
+        } catch (parseError) {
+          // If not JSON, use the raw error data
+          throw new Error(`Setup failed: ${errorData}`)
+        }
       }
 
       const result = await response.json()
@@ -317,13 +332,41 @@ export default function OnboardingPage() {
   }
 
   const handleContinueToDashboard = () => {
+    console.log('🚀 Continue to Dashboard clicked')
+    console.log('Setup Result:', setupResult)
+    
     if (setupResult) {
-      // Set authentication for the new business
-      localStorage.setItem('authenticated_business_id', setupResult.businessId)
-      localStorage.setItem('authenticated_business_name', setupResult.businessName)
-      
-      // Navigate to dashboard with onboarding tour
-      router.push(`/dashboard?onboarding=true&plan=${selectedPlan}`)
+      try {
+        // Set authentication for the new business
+        localStorage.setItem('authenticated_business_id', setupResult.businessId)
+        localStorage.setItem('authenticated_business_name', setupResult.businessName)
+        localStorage.setItem('authenticated_user_email', 'owner@business.com') // Default email
+        
+        console.log('✅ Authentication data set in localStorage')
+        console.log('Business ID:', setupResult.businessId)
+        console.log('Business Name:', setupResult.businessName)
+        
+        // Navigate to dashboard with onboarding tour
+        const dashboardUrl = `/dashboard?onboarding=true&plan=${selectedPlan}`
+        console.log('🔗 Navigating to:', dashboardUrl)
+        
+        router.push(dashboardUrl)
+        
+        // Fallback: Also try window.location as backup
+        setTimeout(() => {
+          console.log('🔄 Fallback navigation attempt')
+          window.location.href = `/dashboard?onboarding=true&plan=${selectedPlan}`
+        }, 1000)
+        
+      } catch (error) {
+        console.error('❌ Dashboard navigation error:', error)
+        // Direct navigation fallback
+        window.location.href = `/dashboard?business_id=${setupResult.businessId}`
+      }
+    } else {
+      console.error('❌ No setupResult available for navigation')
+      // Emergency fallback to dashboard
+      window.location.href = '/dashboard'
     }
   }
 

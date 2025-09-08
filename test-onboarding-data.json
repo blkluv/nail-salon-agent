@@ -1,0 +1,14 @@
+{
+  "businessInfo": {
+    "name": "Test Beauty Salon #2",
+    "email": "test-unique-12345@testsalon.com", 
+    "phone": "+15551234567",
+    "businessType": "Beauty Salon",
+    "ownerFirstName": "Test",
+    "ownerLastName": "Owner"
+  },
+  "selectedPlan": "professional",
+  "paymentMethodId": "skip_payment_validation",
+  "rapidSetup": true,
+  "testNote": "This data should create a unique slug with timestamp suffix to avoid duplicate constraint violations"
+}
