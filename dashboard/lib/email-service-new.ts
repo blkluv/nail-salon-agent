@@ -215,6 +215,132 @@ export function generateWelcomeEmail(businessName: string, phoneNumber: string, 
   `
 }
 
+export function generateWinBackEmail(businessName: string, cancellationReason: string, daysAgo: number, reactivationToken: string, businessId: string) {
+  const reasonMessages = {
+    too_expensive: "We heard price was a concern - we have something special for you!",
+    missing_features: "We've added new features you asked for!",
+    not_ready: "Ready to give AI another try?",
+    technical_issues: "We've fixed the issues you experienced!",
+    found_alternative: "See why customers are switching back to us!",
+    other: "We'd love to have you back!"
+  }
+  
+  const reasonMessage = reasonMessages[cancellationReason as keyof typeof reasonMessages] || reasonMessages.other
+  
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>We Miss You!</title>
+</head>
+<body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f4;">
+  <table role="presentation" style="width: 100%; border-collapse: collapse;">
+    <tr>
+      <td align="center" style="padding: 40px 0;">
+        <table role="presentation" style="width: 600px; max-width: 100%; background-color: #ffffff; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+          
+          <!-- Header -->
+          <tr>
+            <td style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 30px; text-align: center;">
+              <h1 style="margin: 0; color: #ffffff; font-size: 28px; font-weight: 600;">
+                We Miss You, ${businessName}! 💔
+              </h1>
+              <p style="margin: 10px 0 0 0; color: #ffffff; font-size: 16px; opacity: 0.95;">
+                ${reasonMessage}
+              </p>
+            </td>
+          </tr>
+          
+          <!-- Main Content -->
+          <tr>
+            <td style="padding: 40px 30px;">
+              <h2 style="color: #333; font-size: 20px; margin: 0 0 20px 0;">
+                🎯 What's New Since You Left:
+              </h2>
+              
+              <div style="background: #f8f9ff; border-radius: 8px; padding: 25px; margin-bottom: 30px;">
+                <ul style="margin: 0; padding: 0 0 0 20px; color: #333; font-size: 16px; line-height: 1.8;">
+                  <li style="margin-bottom: 10px;">🚀 <strong>Faster Setup:</strong> Now working in under 3 minutes</li>
+                  <li style="margin-bottom: 10px;">📈 <strong>Better Analytics:</strong> See your ROI in real-time</li>
+                  <li style="margin-bottom: 10px;">🎨 <strong>Custom Branding:</strong> Your AI sounds more natural</li>
+                  <li>💪 <strong>99.9% Uptime:</strong> Never miss another call</li>
+                </ul>
+              </div>
+
+              <div style="background: linear-gradient(135deg, #28a745 0%, #20c997 100%); border-radius: 8px; padding: 25px; text-align: center; margin-bottom: 30px;">
+                <h3 style="margin: 0 0 10px 0; color: #ffffff; font-size: 24px;">
+                  🎁 Welcome Back Offer
+                </h3>
+                <p style="margin: 0 0 15px 0; color: #ffffff; font-size: 18px; opacity: 0.95;">
+                  <strong>50% OFF</strong> your first month back
+                </p>
+                <p style="margin: 0; color: #ffffff; font-size: 14px; opacity: 0.8;">
+                  Valid for 7 days • All plans included
+                </p>
+              </div>
+
+              <div style="text-center; margin-bottom: 30px;">
+                <a href="${process.env.NEXT_PUBLIC_APP_URL}/reactivate?token=${reactivationToken}&businessId=${businessId}&offer=50off" 
+                   style="display: inline-block; padding: 16px 40px; background: #28a745; color: #ffffff; text-decoration: none; border-radius: 8px; font-weight: 600; font-size: 18px;">
+                  Reactivate with 50% OFF
+                </a>
+              </div>
+
+              <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 20px; margin-bottom: 20px;">
+                <h4 style="margin: 0 0 10px 0; color: #856404; font-size: 16px;">
+                  ⚡ Quick Stats from Our Active Customers:
+                </h4>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 15px;">
+                  <div style="text-align: center;">
+                    <div style="font-size: 24px; font-weight: bold; color: #856404;">73%</div>
+                    <div style="font-size: 12px; color: #856404;">More Bookings</div>
+                  </div>
+                  <div style="text-align: center;">
+                    <div style="font-size: 24px; font-weight: bold; color: #856404;">$1,200</div>
+                    <div style="font-size: 12px; color: #856404;">Avg Monthly Revenue Increase</div>
+                  </div>
+                </div>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Social Proof -->
+          <tr>
+            <td style="padding: 0 30px 30px; background: #f9f9f9;">
+              <div style="border-left: 4px solid #28a745; padding: 15px 20px; background: white; border-radius: 0 8px 8px 0;">
+                <p style="margin: 0; font-style: italic; color: #555; font-size: 14px;">
+                  "I cancelled because I thought it was too complicated. Came back and had it working in 2 minutes. Already booked 5 new clients this week!"
+                </p>
+                <p style="margin: 10px 0 0 0; font-size: 12px; color: #888;">
+                  - Sarah M., Nail Studio Owner
+                </p>
+              </div>
+            </td>
+          </tr>
+          
+          <!-- Footer -->
+          <tr>
+            <td style="padding: 30px; text-align: center; color: #999; font-size: 12px;">
+              <p style="margin: 0 0 10px 0;">
+                This offer expires in 7 days • No long-term commitment
+              </p>
+              <p style="margin: 0;">
+                <a href="${process.env.NEXT_PUBLIC_APP_URL}/unsubscribe?token=${reactivationToken}" style="color: #999; text-decoration: none;">Unsubscribe from win-back emails</a>
+              </p>
+            </td>
+          </tr>
+          
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `
+}
+
 export function generateCancellationEmail(businessName: string, hasRetainedNumber: boolean, phoneNumber?: string) {
   return `
 <!DOCTYPE html>

@@ -132,6 +132,9 @@ export async function POST(request: NextRequest) {
         })
     }
     
+    // Generate reactivation token for win-back emails
+    const reactivationToken = crypto.randomUUID()
+    
     // Update business record
     const { error: updateError } = await supabase
       .from('businesses')
@@ -143,6 +146,7 @@ export async function POST(request: NextRequest) {
         number_retention: body.retainNumber,
         number_release_date: body.retainNumber ? null : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
         stripe_number_retention_subscription_id: numberRetentionSubscriptionId,
+        reactivation_token: reactivationToken,
         updated_at: new Date().toISOString()
       })
       .eq('id', body.businessId)
