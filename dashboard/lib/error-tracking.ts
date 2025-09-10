@@ -323,9 +323,11 @@ if (typeof window !== 'undefined') {
       ErrorCategory.DASHBOARD,
       ErrorSeverity.MEDIUM,
       {
-        filename: event.filename,
-        lineno: event.lineno?.toString(),
-        colno: event.colno?.toString(),
+        metadata: {
+          filename: event.filename,
+          lineno: event.lineno?.toString(),
+          colno: event.colno?.toString(),
+        }
       }
     )
   })
@@ -336,7 +338,9 @@ if (typeof window !== 'undefined') {
       ErrorCategory.DASHBOARD,
       ErrorSeverity.HIGH,
       {
-        type: 'unhandled_promise_rejection',
+        metadata: {
+          type: 'unhandled_promise_rejection',
+        }
       }
     )
   })
