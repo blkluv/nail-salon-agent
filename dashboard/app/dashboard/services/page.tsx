@@ -38,13 +38,52 @@ interface Service {
 
 // No mock data - load real services from database
 
-const categories = [
-  { name: 'All Categories', value: 'all', color: 'bg-gray-100 text-gray-800' },
-  { name: 'Manicures', value: 'Manicures', color: 'bg-brand-100 text-brand-800' },
-  { name: 'Pedicures', value: 'Pedicures', color: 'bg-beauty-100 text-beauty-800' },
-  { name: 'Enhancements', value: 'Enhancements', color: 'bg-purple-100 text-purple-800' },
-  { name: 'Spa Services', value: 'Spa Services', color: 'bg-green-100 text-green-800' }
-]
+// Helper function to determine if a service is high value
+const isHighValueService = (price: number) => price >= 50
+
+// Helper function to get categories based on business type
+const getBusinessTypeCategories = (businessType: string) => {
+  const baseCategories = [
+    { name: 'All Categories', value: 'all', color: 'bg-gray-100 text-gray-800' }
+  ]
+  
+  switch (businessType) {
+    case 'Medical Spa':
+      return [
+        ...baseCategories,
+        { name: 'Injectables', value: 'Injectables', color: 'bg-brand-100 text-brand-800' },
+        { name: 'Laser Treatments', value: 'Laser Treatments', color: 'bg-beauty-100 text-beauty-800' },
+        { name: 'Skin Treatments', value: 'Skin Treatments', color: 'bg-purple-100 text-purple-800' },
+        { name: 'Body Contouring', value: 'Body Contouring', color: 'bg-green-100 text-green-800' }
+      ]
+    case 'Day Spa':
+      return [
+        ...baseCategories,
+        { name: 'Massages', value: 'Massages', color: 'bg-brand-100 text-brand-800' },
+        { name: 'Facials', value: 'Facials', color: 'bg-beauty-100 text-beauty-800' },
+        { name: 'Body Treatments', value: 'Body Treatments', color: 'bg-purple-100 text-purple-800' },
+        { name: 'Specialty Services', value: 'Specialty Services', color: 'bg-green-100 text-green-800' }
+      ]
+    case 'Wellness Center':
+      return [
+        ...baseCategories,
+        { name: 'Alternative Medicine', value: 'Alternative Medicine', color: 'bg-brand-100 text-brand-800' },
+        { name: 'Energy Healing', value: 'Energy Healing', color: 'bg-beauty-100 text-beauty-800' },
+        { name: 'Wellness Consultations', value: 'Wellness Consultations', color: 'bg-purple-100 text-purple-800' },
+        { name: 'Therapeutic Services', value: 'Therapeutic Services', color: 'bg-green-100 text-green-800' }
+      ]
+    default:
+      return [
+        ...baseCategories,
+        { name: 'Manicures', value: 'Manicures', color: 'bg-brand-100 text-brand-800' },
+        { name: 'Pedicures', value: 'Pedicures', color: 'bg-beauty-100 text-beauty-800' },
+        { name: 'Enhancements', value: 'Enhancements', color: 'bg-purple-100 text-purple-800' },
+        { name: 'Spa Services', value: 'Spa Services', color: 'bg-green-100 text-green-800' }
+      ]
+  }
+}
+
+// Note: categories will be dynamic based on business type
 
 export default function ServicesPage() {
   const [services, setServices] = useState<Service[]>([])
@@ -54,6 +93,7 @@ export default function ServicesPage() {
   const [showModal, setShowModal] = useState(false)
   const [showAddModal, setShowAddModal] = useState(false)
   const [loading, setLoading] = useState(true)
+  const [businessType, setBusinessType] = useState('Nail Salon')
 
   // Load real services from database
   useEffect(() => {
@@ -100,6 +140,12 @@ export default function ServicesPage() {
       setLoading(true)
       const businessId = getCurrentBusinessId()
       if (!businessId) return
+
+      // Load business data to get business type
+      const businessData = await BusinessAPI.getBusiness(businessId)
+      if (businessData?.business_type) {
+        setBusinessType(businessData.business_type)
+      }
 
       const realServices = await BusinessAPI.getServices(businessId)
       
@@ -193,7 +239,7 @@ export default function ServicesPage() {
             </div>
           </div>
           <div className="flex gap-2 flex-wrap">
-            {categories.map(category => (
+            {getBusinessTypeCategories(businessType).map(category => (
               <button
                 key={category.value}
                 onClick={() => setCategoryFilter(category.value)}
