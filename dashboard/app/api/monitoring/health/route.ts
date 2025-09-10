@@ -54,10 +54,15 @@ export async function GET(request: NextRequest) {
     const webhookStartTime = Date.now()
     try {
       const webhookUrl = process.env.RAILWAY_WEBHOOK_URL || 'https://web-production-60875.up.railway.app'
+      const controller = new AbortController()
+      const timeoutId = setTimeout(() => controller.abort(), 5000)
+      
       const response = await fetch(`${webhookUrl}/health`, {
         method: 'GET',
-        timeout: 5000,
+        signal: controller.signal,
       })
+      
+      clearTimeout(timeoutId)
       
       const webhookResponseTime = Date.now() - webhookStartTime
 
@@ -89,13 +94,18 @@ export async function GET(request: NextRequest) {
     const vapiStartTime = Date.now()
     try {
       if (process.env.VAPI_API_KEY) {
+        const controller = new AbortController()
+        const timeoutId = setTimeout(() => controller.abort(), 5000)
+        
         const response = await fetch('https://api.vapi.ai/assistant', {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${process.env.VAPI_API_KEY}`,
           },
-          timeout: 5000,
+          signal: controller.signal,
         })
+        
+        clearTimeout(timeoutId)
         
         const vapiResponseTime = Date.now() - vapiStartTime
 
