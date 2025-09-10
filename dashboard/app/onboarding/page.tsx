@@ -4,12 +4,14 @@ import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import PlanSelector, { PlanTier } from '../../components/PlanSelector'
 import RapidSetupSuccess from '../../components/RapidSetupSuccess'
+import MayaJobSelector, { MayaJob } from '../../components/MayaJobSelector'
 
 interface BusinessInfo {
   name: string
   email: string
   phone: string
   businessType: string
+  mayaJobId?: string
   ownerFirstName?: string
   ownerLastName?: string
 }
@@ -17,29 +19,20 @@ interface BusinessInfo {
 interface RapidSetupFormProps {
   selectedPlan: PlanTier
   paymentMethodId: string
+  selectedJob: MayaJob
   onFormSubmit: (businessInfo: BusinessInfo) => Promise<void>
   loading: boolean
 }
 
-const BUSINESS_TYPES = [
-  'Nail Salon',
-  'Hair Salon', 
-  'Day Spa',
-  'Medical Spa',
-  'Massage Therapy',
-  'Beauty Salon',
-  'Barbershop',
-  'Esthetics',
-  'Wellness Center',
-  'Other'
-]
+// Business types are now handled by Maya job selection
 
-function RapidSetupForm({ selectedPlan, paymentMethodId, onFormSubmit, loading }: RapidSetupFormProps) {
+function RapidSetupForm({ selectedPlan, paymentMethodId, selectedJob, onFormSubmit, loading }: RapidSetupFormProps) {
   const [formData, setFormData] = useState<BusinessInfo>({
     name: '',
     email: '',
     phone: '',
-    businessType: 'Nail Salon'
+    businessType: selectedJob.businessTypes[0], // Use first business type from selected job
+    mayaJobId: selectedJob.id
   })
   const [errors, setErrors] = useState<Partial<BusinessInfo>>({})
   const [submitting, setSubmitting] = useState(false)
@@ -63,9 +56,7 @@ function RapidSetupForm({ selectedPlan, paymentMethodId, onFormSubmit, loading }
       newErrors.phone = 'Please enter a valid phone number'
     }
 
-    if (!formData.businessType) {
-      newErrors.businessType = 'Please select your business type'
-    }
+    // Business type is pre-selected from Maya job, no validation needed
 
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
@@ -177,28 +168,23 @@ function RapidSetupForm({ selectedPlan, paymentMethodId, onFormSubmit, loading }
           {errors.email && <p className="text-red-600 text-sm mt-1">{errors.email}</p>}
         </div>
 
-        {/* Business Type */}
-        <div>
-          <label htmlFor="businessType" className="block text-sm font-medium text-gray-700 mb-2">
-            Business Type *
+        {/* Selected Maya Job Display */}
+        <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Maya's Selected Role
           </label>
-          <select
-            id="businessType"
-            value={formData.businessType}
-            onChange={(e) => handleInputChange('businessType', e.target.value)}
-            className={`w-full px-4 py-3 border rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 ${
-              errors.businessType ? 'border-red-500' : 'border-gray-300'
-            }`}
-          >
-            {BUSINESS_TYPES.map((type) => (
-              <option key={type} value={type}>
-                {type}
-              </option>
-            ))}
-          </select>
-          {errors.businessType && <p className="text-red-600 text-sm mt-1">{errors.businessType}</p>}
-          <p className="text-gray-600 text-sm mt-1">
-            🤖 We'll automatically create services and settings based on your business type
+          <div className="flex items-center">
+            <span className="text-3xl mr-3">{selectedJob.icon}</span>
+            <div>
+              <h3 className="font-semibold text-gray-900">{selectedJob.title}</h3>
+              <p className="text-sm text-gray-600">{selectedJob.description}</p>
+              <p className="text-xs text-purple-600 font-medium mt-1">
+                Perfect for: {selectedJob.businessTypes.join(', ')}
+              </p>
+            </div>
+          </div>
+          <p className="text-gray-600 text-sm mt-3">
+            🤖 Maya will automatically set up specialized services and expertise for your {selectedJob.businessTypes[0].toLowerCase()}
           </p>
         </div>
 
@@ -249,7 +235,7 @@ function RapidSetupForm({ selectedPlan, paymentMethodId, onFormSubmit, loading }
   )
 }
 
-type OnboardingStep = 'plan-selection' | 'business-info' | 'success'
+type OnboardingStep = 'job-selection' | 'plan-selection' | 'business-info' | 'success'
 
 interface SetupResult {
   businessName: string
@@ -260,12 +246,18 @@ interface SetupResult {
 
 export default function OnboardingPage() {
   const router = useRouter()
-  const [currentStep, setCurrentStep] = useState<OnboardingStep>('plan-selection')
+  const [currentStep, setCurrentStep] = useState<OnboardingStep>('job-selection')
+  const [selectedJob, setSelectedJob] = useState<MayaJob | null>(null)
   const [selectedPlan, setSelectedPlan] = useState<PlanTier>('professional')
   const [paymentMethodId, setPaymentMethodId] = useState<string>('')
   const [setupResult, setSetupResult] = useState<SetupResult | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  const handleJobSelection = (job: MayaJob) => {
+    setSelectedJob(job)
+    setCurrentStep('plan-selection')
+  }
 
   const handlePlanSelection = async (plan: PlanTier, paymentId: string) => {
     setSelectedPlan(plan)
@@ -408,17 +400,27 @@ export default function OnboardingPage() {
         <div className="max-w-4xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <h1 className="text-xl font-bold text-gray-900">AI Assistant Setup</h1>
+              <h1 className="text-xl font-bold text-gray-900">Hire Maya</h1>
               <div className="flex items-center space-x-2">
-                <div className={`w-3 h-3 rounded-full ${currentStep !== 'plan-selection' ? 'bg-green-500' : 'bg-blue-500'}`} />
+                <div className={`w-3 h-3 rounded-full ${currentStep !== 'job-selection' ? 'bg-green-500' : 'bg-blue-500'}`} />
+                <span className="text-sm text-gray-600">Job</span>
+                <div className={`w-3 h-3 rounded-full ${currentStep === 'business-info' || currentStep === 'success' ? 'bg-green-500' : currentStep === 'plan-selection' ? 'bg-blue-500' : 'bg-gray-300'}`} />
                 <span className="text-sm text-gray-600">Plan</span>
                 <div className={`w-3 h-3 rounded-full ${currentStep === 'success' ? 'bg-green-500' : currentStep === 'business-info' ? 'bg-blue-500' : 'bg-gray-300'}`} />
-                <span className="text-sm text-gray-600">Business Info</span>
+                <span className="text-sm text-gray-600">Setup</span>
                 <div className={`w-3 h-3 rounded-full ${currentStep === 'success' ? 'bg-green-500' : 'bg-gray-300'}`} />
                 <span className="text-sm text-gray-600">Ready</span>
               </div>
             </div>
-            {currentStep !== 'plan-selection' && currentStep !== 'success' && (
+            {currentStep === 'plan-selection' && (
+              <button
+                onClick={() => setCurrentStep('job-selection')}
+                className="text-blue-600 hover:text-blue-700 text-sm flex items-center"
+              >
+                ← Back to jobs
+              </button>
+            )}
+            {currentStep === 'business-info' && (
               <button
                 onClick={() => setCurrentStep('plan-selection')}
                 className="text-blue-600 hover:text-blue-700 text-sm flex items-center"
@@ -432,17 +434,25 @@ export default function OnboardingPage() {
 
       {/* Main Content */}
       <div className="max-w-6xl mx-auto px-4 py-8">
-        {currentStep === 'plan-selection' && (
+        {currentStep === 'job-selection' && (
+          <MayaJobSelector
+            onJobSelect={handleJobSelection}
+            selectedJob={selectedJob}
+          />
+        )}
+
+        {currentStep === 'plan-selection' && selectedJob && (
           <PlanSelector
             onPlanSelected={handlePlanSelection}
             loading={loading}
           />
         )}
 
-        {currentStep === 'business-info' && (
+        {currentStep === 'business-info' && selectedJob && (
           <RapidSetupForm
             selectedPlan={selectedPlan}
             paymentMethodId={paymentMethodId}
+            selectedJob={selectedJob}
             onFormSubmit={handleBusinessInfoSubmit}
             loading={loading}
           />
