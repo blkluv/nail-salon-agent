@@ -29,6 +29,7 @@ interface BusinessInfo {
   email: string
   phone: string
   businessType: string
+  mayaJobId?: string
   ownerFirstName?: string
   ownerLastName?: string
 }
@@ -77,7 +78,13 @@ function generateServicesForBusinessType(businessType: string): Array<{name: str
       { name: 'European Facial', price: 85, duration: 75, description: 'Classic European facial treatment' },
       { name: 'Body Wrap', price: 120, duration: 90, description: 'Detoxifying body wrap' },
       { name: 'Hot Stone Massage', price: 130, duration: 90, description: 'Luxury hot stone therapy' },
-      { name: 'Couples Massage', price: 220, duration: 60, description: 'Side-by-side massage for two' }
+      { name: 'Couples Massage', price: 220, duration: 60, description: 'Side-by-side massage for two' },
+      { name: 'Aromatherapy Massage', price: 105, duration: 75, description: 'Essential oil massage therapy' },
+      { name: 'Prenatal Massage', price: 95, duration: 60, description: 'Pregnancy-safe massage therapy' },
+      { name: 'Reflexology', price: 75, duration: 45, description: 'Pressure point foot therapy' },
+      { name: 'Salt Scrub', price: 90, duration: 60, description: 'Exfoliating salt body scrub' },
+      { name: 'Hydrafacial', price: 150, duration: 60, description: 'Advanced hydrating facial treatment' },
+      { name: 'Anti-Aging Facial', price: 120, duration: 90, description: 'Specialized anti-aging treatment' }
     ],
     'Medical Spa': [
       { name: 'Botox Treatment', price: 400, duration: 30, description: 'Botox injections for wrinkles' },
@@ -85,7 +92,13 @@ function generateServicesForBusinessType(businessType: string): Array<{name: str
       { name: 'Chemical Peel', price: 150, duration: 60, description: 'Medical-grade chemical peel' },
       { name: 'Laser Hair Removal', price: 200, duration: 45, description: 'Permanent laser hair removal' },
       { name: 'Microneedling', price: 300, duration: 75, description: 'Collagen induction therapy' },
-      { name: 'Consultation', price: 75, duration: 30, description: 'Medical aesthetic consultation' }
+      { name: 'Consultation', price: 75, duration: 30, description: 'Medical aesthetic consultation' },
+      { name: 'CoolSculpting', price: 750, duration: 60, description: 'Non-invasive fat reduction therapy' },
+      { name: 'Laser Resurfacing', price: 500, duration: 90, description: 'Laser skin resurfacing treatment' },
+      { name: 'IPL Photofacial', price: 250, duration: 45, description: 'Intense pulsed light treatment' },
+      { name: 'Radiofrequency', price: 350, duration: 60, description: 'RF skin tightening treatment' },
+      { name: 'Vampire Facial', price: 400, duration: 90, description: 'PRP microneedling treatment' },
+      { name: 'Laser Genesis', price: 200, duration: 30, description: 'Collagen stimulation laser treatment' }
     ],
     'Beauty Salon': [
       { name: 'Facial Treatment', price: 75, duration: 60, description: 'Customized facial treatment' },
@@ -125,7 +138,13 @@ function generateServicesForBusinessType(businessType: string): Array<{name: str
       { name: 'Stress Management', price: 80, duration: 50, description: 'Stress reduction techniques' },
       { name: 'Meditation Session', price: 40, duration: 30, description: 'Guided meditation practice' },
       { name: 'Yoga Class', price: 25, duration: 60, description: 'Group or individual yoga' },
-      { name: 'Health Coaching', price: 100, duration: 60, description: 'Lifestyle and wellness coaching' }
+      { name: 'Health Coaching', price: 100, duration: 60, description: 'Lifestyle and wellness coaching' },
+      { name: 'Acupuncture', price: 85, duration: 60, description: 'Traditional Chinese acupuncture therapy' },
+      { name: 'Reiki Healing', price: 70, duration: 45, description: 'Energy healing therapy session' },
+      { name: 'Sound Bath', price: 45, duration: 60, description: 'Therapeutic sound healing experience' },
+      { name: 'Infrared Sauna', price: 55, duration: 45, description: 'Detoxifying infrared sauna session' },
+      { name: 'Cupping Therapy', price: 65, duration: 45, description: 'Traditional cupping massage therapy' },
+      { name: 'Holistic Assessment', price: 95, duration: 90, description: 'Complete mind-body wellness evaluation' }
     ]
   }
 
