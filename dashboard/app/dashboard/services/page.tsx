@@ -273,9 +273,20 @@ export default function ServicesPage() {
                           <ClockIcon className="h-4 w-4 mr-1" />
                           {service.duration} min
                         </div>
-                        <div className="flex items-center">
-                          <CurrencyDollarIcon className="h-4 w-4 mr-1" />
+                        <div className={clsx(
+                          "flex items-center",
+                          isHighValueService(service.price) && "text-yellow-600 font-semibold"
+                        )}>
+                          <CurrencyDollarIcon className={clsx(
+                            "h-4 w-4 mr-1",
+                            isHighValueService(service.price) && "text-yellow-500"
+                          )} />
                           ${service.price.toFixed(2)}
+                          {isHighValueService(service.price) && (
+                            <span className="ml-1 text-xs bg-yellow-100 text-yellow-800 px-1 rounded font-medium">
+                              PREMIUM
+                            </span>
+                          )}
                         </div>
                         <span className="px-2 py-1 bg-gray-100 text-gray-800 rounded text-xs">
                           {service.category}
@@ -313,6 +324,7 @@ export default function ServicesPage() {
             isOpen={showAddModal}
             onClose={() => setShowAddModal(false)}
             onSubmit={handleAddService}
+            businessType={businessType}
           />
         )}
       </div>
@@ -325,15 +337,19 @@ interface AddServiceModalProps {
   isOpen: boolean
   onClose: () => void
   onSubmit: (serviceData: any) => void
+  businessType: string
 }
 
-function AddServiceModal({ isOpen, onClose, onSubmit }: AddServiceModalProps) {
+function AddServiceModal({ isOpen, onClose, onSubmit, businessType }: AddServiceModalProps) {
+  const modalCategories = getBusinessTypeCategories(businessType).slice(1) // Remove 'All Categories'
+  const defaultCategory = modalCategories[0]?.value || 'general'
+  
   const [formData, setFormData] = useState({
     name: '',
     description: '',
-    category: 'Manicures',
-    duration: 30,
-    price: 25,
+    category: defaultCategory,
+    duration: businessType === 'Medical Spa' ? 45 : 30,
+    price: businessType === 'Medical Spa' ? 150 : businessType === 'Day Spa' ? 85 : 25,
     requiresDeposit: false,
     depositAmount: 0
   })
@@ -346,13 +362,13 @@ function AddServiceModal({ isOpen, onClose, onSubmit }: AddServiceModalProps) {
     try {
       await onSubmit(formData)
       
-      // Reset form
+      // Reset form with business-type appropriate defaults
       setFormData({
         name: '',
         description: '',
-        category: 'Manicures',
-        duration: 30,
-        price: 25,
+        category: defaultCategory,
+        duration: businessType === 'Medical Spa' ? 45 : 30,
+        price: businessType === 'Medical Spa' ? 150 : businessType === 'Day Spa' ? 85 : 25,
         requiresDeposit: false,
         depositAmount: 0
       })
@@ -424,10 +440,11 @@ function AddServiceModal({ isOpen, onClose, onSubmit }: AddServiceModalProps) {
                       onChange={(e) => setFormData({...formData, category: e.target.value})}
                       className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
                     >
-                      <option value="Manicures">Manicures</option>
-                      <option value="Pedicures">Pedicures</option>
-                      <option value="Enhancements">Enhancements</option>
-                      <option value="Spa Services">Spa Services</option>
+                      {modalCategories.map(category => (
+                        <option key={category.value} value={category.value}>
+                          {category.name}
+                        </option>
+                      ))}
                     </select>
                   </div>
 

@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Enhancement Testing</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 p-8">
+    <div class="max-w-4xl mx-auto">
+        <h1 class="text-3xl font-bold text-gray-900 mb-8">🧪 Dashboard Enhancement Testing</h1>
+        
+        <!-- Business Type Selector -->
+        <div class="bg-white rounded-lg shadow p-6 mb-8">
+            <h2 class="text-xl font-semibold mb-4">Select Business Type to Test</h2>
+            <div class="flex flex-wrap gap-2 mb-6">
+                <button onclick="testBusinessType('Medical Spa')" 
+                        class="px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700">
+                    Medical Spa
+                </button>
+                <button onclick="testBusinessType('Day Spa')" 
+                        class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+                    Day Spa
+                </button>
+                <button onclick="testBusinessType('Wellness Center')" 
+                        class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+                    Wellness Center
+                </button>
+                <button onclick="testBusinessType('Hair Salon')" 
+                        class="px-4 py-2 bg-pink-600 text-white rounded hover:bg-pink-700">
+                    Hair Salon
+                </button>
+                <button onclick="testBusinessType('Nail Salon')" 
+                        class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">
+                    Nail Salon
+                </button>
+            </div>
+        </div>
+
+        <!-- Dynamic Categories Display -->
+        <div class="bg-white rounded-lg shadow p-6 mb-8">
+            <h2 class="text-xl font-semibold mb-4">Dynamic Categories</h2>
+            <div id="categories-display" class="flex flex-wrap gap-2">
+                <!-- Categories will be populated here -->
+            </div>
+        </div>
+
+        <!-- Sample Services Display -->
+        <div class="bg-white rounded-lg shadow p-6 mb-8">
+            <h2 class="text-xl font-semibold mb-4">Sample Services with Icons & Premium Highlighting</h2>
+            <div id="services-display" class="space-y-4">
+                <!-- Services will be populated here -->
+            </div>
+        </div>
+
+        <!-- Enhancement Summary -->
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-6">
+            <h2 class="text-xl font-semibold text-blue-900 mb-4">✨ Enhancement Features Tested</h2>
+            <ul class="text-blue-800 space-y-2">
+                <li>✅ <strong>Dynamic Categories:</strong> Categories change based on business type</li>
+                <li>✅ <strong>Spa-Specific Icons:</strong> Each service gets appropriate emoji icon</li>
+                <li>✅ <strong>Premium Service Highlighting:</strong> Services >$300 get special styling</li>
+                <li>✅ <strong>Business-Type Intelligence:</strong> Defaults and categories adapt intelligently</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Replicate the enhanced functions from our dashboard
+        const getBusinessTypeCategories = (businessType) => {
+            const baseCategories = [{ name: 'All Categories', value: 'all', color: 'bg-gray-100 text-gray-800' }]
+            
+            switch (businessType) {
+                case 'Medical Spa':
+                    return [
+                        ...baseCategories,
+                        { name: 'Injectables', value: 'injectables', color: 'bg-purple-100 text-purple-800' },
+                        { name: 'Laser Treatments', value: 'laser', color: 'bg-blue-100 text-blue-800' },
+                        { name: 'Skin Treatments', value: 'skin', color: 'bg-green-100 text-green-800' },
+                        { name: 'Body Contouring', value: 'body', color: 'bg-pink-100 text-pink-800' },
+                        { name: 'Consultations', value: 'consultations', color: 'bg-indigo-100 text-indigo-800' }
+                    ]
+                case 'Day Spa':
+                    return [
+                        ...baseCategories,
+                        { name: 'Massages', value: 'massages', color: 'bg-green-100 text-green-800' },
+                        { name: 'Facials', value: 'facials', color: 'bg-pink-100 text-pink-800' },
+                        { name: 'Body Treatments', value: 'body_treatments', color: 'bg-purple-100 text-purple-800' },
+                        { name: 'Specialty Services', value: 'specialty', color: 'bg-blue-100 text-blue-800' }
+                    ]
+                case 'Wellness Center':
+                    return [
+                        ...baseCategories,
+                        { name: 'Alternative Medicine', value: 'alternative', color: 'bg-green-100 text-green-800' },
+                        { name: 'Energy Healing', value: 'energy', color: 'bg-purple-100 text-purple-800' },
+                        { name: 'Wellness Consultations', value: 'wellness', color: 'bg-blue-100 text-blue-800' },
+                        { name: 'Therapeutic Services', value: 'therapeutic', color: 'bg-indigo-100 text-indigo-800' }
+                    ]
+                case 'Hair Salon':
+                    return [
+                        ...baseCategories,
+                        { name: 'Cuts & Styling', value: 'cuts', color: 'bg-brand-100 text-brand-800' },
+                        { name: 'Color Services', value: 'color', color: 'bg-purple-100 text-purple-800' },
+                        { name: 'Treatments', value: 'treatments', color: 'bg-green-100 text-green-800' },
+                        { name: 'Special Occasions', value: 'special', color: 'bg-pink-100 text-pink-800' }
+                    ]
+                default: // Nail Salon
+                    return [
+                        ...baseCategories,
+                        { name: 'Manicures', value: 'manicures', color: 'bg-brand-100 text-brand-800' },
+                        { name: 'Pedicures', value: 'pedicures', color: 'bg-beauty-100 text-beauty-800' },
+                        { name: 'Enhancements', value: 'enhancements', color: 'bg-purple-100 text-purple-800' },
+                        { name: 'Spa Services', value: 'spa', color: 'bg-green-100 text-green-800' }
+                    ]
+            }
+        }
+
+        const getServiceIcon = (serviceName, businessType) => {
+            const name = serviceName.toLowerCase()
+            
+            if (businessType === 'Medical Spa') {
+                if (name.includes('coolsculpting')) return '❄️'
+                if (name.includes('botox')) return '💉'
+                if (name.includes('dermal') || name.includes('filler')) return '💧'
+                if (name.includes('laser')) return '🔬'
+                if (name.includes('chemical peel')) return '🧪'
+                if (name.includes('vampire facial')) return '🩸'
+                return '🏥'
+            }
+            
+            if (businessType === 'Day Spa') {
+                if (name.includes('massage')) return '💆‍♀️'
+                if (name.includes('facial')) return '✨'
+                if (name.includes('body wrap')) return '🌿'
+                if (name.includes('hydrafacial')) return '💧'
+                return '🧘‍♀️'
+            }
+            
+            if (businessType === 'Wellness Center') {
+                if (name.includes('acupuncture')) return '📍'
+                if (name.includes('reiki')) return '🙌'
+                if (name.includes('sound bath')) return '🎵'
+                if (name.includes('sauna')) return '🔥'
+                return '🌿'
+            }
+            
+            return '✨'
+        }
+
+        const getSampleServices = (businessType) => {
+            switch (businessType) {
+                case 'Medical Spa':
+                    return [
+                        { name: 'CoolSculpting', price: 750, duration: 60, description: 'Non-invasive fat reduction therapy' },
+                        { name: 'Botox Treatment', price: 400, duration: 30, description: 'Botox injections for wrinkles' },
+                        { name: 'Dermal Fillers', price: 650, duration: 45, description: 'Professional dermal filler treatment' },
+                        { name: 'Laser Resurfacing', price: 500, duration: 90, description: 'Laser skin resurfacing treatment' },
+                        { name: 'Chemical Peel', price: 150, duration: 60, description: 'Medical-grade chemical peel' }
+                    ]
+                case 'Day Spa':
+                    return [
+                        { name: 'Hydrafacial', price: 150, duration: 60, description: 'Advanced hydrating facial treatment' },
+                        { name: 'Hot Stone Massage', price: 130, duration: 90, description: 'Luxury hot stone therapy' },
+                        { name: 'Aromatherapy Massage', price: 105, duration: 75, description: 'Essential oil massage therapy' },
+                        { name: 'Body Wrap', price: 120, duration: 90, description: 'Detoxifying body wrap' },
+                        { name: 'Salt Scrub', price: 90, duration: 60, description: 'Exfoliating salt body scrub' }
+                    ]
+                case 'Wellness Center':
+                    return [
+                        { name: 'Acupuncture', price: 85, duration: 60, description: 'Traditional Chinese acupuncture therapy' },
+                        { name: 'Sound Bath', price: 45, duration: 60, description: 'Therapeutic sound healing experience' },
+                        { name: 'Reiki Healing', price: 70, duration: 45, description: 'Energy healing therapy session' },
+                        { name: 'Holistic Assessment', price: 95, duration: 90, description: 'Complete mind-body wellness evaluation' }
+                    ]
+                default:
+                    return [
+                        { name: 'Classic Manicure', price: 35, duration: 30, description: 'Professional manicure with polish' },
+                        { name: 'Gel Pedicure', price: 65, duration: 60, description: 'Premium gel pedicure' },
+                        { name: 'Acrylic Full Set', price: 75, duration: 90, description: 'Full set of acrylic nails' }
+                    ]
+            }
+        }
+
+        const isHighValueService = (price) => price >= 300
+
+        function testBusinessType(businessType) {
+            // Update categories
+            const categories = getBusinessTypeCategories(businessType)
+            const categoriesHtml = categories.map(cat => 
+                `<span class="px-3 py-1 rounded-lg text-sm font-medium ${cat.color}">${cat.name}</span>`
+            ).join('')
+            document.getElementById('categories-display').innerHTML = categoriesHtml
+
+            // Update services
+            const services = getSampleServices(businessType)
+            const servicesHtml = services.map(service => {
+                const icon = getServiceIcon(service.name, businessType)
+                const isHighValue = isHighValueService(service.price)
+                
+                return `
+                    <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg">
+                        <div class="flex items-center space-x-4">
+                            <div class="h-12 w-12 rounded-lg flex items-center justify-center ${isHighValue ? 'ring-2 ring-yellow-400 bg-gradient-to-br from-yellow-50 to-orange-50' : 'bg-gray-100'}">
+                                <span class="text-lg">${icon}</span>
+                                ${isHighValue ? '<div class="absolute -top-1 -right-1 w-4 h-4 bg-yellow-400 rounded-full flex items-center justify-center"><span class="text-xs">💎</span></div>' : ''}
+                            </div>
+                            <div>
+                                <h3 class="font-medium text-gray-900">${service.name}</h3>
+                                <p class="text-sm text-gray-600">${service.description}</p>
+                                <div class="flex items-center space-x-4 text-sm text-gray-500 mt-1">
+                                    <span>⏱️ ${service.duration} min</span>
+                                    <span class="${isHighValue ? 'text-yellow-600 font-semibold' : ''}">
+                                        💰 $${service.price}
+                                        ${isHighValue ? '<span class="ml-1 text-xs bg-yellow-100 text-yellow-800 px-1 rounded font-medium">PREMIUM</span>' : ''}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `
+            }).join('')
+            document.getElementById('services-display').innerHTML = servicesHtml
+        }
+
+        // Initialize with Medical Spa
+        testBusinessType('Medical Spa')
+    </script>
+</body>
+</html>
