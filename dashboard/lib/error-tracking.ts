@@ -269,15 +269,21 @@ export const trackMayaJobError = (error: Error, context: ErrorContext = {}) => {
 
 // Performance tracking helpers
 export const trackPageLoad = (loadTime: number, page: string) => {
-  errorTracker.trackPerformance(`page_load_${page}`, loadTime, 'ms', { page })
+  errorTracker.trackPerformance(`page_load_${page}`, loadTime, 'ms', { 
+    metadata: { page } 
+  })
 }
 
 export const trackDatabaseQuery = (queryTime: number, query: string) => {
-  errorTracker.trackPerformance(`database_query`, queryTime, 'ms', { query })
+  errorTracker.trackPerformance(`database_query`, queryTime, 'ms', { 
+    metadata: { query } 
+  })
 }
 
 export const trackAPICall = (responseTime: number, endpoint: string) => {
-  errorTracker.trackPerformance(`api_call_${endpoint}`, responseTime, 'ms', { endpoint })
+  errorTracker.trackPerformance(`api_call_${endpoint}`, responseTime, 'ms', { 
+    metadata: { endpoint } 
+  })
 }
 
 // Event tracking helpers
