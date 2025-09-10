@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import Stripe from 'stripe'
 import { sendEmail, generateWelcomeEmail } from '../../../../lib/email-service-new'
+import { provisionMayaAgent, linkAgentToPhone, createVapiPhoneNumber } from '../../../../lib/agent-provisioning-service'
+import { BusinessTierInfo } from '../../../../lib/business-profile-generator'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -32,6 +34,12 @@ interface BusinessInfo {
   mayaJobId?: string
   ownerFirstName?: string
   ownerLastName?: string
+  // Business tier specific fields
+  businessDescription?: string
+  brandPersonality?: 'professional' | 'warm' | 'luxury' | 'casual'
+  uniqueSellingPoints?: string[]
+  targetCustomer?: string
+  priceRange?: 'budget' | 'mid-range' | 'premium' | 'luxury'
 }
 
 interface RapidSetupRequest {
@@ -302,6 +310,16 @@ async function handleRapidSetup(body: RapidSetupRequest) {
         subscription_status: 'trialing',
         trial_ends_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days from now
         cancellation_token: cancellationToken,
+        // Maya job and branding fields
+        maya_job_id: body.businessInfo.mayaJobId || 'nail-salon-receptionist',
+        brand_personality: body.businessInfo.brandPersonality || 'professional',
+        business_description: body.businessInfo.businessDescription,
+        unique_selling_points: JSON.stringify(body.businessInfo.uniqueSellingPoints || []),
+        target_customer: body.businessInfo.targetCustomer,
+        price_range: body.businessInfo.priceRange || 'mid-range',
+        // Owner information
+        owner_first_name: body.businessInfo.ownerFirstName,
+        owner_last_name: body.businessInfo.ownerLastName,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()
       })
@@ -452,126 +470,80 @@ async function handleRapidSetup(body: RapidSetupRequest) {
       console.log('✅ NEW AI phone number provisioned:', phoneData.number)
     }
 
-    // Step 7: Determine assistant strategy based on plan tier
-    let assistantId: string
-    let assistantType: string
-
-    if (body.selectedPlan === 'business') {
-      // Business tier gets CUSTOM AI assistant
-      console.log('🤖 Creating CUSTOM assistant for Business tier...')
-      
-      const assistantResponse = await fetch('https://api.vapi.ai/assistant', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${VAPI_API_KEY}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          name: `${body.businessInfo.name} Custom AI`,
-          model: {
-            provider: 'openai',
-            model: 'gpt-4o',
-            messages: [
-              {
-                role: 'system',
-                content: `You are the personalized AI receptionist for ${body.businessInfo.name}, a ${body.businessInfo.businessType}.
-
-🏢 About ${body.businessInfo.name}:
-You represent this specific business. Always identify yourself as calling from ${body.businessInfo.name}.
-
-💼 Your Role:
-1. Help customers book appointments 
-2. Answer questions about our services
-3. Provide professional customer service
-4. Collect complete customer information
-
-🎯 Our Services:
-${generatedServices.map(s => `- ${s.name} (${s.duration} min, $${s.price})`).join('\n')}
-
-📋 For Bookings, Collect:
-- Customer name and phone
-- Preferred date/time  
-- Service requested
-- Special requests
-
-Business ID: ${businessId}
-Always represent ${body.businessInfo.name} professionally!`
-              }
-            ]
-          },
-          voice: {
-            provider: '11labs',
-            voiceId: 'sarah'
-          },
-          serverUrl: `${WEBHOOK_BASE_URL}/webhook/vapi/${businessId}`,
-          serverUrlSecret: businessId
-        })
-      })
-
-      if (!assistantResponse.ok) {
-        const assistantError = await assistantResponse.text()
-        console.error('❌ Custom assistant creation failed:', assistantError)
-        
-        await supabase
-          .from('businesses')
-          .update({ subscription_status: 'failed' })
-          .eq('id', businessId)
-        
-        return NextResponse.json(
-          { error: 'Failed to create custom AI assistant', details: assistantError },
-          { status: 500 }
-        )
+    // Step 7: Provision Maya agent based on job and tier
+    console.log(`🤖 Provisioning Maya agent for ${body.selectedPlan} tier, job: ${body.businessInfo.mayaJobId}`)
+    
+    let agentResult
+    try {
+      // Convert BusinessInfo to BusinessTierInfo format
+      const businessTierInfo: BusinessTierInfo = {
+        businessName: body.businessInfo.name,
+        ownerName: `${body.businessInfo.ownerFirstName || ''} ${body.businessInfo.ownerLastName || ''}`.trim(),
+        email: body.businessInfo.email,
+        phone: body.businessInfo.phone,
+        mayaJobId: body.businessInfo.mayaJobId || 'nail-salon-receptionist',
+        businessDescription: body.businessInfo.businessDescription || `Professional ${body.businessInfo.businessType} providing quality services`,
+        brandPersonality: body.businessInfo.brandPersonality || 'professional',
+        uniqueSellingPoints: body.businessInfo.uniqueSellingPoints || ['Quality service', 'Professional staff', 'Customer satisfaction'],
+        targetCustomer: body.businessInfo.targetCustomer || 'Clients seeking quality service',
+        priceRange: body.businessInfo.priceRange || 'mid-range'
       }
 
-      const assistantData = await assistantResponse.json()
-      assistantId = assistantData.id
-      assistantType = 'custom'
-      console.log('✅ CUSTOM assistant created:', assistantId)
+      agentResult = await provisionMayaAgent(
+        businessTierInfo,
+        body.selectedPlan,
+        businessId,
+        generatedServices
+      )
       
-    } else {
-      // Starter and Professional use SHARED assistant
-      assistantId = SHARED_ASSISTANT_ID
-      assistantType = 'shared'
-      console.log('✅ Using SHARED assistant for', body.selectedPlan, 'tier:', assistantId)
+      console.log(`✅ Maya agent provisioned:`, agentResult)
+      
+    } catch (agentError) {
+      console.error('❌ Maya agent provisioning failed:', agentError)
+      
+      await supabase
+        .from('businesses')
+        .update({ subscription_status: 'failed' })
+        .eq('id', businessId)
+      
+      return NextResponse.json(
+        { error: 'Failed to provision Maya agent', details: agentError instanceof Error ? agentError.message : 'Agent creation failed' },
+        { status: 500 }
+      )
     }
 
-    // Step 8: Link assistant to phone number
-    console.log('🔗 Linking assistant to phone number...')
+    const assistantId = agentResult.agentId
+    const assistantType = agentResult.agentType
+
+    // Step 8: Link Maya agent to phone number
+    console.log('🔗 Linking Maya agent to phone number...')
     
     if (isTestMode) {
-      console.log('🧪 TEST MODE: Simulating assistant-to-phone linking')
-      console.log(`✅ TEST link: ${assistantType} assistant (${assistantId}) → phone (${phoneData.id})`)
+      console.log('🧪 TEST MODE: Simulating agent-to-phone linking')
+      console.log(`✅ TEST link: ${assistantType} agent (${assistantId}) → phone (${phoneData.id})`)
     } else {
-      const linkResponse = await fetch(`https://api.vapi.ai/phone-number/${phoneData.id}`, {
-        method: 'PATCH',
-        headers: {
-          'Authorization': `Bearer ${VAPI_API_KEY}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          assistantId: assistantId
-        })
-      })
-
-      if (!linkResponse.ok) {
-        const linkError = await linkResponse.text()
-        console.error('❌ Failed to link assistant to phone:', linkError)
-      } else {
-        console.log('✅ Assistant linked to phone number')
+      try {
+        await linkAgentToPhone(assistantId, phoneData.id)
+        console.log('✅ Maya agent linked to phone number successfully')
+      } catch (linkError) {
+        console.error('❌ Failed to link Maya agent to phone:', linkError)
+        // Don't fail the entire provisioning for linking issues
       }
     }
 
-    // Step 9: Update business record (using only columns that exist in schema)
+    // Step 9: Update business record with agent and phone details
     const { error: updateError } = await supabase
       .from('businesses')
       .update({
         subscription_status: 'trialing', // Match enum value
+        agent_id: assistantId,
+        agent_type: assistantType,
+        phone_number: phoneData.number,
         updated_at: new Date().toISOString()
       })
       .eq('id', businessId)
 
-    // Store Vapi details in a comment for now (would need separate table or schema update)
-    console.log('📱 Vapi Details (stored in logs for now):');
+    console.log('📱 Vapi Details stored in database:');
     console.log('  Phone:', phoneData.number);
     console.log('  Phone ID:', phoneData.id);
     console.log('  Assistant ID:', assistantId);

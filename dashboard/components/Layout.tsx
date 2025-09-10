@@ -18,6 +18,7 @@ import {
   GiftIcon,
   EnvelopeIcon,
   HeartIcon,
+  SparklesIcon,
 } from '@heroicons/react/24/outline'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
@@ -33,6 +34,7 @@ const baseNavigation = [
   { name: 'Services', href: '/dashboard/services', icon: WrenchScrewdriverIcon },
   { name: 'Analytics', href: '/dashboard/analytics', icon: ChartBarIcon },
   { name: 'Voice AI', href: '/dashboard/voice-ai', icon: PhoneIcon },
+  { name: 'Agent Config', href: '/dashboard/agent', icon: SparklesIcon },
   { name: 'Settings', href: '/dashboard/settings', icon: CogIcon },
 ]
 
