@@ -41,10 +41,13 @@ export default class ErrorBoundary extends React.Component<ErrorBoundaryProps, E
       ErrorCategory.DASHBOARD,
       ErrorSeverity.HIGH,
       {
-        errorId,
-        component: this.props.category || 'unknown',
-        errorInfo: errorInfo.componentStack,
         businessId: this.getBusinessId(),
+        url: typeof window !== 'undefined' ? window.location.href : undefined,
+        metadata: {
+          errorId,
+          component: this.props.category || 'unknown',
+          errorInfo: errorInfo.componentStack,
+        }
       }
     )
 
