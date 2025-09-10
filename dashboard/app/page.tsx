@@ -176,7 +176,7 @@ export default function LandingPage() {
                 Your AI Receptionist
               </span>
               <br />
-              Who Never Misses a Booking
+              Who Never Misses a Call
             </h1>
             
             <p className="text-xl md:text-2xl text-gray-700 mb-4 max-w-3xl mx-auto font-medium">
