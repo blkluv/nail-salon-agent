@@ -307,7 +307,9 @@ export const trackHealthCheck = (service: string, status: 'healthy' | 'degraded'
       `Service ${service} is down`,
       ErrorCategory.API,
       ErrorSeverity.CRITICAL,
-      { service }
+      { 
+        metadata: { service }
+      }
     )
   }
 }
