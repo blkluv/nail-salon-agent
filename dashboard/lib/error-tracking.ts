@@ -240,7 +240,10 @@ export const trackDatabaseError = (error: Error, context: ErrorContext = {}) => 
 export const trackAPIError = (error: Error, endpoint: string, context: ErrorContext = {}) => {
   errorTracker.trackError(error, ErrorCategory.API, ErrorSeverity.MEDIUM, {
     ...context,
-    endpoint,
+    metadata: {
+      ...context.metadata,
+      endpoint,
+    },
   })
 }
 
