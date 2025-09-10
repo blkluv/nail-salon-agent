@@ -50,7 +50,7 @@ export default function LandingPage() {
       type: "Hair Salon",
       rating: 5,
       image: "SJ",
-      quote: "We went from missing 40% of calls to capturing every single booking opportunity. Revenue up 35% in 2 months!",
+      quote: "Maya is like having the perfect receptionist who never calls in sick. She's booked 127 appointments while I sleep!",
       highlight: "Revenue up 35%"
     },
     {
@@ -59,8 +59,8 @@ export default function LandingPage() {
       type: "Day Spa",
       rating: 5,
       image: "MK",
-      quote: "The AI handles bookings so naturally, clients don't even realize they're not talking to a human. Absolutely game-changing!",
-      highlight: "5x more bookings"
+      quote: "My clients love Maya! They think she's a real person. Maya has become our most valuable team member.",
+      highlight: "Maya books 24/7"
     },
     {
       name: "Jessica Martinez",
@@ -68,7 +68,7 @@ export default function LandingPage() {
       type: "Barbershop",
       rating: 5,
       image: "JM",
-      quote: "I finally have my evenings back! The system handles everything while I'm home with my family.",
+      quote: "Maya works weekends and holidays without complaining. Best employee I've never had to train!",
       highlight: "Work-life balance restored"
     }
   ]
@@ -82,47 +82,47 @@ export default function LandingPage() {
 
   const benefits = [
     {
-      title: "Never Miss Another Booking",
-      description: "AI answers instantly, 24/7. While competitors send calls to voicemail, you're booking appointments at 2 AM.",
+      title: "Maya Never Sleeps",
+      description: "While you're with clients or closed for the day, Maya is answering calls and booking appointments. She works harder than any human receptionist.",
       icon: PhoneIcon,
       color: "from-purple-500 to-pink-500"
     },
     {
-      title: "Increase Revenue by 40%",
-      description: "Capture after-hours bookings, reduce no-shows with smart reminders, and upsell services automatically.",
+      title: "Maya Pays Her Own Salary",
+      description: "Maya captures after-hours bookings, reduces no-shows with smart reminders, and upsells services. She pays for herself with just 2 appointments.",
       icon: ArrowTrendingUpIcon,
       color: "from-green-500 to-emerald-500"
     },
     {
-      title: "Save 20 Hours Per Week",
-      description: "Stop playing phone tag. Your AI assistant handles all scheduling while you focus on your craft.",
+      title: "Maya Handles the Phone",
+      description: "Stop playing phone tag and interrupting services to answer calls. Maya handles all scheduling while you focus on your clients.",
       icon: ClockIcon,
       color: "from-blue-500 to-cyan-500"
     },
     {
-      title: "Delight Your Customers",
-      description: "Instant responses, perfect scheduling, and a professional experience that builds loyalty.",
+      title: "Customers Love Maya",
+      description: "Maya greets every caller warmly, never puts anyone on hold, and provides instant scheduling. Your customers think she's your best employee.",
       icon: StarIcon,
       color: "from-yellow-500 to-orange-500"
     }
   ]
 
   const comparisonPoints = [
-    { us: "Working AI in 3 minutes", them: "Weeks to hire & train staff", winning: true },
-    { us: "Books appointments at 2 AM", them: "Voicemail = $0 revenue", winning: true },
-    { us: "Dedicated number instantly", them: "Complex phone setup", winning: true },
-    { us: "Test without risk", them: "Forward business line immediately", winning: true },
-    { us: "Pays for itself in 2 bookings", them: "$2000+/month for receptionist", winning: true },
-    { us: "Never sick, never quits", them: "Staff turnover & training", winning: true }
+    { us: "Maya starts working in 3 minutes", them: "Weeks to hire & train staff", winning: true },
+    { us: "Maya books appointments at 2 AM", them: "Voicemail = $0 revenue", winning: true },
+    { us: "Maya gets her own number instantly", them: "Complex phone setup", winning: true },
+    { us: "Test Maya without risk", them: "Forward business line immediately", winning: true },
+    { us: "Maya pays for herself in 2 bookings", them: "$2000+/month for receptionist", winning: true },
+    { us: "Maya never sick, never quits", them: "Staff turnover & training", winning: true }
   ]
 
   return (
     <div className="min-h-screen bg-white">
       {/* Announcement Banner */}
       <div className="bg-gradient-to-r from-purple-600 to-pink-600 text-white py-3 text-center">
-        <span className="font-semibold">✨ NEW: Free setup for early adopters</span>
+        <span className="font-semibold">✨ NEW: Maya is hiring for select salons</span>
         <span className="mx-2">•</span>
-        <span className="text-sm">Join service businesses already using AI to grow</span>
+        <span className="text-sm">Join salon owners who already have Maya working 24/7</span>
       </div>
 
       {/* Header */}
@@ -132,7 +132,7 @@ export default function LandingPage() {
             <div className="flex items-center space-x-2">
               <SparklesIcon className="h-8 w-8 text-purple-600" />
               <span className="text-2xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                BookingAI Pro
+                Maya
               </span>
             </div>
             <nav className="flex items-center space-x-4">
@@ -170,20 +170,20 @@ export default function LandingPage() {
             </div>
             
             <h1 className="text-5xl md:text-6xl font-bold text-gray-900 mb-6 leading-tight">
-              Your Business is Losing
+              Meet Maya
               <br />
               <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                $8,000/Month
+                Your AI Receptionist
               </span>
               <br />
-              in Missed Bookings
+              Who Never Misses a Booking
             </h1>
             
             <p className="text-xl md:text-2xl text-gray-700 mb-4 max-w-3xl mx-auto font-medium">
-              Get an AI assistant answering calls in 3 minutes - it pays for itself in just 2 bookings.
+              Maya answers your salon's calls 24/7, books appointments instantly, and treats every customer like a VIP.
             </p>
             <p className="text-lg text-gray-600 mb-8 max-w-2xl mx-auto">
-              Average appointment = $75. Just 15 extra bookings per month = $1,125 more revenue.
+              Maya never calls in sick, never takes breaks, and costs less than 2 appointments per month.
             </p>
             
             <div className="flex justify-center mb-8">
@@ -192,7 +192,7 @@ export default function LandingPage() {
                 className="group px-10 py-5 bg-gradient-to-r from-purple-600 to-pink-600 text-white text-xl font-bold rounded-full shadow-xl hover:shadow-2xl transition-all transform hover:scale-105 flex items-center justify-center"
               >
                 <RocketLaunchIcon className="w-6 h-6 mr-2" />
-                Start Your 7-Day Free Trial
+                Hire Maya Today
                 <ArrowRightIcon className="w-5 h-5 ml-2 group-hover:translate-x-1 transition" />
               </button>
             </div>
@@ -220,15 +220,15 @@ export default function LandingPage() {
             <div className="flex flex-wrap justify-center gap-4 text-sm">
               <div className="flex items-center text-gray-600">
                 <CheckIcon className="w-4 h-4 text-green-500 mr-1" />
-                <span>Working AI in 3 minutes</span>
+                <span>Maya starts in 3 minutes</span>
               </div>
               <div className="flex items-center text-gray-600">
                 <CheckIcon className="w-4 h-4 text-green-500 mr-1" />
-                <span>Test without risk</span>
+                <span>Test Maya risk-free</span>
               </div>
               <div className="flex items-center text-gray-600">
                 <CheckIcon className="w-4 h-4 text-green-500 mr-1" />
-                <span>Pays for itself</span>
+                <span>Maya pays for herself</span>
               </div>
             </div>
           </div>
@@ -273,7 +273,7 @@ export default function LandingPage() {
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div>
               <span className="text-red-600 font-semibold uppercase tracking-wide text-sm">Stop Losing Money</span>
-              <h2 className="text-3xl font-bold mt-2 mb-6">Every Missed Call = $75 Lost Forever</h2>
+              <h2 className="text-3xl font-bold mt-2 mb-6">While You're Busy, Maya Answers</h2>
               <div className="space-y-4">
                 <div className="flex items-start">
                   <div className="w-6 h-6 rounded-full bg-red-100 text-red-600 flex items-center justify-center flex-shrink-0 mt-1">✕</div>
@@ -286,7 +286,7 @@ export default function LandingPage() {
                   <div className="w-6 h-6 rounded-full bg-red-100 text-red-600 flex items-center justify-center flex-shrink-0 mt-1">✕</div>
                   <div className="ml-3">
                     <p className="font-semibold">After-hours calls go to voicemail = $0</p>
-                    <p className="text-gray-600 text-sm">Your competitor's AI books them at 11 PM</p>
+                    <p className="text-gray-600 text-sm">Your competitor's Maya is booking them at 11 PM</p>
                   </div>
                 </div>
                 <div className="flex items-start">
@@ -301,19 +301,19 @@ export default function LandingPage() {
 
             <div>
               <span className="text-green-600 font-semibold uppercase tracking-wide text-sm">Start Earning More</span>
-              <h2 className="text-3xl font-bold mt-2 mb-6">Your AI Pays for Itself in 2 Bookings</h2>
+              <h2 className="text-3xl font-bold mt-2 mb-6">Maya Pays for Herself in 2 Bookings</h2>
               <div className="space-y-4">
                 <div className="flex items-start">
                   <div className="w-6 h-6 rounded-full bg-green-100 text-green-600 flex items-center justify-center flex-shrink-0 mt-1">✓</div>
                   <div className="ml-3">
-                    <p className="font-semibold">Get a working AI in 3 minutes</p>
+                    <p className="font-semibold">Get Maya working in 3 minutes</p>
                     <p className="text-gray-600 text-sm">Dedicated phone number, test it yourself immediately</p>
                   </div>
                 </div>
                 <div className="flex items-start">
                   <div className="w-6 h-6 rounded-full bg-green-100 text-green-600 flex items-center justify-center flex-shrink-0 mt-1">✓</div>
                   <div className="ml-3">
-                    <p className="font-semibold">Books appointments at 2 AM</p>
+                    <p className="font-semibold">Maya books appointments at 2 AM</p>
                     <p className="text-gray-600 text-sm">Wake up to 5 new bookings you would have missed</p>
                   </div>
                 </div>
@@ -335,7 +335,7 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto px-4">
           <div className="text-center mb-12">
             <h2 className="text-4xl font-bold mb-4">
-              Business Owners <span className="text-purple-600">Love</span> The Results
+              Business Owners <span className="text-purple-600">Love</span> Maya
             </h2>
             <p className="text-xl text-gray-600">See what early adopters are saying</p>
           </div>
@@ -371,7 +371,7 @@ export default function LandingPage() {
       <section className="py-20 bg-gradient-to-br from-blue-50 to-indigo-50">
         <div className="max-w-6xl mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold mb-4">From Signup to First Booking: <span className="text-blue-600">3 Minutes</span></h2>
+            <h2 className="text-4xl font-bold mb-4">From Signup to Maya Working: <span className="text-blue-600">3 Minutes</span></h2>
             <p className="text-xl text-gray-600">Seriously, time us. Here's exactly what happens:</p>
           </div>
 
@@ -381,8 +381,8 @@ export default function LandingPage() {
                 <span className="text-white text-2xl font-bold">1</span>
               </div>
               <h3 className="text-xl font-semibold mb-2 text-blue-900">Minute 1</h3>
-              <p className="text-gray-700 mb-2">Enter business info, get instant phone number</p>
-              <p className="text-sm text-blue-600 font-medium">Call it right now - hear your AI working!</p>
+              <p className="text-gray-700 mb-2">Enter business info, get Maya her phone number</p>
+              <p className="text-sm text-blue-600 font-medium">Call it right now - hear Maya working!</p>
             </div>
 
             <div className="text-center">
@@ -390,8 +390,8 @@ export default function LandingPage() {
                 <span className="text-white text-2xl font-bold">2</span>
               </div>
               <h3 className="text-xl font-semibold mb-2 text-green-900">Minute 2</h3>
-              <p className="text-gray-700 mb-2">AI learns your services, prices, and availability</p>
-              <p className="text-sm text-green-600 font-medium">No training required - it just knows!</p>
+              <p className="text-gray-700 mb-2">Maya learns your services, prices, and availability</p>
+              <p className="text-sm text-green-600 font-medium">No training required - Maya just knows!</p>
             </div>
 
             <div className="text-center">
@@ -400,7 +400,7 @@ export default function LandingPage() {
               </div>
               <h3 className="text-xl font-semibold mb-2 text-purple-900">Minute 3</h3>
               <p className="text-gray-700 mb-2">Make a test call - book a real appointment</p>
-              <p className="text-sm text-purple-600 font-medium">Your AI is officially working!</p>
+              <p className="text-sm text-purple-600 font-medium">Maya is officially working!</p>
             </div>
           </div>
 
@@ -457,13 +457,13 @@ export default function LandingPage() {
       <section className="py-20 bg-white">
         <div className="max-w-4xl mx-auto px-4">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-bold mb-4">Why We Win vs Traditional Methods</h2>
+            <h2 className="text-4xl font-bold mb-4">Why Maya Wins vs Traditional Methods</h2>
           </div>
 
           <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl overflow-hidden">
             <div className="grid grid-cols-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white">
               <div className="p-4"></div>
-              <div className="p-4 text-center font-bold">BookingAI Pro</div>
+              <div className="p-4 text-center font-bold">Maya</div>
               <div className="p-4 text-center font-bold">Old Way</div>
             </div>
             {comparisonPoints.map((point, index) => (
@@ -501,7 +501,7 @@ export default function LandingPage() {
               <div className="space-y-3 mb-8">
                 <div className="flex items-center">
                   <CheckIcon className="w-4 h-4 text-green-500 mr-3" />
-                  <span className="text-sm font-medium">24/7 AI Voice Assistant</span>
+                  <span className="text-sm font-medium">24/7 Maya Voice Assistant</span>
                 </div>
                 <div className="flex items-center">
                   <CheckIcon className="w-4 h-4 text-green-500 mr-3" />
@@ -529,7 +529,7 @@ export default function LandingPage() {
                 onClick={handleOnboarding}
                 className="w-full px-6 py-3 bg-gray-200 text-gray-800 font-semibold rounded-full hover:bg-gray-300 transition-all"
               >
-                Start Free Trial
+                Hire Maya Now
               </button>
             </div>
 
@@ -580,7 +580,7 @@ export default function LandingPage() {
                 onClick={handleOnboarding}
                 className="w-full px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold rounded-full shadow-lg hover:shadow-xl transition-all transform hover:scale-105"
               >
-                Start Free Trial
+                Hire Maya Now
               </button>
             </div>
 
@@ -625,7 +625,7 @@ export default function LandingPage() {
                 onClick={handleOnboarding}
                 className="w-full px-6 py-3 bg-purple-600 text-white font-semibold rounded-full hover:bg-purple-700 transition-all"
               >
-                Start Free Trial
+                Hire Maya Now
               </button>
             </div>
           </div>
@@ -662,12 +662,12 @@ export default function LandingPage() {
           <div className="space-y-6">
             <div className="bg-gray-50 rounded-xl p-6">
               <h3 className="font-bold mb-2">How quickly can I start booking appointments?</h3>
-              <p className="text-gray-600">3 minutes from signup to working AI. You'll get a dedicated phone number instantly - call it yourself and hear your AI booking appointments. No forwarding your business line until you're 100% confident.</p>
+              <p className="text-gray-600">3 minutes from signup to Maya working. You'll get a dedicated phone number instantly - call it yourself and hear Maya booking appointments. No forwarding your business line until you're 100% confident.</p>
             </div>
             
             <div className="bg-gray-50 rounded-xl p-6">
               <h3 className="font-bold mb-2">Does it really pay for itself?</h3>
-              <p className="text-gray-600">Yes! Average appointment = $75. Most businesses book 15+ extra appointments per month = $1,125 extra revenue. Your AI pays for itself with just 2 bookings.</p>
+              <p className="text-gray-600">Yes! Average appointment = $75. Most businesses book 15+ extra appointments per month = $1,125 extra revenue. Maya pays for herself with just 2 bookings.</p>
             </div>
             
             <div className="bg-gray-50 rounded-xl p-6">
@@ -676,8 +676,8 @@ export default function LandingPage() {
             </div>
             
             <div className="bg-gray-50 rounded-xl p-6">
-              <h3 className="font-bold mb-2">What if customers realize it's AI?</h3>
-              <p className="text-gray-600">They won't! Our AI sounds completely natural and knows your business inside-out. But even if they do, customers LOVE the instant response and 24/7 availability.</p>
+              <h3 className="font-bold mb-2">What if customers realize Maya is AI?</h3>
+              <p className="text-gray-600">They won't! Maya sounds completely natural and knows your business inside-out. But even if they do, customers LOVE her instant response and 24/7 availability.</p>
             </div>
           </div>
         </div>
@@ -687,11 +687,11 @@ export default function LandingPage() {
       <section className="py-20 bg-gradient-to-br from-purple-50 via-pink-50 to-white">
         <div className="max-w-4xl mx-auto text-center px-4">
           <h2 className="text-4xl md:text-5xl font-bold mb-6">
-            Ready to Never Miss
-            <span className="text-purple-600"> Another Booking?</span>
+            Ready to Hire
+            <span className="text-purple-600"> Maya?</span>
           </h2>
           <p className="text-xl text-gray-700 mb-8">
-            Join forward-thinking business owners who are already using AI to grow their business.
+            Join forward-thinking business owners who already have Maya working 24/7 to grow their business.
           </p>
 
           <button
