@@ -27,6 +27,12 @@ const createAdminClient = () => {
 // Export MVP types for easy importing
 export * from './supabase-types-mvp'
 
+// Helper function to validate business ID format
+function validateBusinessId(businessId: string): boolean {
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i
+  return businessId && uuidRegex.test(businessId)
+}
+
 // Database types that match our schema
 export interface Business {
   id: string
@@ -184,6 +190,14 @@ export interface StaffPerformance {
 // API class with real database operations
 export class BusinessAPI {
   static async getBusiness(businessId: string): Promise<Business | null> {
+    // Validate UUID format to prevent database errors
+    if (!validateBusinessId(businessId)) {
+      console.error('Invalid business ID format:', businessId)
+      console.log('Expected UUID format like: 8424aa26-4fd5-4d4b-92aa-8a9c5ba77dad')
+      console.log('Please use proper authentication via localStorage or login system')
+      return null
+    }
+
     const { data, error } = await supabase
       .from('businesses')
       .select('*')
@@ -209,6 +223,11 @@ export class BusinessAPI {
     staff_id?: string
     limit?: number
   }): Promise<Appointment[]> {
+    if (!validateBusinessId(businessId)) {
+      console.error('Invalid business ID format for getAppointments:', businessId)
+      return []
+    }
+    
     let query = supabase
       .from('appointments')
       .select(`

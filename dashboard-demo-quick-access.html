@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maya Dashboard Demo Access</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-4xl mx-auto">
+            <!-- Header -->
+            <div class="bg-white rounded-2xl p-8 shadow-lg mb-8">
+                <div class="text-center mb-6">
+                    <h1 class="text-3xl font-bold text-gray-900 mb-2">🎯 Maya Dashboard Demo Access</h1>
+                    <p class="text-gray-600">Quick access to demo dashboards for each Maya job type</p>
+                </div>
+            </div>
+
+            <!-- Demo Accounts Grid -->
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Nail Salon Demo -->
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <div class="text-center mb-4">
+                        <div class="text-4xl mb-2">💅</div>
+                        <h3 class="font-bold text-lg">Nail Salon Demo</h3>
+                        <p class="text-sm text-gray-600">Starter Tier</p>
+                    </div>
+                    <button onclick="accessDemo('nail-salon', 'Demo Bella\\'s Nails', 'starter')" 
+                            class="w-full bg-pink-600 text-white py-2 px-4 rounded-lg hover:bg-pink-700">
+                        Access Dashboard
+                    </button>
+                </div>
+
+                <!-- Hair Salon Demo -->
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <div class="text-center mb-4">
+                        <div class="text-4xl mb-2">💇‍♀️</div>
+                        <h3 class="font-bold text-lg">Hair Salon Demo</h3>
+                        <p class="text-sm text-gray-600">Professional Tier</p>
+                    </div>
+                    <button onclick="accessDemo('hair-salon', 'Demo Style Studio', 'professional')" 
+                            class="w-full bg-purple-600 text-white py-2 px-4 rounded-lg hover:bg-purple-700">
+                        Access Dashboard
+                    </button>
+                </div>
+
+                <!-- Spa Demo -->
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <div class="text-center mb-4">
+                        <div class="text-4xl mb-2">🧘‍♀️</div>
+                        <h3 class="font-bold text-lg">Spa Demo</h3>
+                        <p class="text-sm text-gray-600">Business Tier</p>
+                    </div>
+                    <button onclick="accessDemo('spa-wellness', 'Demo Serenity Spa', 'business')" 
+                            class="w-full bg-green-600 text-white py-2 px-4 rounded-lg hover:bg-green-700">
+                        Access Dashboard
+                    </button>
+                </div>
+
+                <!-- Massage Demo -->
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <div class="text-center mb-4">
+                        <div class="text-4xl mb-2">💆‍♀️</div>
+                        <h3 class="font-bold text-lg">Massage Demo</h3>
+                        <p class="text-sm text-gray-600">Professional Tier</p>
+                    </div>
+                    <button onclick="accessDemo('massage-therapy', 'Demo Healing Hands', 'professional')" 
+                            class="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700">
+                        Access Dashboard
+                    </button>
+                </div>
+
+                <!-- Beauty Salon Demo -->
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <div class="text-center mb-4">
+                        <div class="text-4xl mb-2">✨</div>
+                        <h3 class="font-bold text-lg">Beauty Salon Demo</h3>
+                        <p class="text-sm text-gray-600">Starter Tier</p>
+                    </div>
+                    <button onclick="accessDemo('beauty-salon', 'Demo Glow Beauty', 'starter')" 
+                            class="w-full bg-yellow-600 text-white py-2 px-4 rounded-lg hover:bg-yellow-700">
+                        Access Dashboard
+                    </button>
+                </div>
+
+                <!-- Barbershop Demo -->
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <div class="text-center mb-4">
+                        <div class="text-4xl mb-2">💈</div>
+                        <h3 class="font-bold text-lg">Barbershop Demo</h3>
+                        <p class="text-sm text-gray-600">Professional Tier</p>
+                    </div>
+                    <button onclick="accessDemo('barbershop', 'Demo Classic Cuts', 'professional')" 
+                            class="w-full bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700">
+                        Access Dashboard
+                    </button>
+                </div>
+            </div>
+
+            <!-- Instructions -->
+            <div class="bg-blue-50 rounded-lg p-6 mt-8">
+                <h2 class="font-bold text-lg mb-2">📝 How This Works:</h2>
+                <ol class="list-decimal list-inside space-y-2 text-gray-700">
+                    <li>Click any demo button above</li>
+                    <li>You'll be redirected to the dashboard at http://localhost:3000</li>
+                    <li>The demo session will be automatically configured</li>
+                    <li>Explore features based on the Maya job and tier selected</li>
+                </ol>
+                <p class="mt-4 text-sm text-gray-600">
+                    <strong>Note:</strong> These are mock demo sessions for testing. No real data is created.
+                </p>
+            </div>
+
+            <!-- Feature Comparison -->
+            <div class="bg-white rounded-lg p-6 mt-8">
+                <h2 class="font-bold text-lg mb-4">🎯 Features by Tier:</h2>
+                <div class="grid md:grid-cols-3 gap-4">
+                    <div class="border rounded-lg p-4">
+                        <h3 class="font-bold text-green-600 mb-2">Starter</h3>
+                        <ul class="text-sm space-y-1 text-gray-600">
+                            <li>✓ Basic appointment booking</li>
+                            <li>✓ Service management</li>
+                            <li>✓ Shared AI agent</li>
+                            <li>✓ Standard analytics</li>
+                        </ul>
+                    </div>
+                    <div class="border rounded-lg p-4">
+                        <h3 class="font-bold text-blue-600 mb-2">Professional</h3>
+                        <ul class="text-sm space-y-1 text-gray-600">
+                            <li>✓ Advanced scheduling</li>
+                            <li>✓ Staff management</li>
+                            <li>✓ Shared AI agent</li>
+                            <li>✓ Detailed analytics</li>
+                            <li>✓ Email reminders</li>
+                        </ul>
+                    </div>
+                    <div class="border rounded-lg p-4">
+                        <h3 class="font-bold text-purple-600 mb-2">Business</h3>
+                        <ul class="text-sm space-y-1 text-gray-600">
+                            <li>✓ Everything in Professional</li>
+                            <li>✓ CUSTOM Maya agent</li>
+                            <li>✓ Brand personality</li>
+                            <li>✓ Priority support</li>
+                            <li>✓ Multi-location</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function accessDemo(jobType, businessName, tier) {
+            // Generate demo IDs based on job type
+            const demoId = `demo-${jobType}-${Date.now()}`;
+            const mayaJobMap = {
+                'nail-salon': 'nail-salon-receptionist',
+                'hair-salon': 'hair-salon-coordinator',
+                'spa-wellness': 'spa-wellness-assistant',
+                'massage-therapy': 'massage-therapy-scheduler',
+                'beauty-salon': 'beauty-salon-assistant',
+                'barbershop': 'barbershop-coordinator'
+            };
+
+            // Set localStorage for demo session
+            localStorage.setItem('authenticated_business_id', demoId);
+            localStorage.setItem('authenticated_business_name', businessName);
+            localStorage.setItem('authenticated_user_email', `demo-${jobType}@test.com`);
+            localStorage.setItem('demo_maya_job', mayaJobMap[jobType]);
+            localStorage.setItem('demo_tier', tier);
+            localStorage.setItem('is_demo_account', 'true');
+
+            console.log('Demo session configured:');
+            console.log('- Business:', businessName);
+            console.log('- Maya Job:', mayaJobMap[jobType]);
+            console.log('- Tier:', tier);
+            console.log('- Demo ID:', demoId);
+
+            // Redirect to dashboard
+            window.location.href = 'http://localhost:3000/dashboard?demo=true&tier=' + tier;
+        }
+
+        // Show dashboard URL
+        window.onload = function() {
+            console.log('Dashboard should be running at: http://localhost:3000');
+            console.log('If not, run: cd dashboard && npm run dev');
+        };
+    </script>
+</body>
+</html>

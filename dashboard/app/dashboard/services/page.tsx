@@ -48,6 +48,25 @@ const getBusinessTypeCategories = (businessType: string) => {
   ]
   
   switch (businessType) {
+    case 'medical_practice':
+      return [
+        ...baseCategories,
+        { name: 'Consultations', value: 'consultations', color: 'bg-blue-100 text-blue-800' },
+        { name: 'Preventive Care', value: 'preventive-care', color: 'bg-green-100 text-green-800' },
+        { name: 'Procedures', value: 'procedures', color: 'bg-purple-100 text-purple-800' },
+        { name: 'Follow-up Care', value: 'follow-up-care', color: 'bg-amber-100 text-amber-800' },
+        { name: 'Urgent & Emergency', value: 'urgent-emergency', color: 'bg-red-100 text-red-800' }
+      ]
+    case 'dental_practice':
+      return [
+        ...baseCategories,
+        { name: 'Preventive Care', value: 'preventive', color: 'bg-green-100 text-green-800' },
+        { name: 'Restorative Care', value: 'restorative', color: 'bg-blue-100 text-blue-800' },
+        { name: 'Cosmetic Dentistry', value: 'cosmetic', color: 'bg-purple-100 text-purple-800' },
+        { name: 'Oral Surgery', value: 'surgical', color: 'bg-red-100 text-red-800' },
+        { name: 'Emergency Care', value: 'emergency', color: 'bg-orange-100 text-orange-800' },
+        { name: 'Consultations', value: 'consultation', color: 'bg-gray-100 text-gray-800' }
+      ]
     case 'Medical Spa':
       return [
         ...baseCategories,
@@ -205,11 +224,18 @@ export default function ServicesPage() {
         {/* Header */}
         <div className="sm:flex sm:items-center sm:justify-between mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Services</h1>
+            <h1 className="text-2xl font-bold text-gray-900">
+              {businessType === 'medical_practice' ? 'Medical Procedures' : 
+               businessType === 'dental_practice' ? 'Dental Services' : 'Services'}
+            </h1>
             <p className="text-gray-600 mt-1">
               {services.length === 0 
-                ? 'No services yet - Add your first service to get started!'
-                : `Managing ${services.length} services for your business`
+                ? (businessType === 'medical_practice' ? 'No procedures yet - Add your first medical procedure to get started!' :
+                   businessType === 'dental_practice' ? 'No dental services yet - Add your first dental service to get started!' :
+                   'No services yet - Add your first service to get started!')
+                : (businessType === 'medical_practice' ? `Managing ${services.length} medical procedures for your practice` :
+                   businessType === 'dental_practice' ? `Managing ${services.length} dental services for your practice` :
+                   `Managing ${services.length} services for your business`)
               }
             </p>
           </div>
@@ -219,7 +245,8 @@ export default function ServicesPage() {
               className="inline-flex items-center px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition-colors"
             >
               <PlusIcon className="h-4 w-4 mr-2" />
-              Add Service
+              {businessType === 'medical_practice' ? 'Add Procedure' :
+               businessType === 'dental_practice' ? 'Add Service' : 'Add Service'}
             </button>
           </div>
         </div>
@@ -231,7 +258,8 @@ export default function ServicesPage() {
               <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search services..."
+                placeholder={businessType === 'medical_practice' ? 'Search procedures...' :
+                           businessType === 'dental_practice' ? 'Search dental services...' : 'Search services...'}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-brand-500 focus:border-brand-500"
@@ -262,11 +290,18 @@ export default function ServicesPage() {
             <div className="text-center py-12">
               <div className="text-gray-400 text-6xl mb-4">💅</div>
               <h3 className="text-lg font-medium text-gray-900 mb-2">
-                {services.length === 0 ? 'No services yet' : 'No matching services'}
+                {services.length === 0 ? 
+                  (businessType === 'medical_practice' ? 'No procedures yet' :
+                   businessType === 'dental_practice' ? 'No dental services yet' : 'No services yet') :
+                  (businessType === 'medical_practice' ? 'No matching procedures' :
+                   businessType === 'dental_practice' ? 'No matching services' : 'No matching services')
+                }
               </h3>
               <p className="text-gray-500 mb-6">
                 {services.length === 0 
-                  ? 'Add your first service to get started with bookings'
+                  ? (businessType === 'medical_practice' ? 'Add your first medical procedure to get started with patient appointments' :
+                     businessType === 'dental_practice' ? 'Add your first dental service to get started with patient appointments' :
+                     'Add your first service to get started with bookings')
                   : 'Try adjusting your search or filters'
                 }
               </p>
@@ -276,7 +311,8 @@ export default function ServicesPage() {
                   className="inline-flex items-center px-4 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition-colors"
                 >
                   <PlusIcon className="h-4 w-4 mr-2" />
-                  Add Your First Service
+                  {businessType === 'medical_practice' ? 'Add Your First Procedure' :
+                   businessType === 'dental_practice' ? 'Add Your First Service' : 'Add Your First Service'}
                 </button>
               )}
             </div>
@@ -291,9 +327,7 @@ export default function ServicesPage() {
                         service.isActive ? 'bg-brand-100' : 'bg-gray-100'
                       )}>
                         <span className="text-lg">
-                          {service.category === 'Manicures' ? '💅' : 
-                           service.category === 'Pedicures' ? '🦶' :
-                           service.category === 'Enhancements' ? '✨' : '🧖‍♀️'}
+                          {getServiceIcon(service.category, businessType)}
                         </span>
                       </div>
                     </div>
@@ -394,8 +428,8 @@ function AddServiceModal({ isOpen, onClose, onSubmit, businessType }: AddService
     name: '',
     description: '',
     category: defaultCategory,
-    duration: businessType === 'Medical Spa' ? 45 : 30,
-    price: businessType === 'Medical Spa' ? 150 : businessType === 'Day Spa' ? 85 : 25,
+    duration: businessType === 'medical_practice' ? 45 : businessType === 'dental_practice' ? 60 : businessType === 'Medical Spa' ? 45 : 30,
+    price: businessType === 'medical_practice' ? 200 : businessType === 'dental_practice' ? 120 : businessType === 'Medical Spa' ? 150 : businessType === 'Day Spa' ? 85 : 25,
     requiresDeposit: false,
     depositAmount: 0
   })
@@ -413,8 +447,8 @@ function AddServiceModal({ isOpen, onClose, onSubmit, businessType }: AddService
         name: '',
         description: '',
         category: defaultCategory,
-        duration: businessType === 'Medical Spa' ? 45 : 30,
-        price: businessType === 'Medical Spa' ? 150 : businessType === 'Day Spa' ? 85 : 25,
+        duration: businessType === 'medical_practice' ? 45 : businessType === 'dental_practice' ? 60 : businessType === 'Medical Spa' ? 45 : 30,
+        price: businessType === 'medical_practice' ? 200 : businessType === 'dental_practice' ? 120 : businessType === 'Medical Spa' ? 150 : businessType === 'Day Spa' ? 85 : 25,
         requiresDeposit: false,
         depositAmount: 0
       })
@@ -438,7 +472,10 @@ function AddServiceModal({ isOpen, onClose, onSubmit, businessType }: AddService
           <form onSubmit={handleSubmit}>
             <div className="bg-white px-6 py-6">
               <div className="flex justify-between items-center mb-6">
-                <h3 className="text-lg font-medium text-gray-900">Add New Service</h3>
+                <h3 className="text-lg font-medium text-gray-900">
+                  {businessType === 'medical_practice' ? 'Add New Medical Procedure' :
+                   businessType === 'dental_practice' ? 'Add New Dental Service' : 'Add New Service'}
+                </h3>
                 <button
                   type="button"
                   onClick={onClose}
@@ -451,7 +488,8 @@ function AddServiceModal({ isOpen, onClose, onSubmit, businessType }: AddService
               <div className="space-y-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Service Name *
+                    {businessType === 'medical_practice' ? 'Procedure Name *' :
+                     businessType === 'dental_practice' ? 'Service Name *' : 'Service Name *'}
                   </label>
                   <input
                     type="text"
@@ -459,7 +497,9 @@ function AddServiceModal({ isOpen, onClose, onSubmit, businessType }: AddService
                     value={formData.name}
                     onChange={(e) => setFormData({...formData, name: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                    placeholder="e.g., Classic Manicure"
+                    placeholder={businessType === 'medical_practice' ? 'e.g., Annual Physical Exam' :
+                                businessType === 'dental_practice' ? 'e.g., Routine Cleaning' :
+                                'e.g., Classic Manicure'}
                   />
                 </div>
 
@@ -472,7 +512,9 @@ function AddServiceModal({ isOpen, onClose, onSubmit, businessType }: AddService
                     value={formData.description}
                     onChange={(e) => setFormData({...formData, description: e.target.value})}
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                    placeholder="Brief description of the service..."
+                    placeholder={businessType === 'medical_practice' ? 'Brief description of the medical procedure...' :
+                                businessType === 'dental_practice' ? 'Brief description of the dental service...' :
+                                'Brief description of the service...'}
                   />
                 </div>
 

@@ -19,23 +19,35 @@ import {
   EnvelopeIcon,
   HeartIcon,
   SparklesIcon,
+  InboxIcon,
+  UserGroupIcon,
 } from '@heroicons/react/24/outline'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { clsx } from 'clsx'
 import MobileNavigation from './MobileNavigation'
+import { FEATURE_FLAGS, shouldShowBeautyFeatures, shouldShowReceptionistFeatures, getFeaturesForBusinessType, type BusinessType } from '../lib/feature-flags'
+import { getAuthenticatedUser } from '../lib/auth-utils'
 
-// Base navigation items (available to all plans)
-const baseNavigation = [
+// Common navigation items
+const commonNavigation = [
   { name: 'Dashboard', href: '/dashboard', icon: HomeIcon },
-  { name: 'Appointments', href: '/dashboard/appointments', icon: CalendarIcon },
   { name: 'Customers', href: '/dashboard/customers', icon: UsersIcon },
-  { name: 'Staff', href: '/dashboard/staff', icon: UsersIcon },
-  { name: 'Services', href: '/dashboard/services', icon: WrenchScrewdriverIcon },
   { name: 'Analytics', href: '/dashboard/analytics', icon: ChartBarIcon },
-  { name: 'Voice AI', href: '/dashboard/voice-ai', icon: PhoneIcon },
-  { name: 'Agent Config', href: '/dashboard/agent', icon: SparklesIcon },
-  { name: 'Settings', href: '/dashboard/settings', icon: CogIcon },
+]
+
+// Beauty salon specific features
+const beautyFeatures = [
+  { name: 'Appointments', href: '/dashboard/appointments', icon: CalendarIcon },
+  { name: 'Services', href: '/dashboard/services', icon: WrenchScrewdriverIcon },
+  { name: 'Staff', href: '/dashboard/staff', icon: UsersIcon },
+]
+
+// General business/receptionist features
+const receptionistFeatures = [
+  { name: 'Call Log', href: '/dashboard/calls', icon: PhoneIcon },
+  { name: 'Messages', href: '/dashboard/messages', icon: InboxIcon },
+  { name: 'Leads', href: '/dashboard/leads', icon: UserGroupIcon },
 ]
 
 // Professional+ features
@@ -50,31 +62,106 @@ const businessFeatures = [
   { name: 'Locations', href: '/dashboard/locations', icon: BuildingStorefrontIcon },
 ]
 
-// Function to get navigation based on plan tier
-const getNavigationForPlan = (subscriptionTier: string) => {
-  let navigation = [...baseNavigation]
+// Shared features (for all business types)
+const sharedFeatures = [
+  { name: 'Voice AI', href: '/dashboard/voice-ai', icon: PhoneIcon },
+  { name: 'Agent Config', href: '/dashboard/agent', icon: SparklesIcon },
+  { name: 'Settings', href: '/dashboard/settings', icon: CogIcon },
+]
+
+// Get business-specific features with appropriate terminology
+const getBusinessSpecificFeatures = (businessType: BusinessType) => {
+  switch (businessType) {
+    case 'medical_practice':
+      return [
+        { name: 'Appointments', href: '/dashboard/appointments', icon: CalendarIcon },
+        { name: 'Procedures', href: '/dashboard/services', icon: WrenchScrewdriverIcon },
+        { name: 'Providers', href: '/dashboard/staff', icon: UsersIcon },
+        { name: 'Patients', href: '/dashboard/customers', icon: UsersIcon },
+      ]
+    
+    case 'dental_practice':
+      return [
+        { name: 'Appointments', href: '/dashboard/appointments', icon: CalendarIcon },
+        { name: 'Treatments', href: '/dashboard/services', icon: WrenchScrewdriverIcon },
+        { name: 'Dentists', href: '/dashboard/staff', icon: UsersIcon },
+        { name: 'Patients', href: '/dashboard/customers', icon: UsersIcon },
+      ]
+    
+    case 'fitness_wellness':
+      return [
+        { name: 'Classes & Sessions', href: '/dashboard/appointments', icon: CalendarIcon },
+        { name: 'Programs', href: '/dashboard/services', icon: WrenchScrewdriverIcon },
+        { name: 'Trainers', href: '/dashboard/staff', icon: UsersIcon },
+        { name: 'Members', href: '/dashboard/customers', icon: UsersIcon },
+      ]
+    
+    default:
+      return beautyFeatures // Fallback to beauty features
+  }
+}
+
+// Function to get navigation based on business type and plan tier
+const getNavigationForBusiness = (subscriptionTier: string, businessType?: string) => {
+  const user = getAuthenticatedUser()
+  const userBusinessType = user?.businessType || businessType
+
+  // Start with common items
+  let navigation = [...commonNavigation]
+  
+  // Add business-type specific features based on feature flags
+  const features = getFeaturesForBusinessType(userBusinessType as BusinessType)
+  
+  // Beauty salon features
+  if (features.appointments && shouldShowBeautyFeatures(userBusinessType)) {
+    navigation.push(...beautyFeatures)
+  }
+  
+  // Medical/Dental/Fitness features (they get beauty salon-like features)
+  if (features.appointments && !shouldShowBeautyFeatures(userBusinessType)) {
+    // These business types need appointment scheduling but with different terminology
+    const businessSpecificFeatures = getBusinessSpecificFeatures(userBusinessType as BusinessType)
+    navigation.push(...businessSpecificFeatures)
+  }
+  
+  // General receptionist features
+  if (shouldShowReceptionistFeatures(userBusinessType)) {
+    // Only show if features are enabled
+    if (FEATURE_FLAGS.callLogs) {
+      navigation.push({ name: 'Call Log', href: '/dashboard/calls', icon: PhoneIcon })
+    }
+    if (FEATURE_FLAGS.leadManagement) {
+      navigation.push({ name: 'Leads', href: '/dashboard/leads', icon: UserGroupIcon })
+    }
+    // Messages feature (placeholder for future)
+    navigation.push({ name: 'Messages', href: '/dashboard/messages', icon: InboxIcon })
+  }
   
   // Add professional features for Professional+ plans
   if (['professional', 'business', 'enterprise'].includes(subscriptionTier)) {
-    // Insert professional features before Settings
-    const settingsIndex = navigation.findIndex(item => item.name === 'Settings')
-    navigation.splice(settingsIndex, 0, ...professionalFeatures)
+    navigation.push(...professionalFeatures)
   }
   
   // Add business features for Business+ plans
   if (['business', 'enterprise'].includes(subscriptionTier)) {
-    // Insert business features before Professional features
+    // Insert business features before professional features
     const paymentsIndex = navigation.findIndex(item => item.name === 'Payments')
     if (paymentsIndex !== -1) {
       navigation.splice(paymentsIndex, 0, ...businessFeatures)
     } else {
-      // If no professional features, add before Settings
-      const settingsIndex = navigation.findIndex(item => item.name === 'Settings')
-      navigation.splice(settingsIndex, 0, ...businessFeatures)
+      navigation.push(...businessFeatures)
     }
   }
   
+  // Add shared features at the end
+  navigation.push(...sharedFeatures)
+  
   return navigation
+}
+
+// Legacy function for backward compatibility
+const getNavigationForPlan = (subscriptionTier: string) => {
+  return getNavigationForBusiness(subscriptionTier, 'beauty_salon')
 }
 
 interface LayoutProps {
@@ -187,7 +274,11 @@ export default function Layout({ children, business }: LayoutProps) {
 
 function SidebarContent({ business }: { business?: LayoutProps['business'] }) {
   const pathname = usePathname()
-  const navigation = getNavigationForPlan(business?.subscription_tier || 'starter')
+  const user = getAuthenticatedUser()
+  const navigation = getNavigationForBusiness(
+    business?.subscription_tier || 'starter',
+    user?.businessType || 'beauty_salon'
+  )
 
   return (
     <>

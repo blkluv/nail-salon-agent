@@ -161,6 +161,26 @@ export default function StaffPage() {
   const [selectedStaff, setSelectedStaff] = useState<Staff | null>(null)
   const [showModal, setShowModal] = useState(false)
   const [showAddModal, setShowAddModal] = useState(false)
+  const [businessType, setBusinessType] = useState('beauty_salon')
+
+  // Load business type
+  useEffect(() => {
+    loadBusinessType()
+  }, [])
+
+  const loadBusinessType = async () => {
+    try {
+      const businessId = getCurrentBusinessId()
+      if (!businessId) return
+      
+      const businessData = await BusinessAPI.getBusiness(businessId)
+      if (businessData?.business_type) {
+        setBusinessType(businessData.business_type)
+      }
+    } catch (error) {
+      console.error('Error loading business type:', error)
+    }
+  }
 
   const handleAddStaff = async (staffData: any) => {
     try {
@@ -250,9 +270,14 @@ export default function StaffPage() {
         {/* Header */}
         <div className="sm:flex sm:items-center sm:justify-between mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Staff Management</h1>
+            <h1 className="text-2xl font-bold text-gray-900">
+              {businessType === 'medical_practice' ? 'Medical Providers' :
+               businessType === 'dental_practice' ? 'Dental Providers' : 'Staff Management'}
+            </h1>
             <p className="text-gray-600 mt-1">
-              Manage your team, schedules, and performance
+              {businessType === 'medical_practice' ? 'Manage your medical providers, schedules, and specialties' :
+               businessType === 'dental_practice' ? 'Manage your dental team, schedules, and specialties' :
+               'Manage your team, schedules, and performance'}
             </p>
           </div>
           <div className="mt-4 sm:mt-0">
@@ -261,7 +286,8 @@ export default function StaffPage() {
               onClick={() => setShowAddModal(true)}
             >
               <UserPlusIcon className="h-4 w-4 mr-2" />
-              Add Staff Member
+              {businessType === 'medical_practice' ? 'Add Provider' :
+               businessType === 'dental_practice' ? 'Add Provider' : 'Add Staff Member'}
             </button>
           </div>
         </div>
@@ -275,7 +301,8 @@ export default function StaffPage() {
               </div>
               <input
                 type="text"
-                placeholder="Search staff..."
+                placeholder={businessType === 'medical_practice' ? 'Search providers...' :
+                           businessType === 'dental_practice' ? 'Search providers...' : 'Search staff...'}
                 className="input-field pl-10"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -286,13 +313,19 @@ export default function StaffPage() {
           <div className="lg:col-span-3 grid grid-cols-3 gap-4">
             <div className="stat-card">
               <div className="px-4 py-3">
-                <div className="text-sm text-gray-500">Total Staff</div>
+                <div className="text-sm text-gray-500">
+                  {businessType === 'medical_practice' ? 'Total Providers' :
+                   businessType === 'dental_practice' ? 'Total Providers' : 'Total Staff'}
+                </div>
                 <div className="text-2xl font-bold text-gray-900">{staff.length}</div>
               </div>
             </div>
             <div className="stat-card">
               <div className="px-4 py-3">
-                <div className="text-sm text-gray-500">Active Staff</div>
+                <div className="text-sm text-gray-500">
+                  {businessType === 'medical_practice' ? 'Active Providers' :
+                   businessType === 'dental_practice' ? 'Active Providers' : 'Active Staff'}
+                </div>
                 <div className="text-2xl font-bold text-green-600">
                   {staff.filter(s => s.isActive).length}
                 </div>
