@@ -160,7 +160,7 @@ function RapidSetupForm({ selectedPlan, paymentMethodId, selectedJob, businessTy
             Business Type: <span className="font-medium">{getBusinessTypeDisplayName(businessType)}</span>
           </p>
           <p className="text-sm text-gray-600">
-            Maya Role: <span className="font-medium">{selectedJob?.name || 'Professional Receptionist'}</span>
+            Maya Role: <span className="font-medium">{selectedJob?.title || 'Professional Receptionist'}</span>
           </p>
         </div>
 
@@ -242,10 +242,11 @@ export default function OnboardingPage() {
     if (FEATURE_FLAGS.businessTypeSelector) {
       const autoJob: MayaJob = {
         id: mayaJob,
-        name: getJobDisplayName(mayaJob),
+        title: getJobDisplayName(mayaJob),
+        icon: '💼',
         description: `Professional ${getBusinessTypeDisplayName(type)} assistant`,
         businessTypes: [type],
-        tier: 'professional',
+        pricing: 'professional',
         features: []
       }
       setSelectedJob(autoJob)
@@ -377,9 +378,7 @@ export default function OnboardingPage() {
 
       {currentStep === 'plan-selection' && (
         <PlanSelector
-          onPlanSelect={handlePlanSelection}
-          selectedJob={selectedJob}
-          businessType={businessType}
+          onPlanSelected={handlePlanSelection}
         />
       )}
 
@@ -399,8 +398,8 @@ export default function OnboardingPage() {
           businessName={setupResult.businessName}
           newPhoneNumber={setupResult.newPhoneNumber}
           existingPhoneNumber={setupResult.existingPhoneNumber}
-          businessId={setupResult.businessId}
-          businessType={businessType}
+          selectedPlan={selectedPlan || 'starter'}
+          onContinueToDashboard={() => window.location.href = '/dashboard'}
         />
       )}
     </div>
@@ -416,10 +415,10 @@ function getBusinessTypeDisplayName(type: BusinessType): string {
       return 'Professional Services'
     case 'home_services':
       return 'Home Services'
-    case 'medical_dental':
-      return 'Medical & Dental'
-    case 'professional_services':
-      return 'Professional Services'
+    case 'medical_practice':
+      return 'Medical Practice'
+    case 'dental_practice':
+      return 'Dental Practice'
     default:
       return 'Business'
   }
