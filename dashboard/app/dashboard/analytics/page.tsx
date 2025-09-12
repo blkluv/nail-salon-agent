@@ -178,15 +178,7 @@ export default function AnalyticsPage() {
                 </select>
               </div>
 
-              <FeatureGate 
-                tier={business?.subscription_tier || 'starter'} 
-                requiredFeatures={['advanced_reporting']}
-                fallback={
-                  <div className="text-xs text-gray-500 bg-gray-100 px-3 py-2 rounded-md">
-                    Export available in Professional+
-                  </div>
-                }
-              >
+              {(['professional', 'business', 'enterprise'].includes(business?.subscription_tier || 'starter')) ? (
                 <button
                   onClick={handleExportData}
                   className="flex items-center px-4 py-2 bg-purple-600 text-white text-sm font-medium rounded-md hover:bg-purple-700"
@@ -194,7 +186,11 @@ export default function AnalyticsPage() {
                   <ArrowDownTrayIcon className="h-4 w-4 mr-2" />
                   Export Data
                 </button>
-              </FeatureGate>
+              ) : (
+                <div className="text-xs text-gray-500 bg-gray-100 px-3 py-2 rounded-md">
+                  Export available in Professional+
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -237,37 +233,17 @@ export default function AnalyticsPage() {
 
         {/* Tab Content - Always load data, but gate UI display */}
         {activeTab === 'overview' && (
-          <TierGate
-            feature="analytics"
-            tier={business?.subscription_tier || 'starter'}
-            fallback="preview"
-            previewData={{
-              totalRevenue: '$2,400',
-              totalAppointments: '24',
-              avgTicket: '$200',
-              topService: 'Gel Manicure'
-            }}
-          >
+          <div>
             <SmartAnalytics 
               businessId={getBusinessId()}
               dateRange={dateRange}
               className="mb-8"
             />
-          </TierGate>
+          </div>
         )}
 
         {activeTab === 'revenue' && (
-          <TierGate
-            feature="analytics"
-            tier={business?.subscription_tier || 'starter'}
-            fallback="preview"
-            previewData={{
-              totalRevenue: '$2,400',
-              avgRevenue: '$86/day',
-              topServiceRevenue: '$840 (Gel Manicure)',
-              growthRate: '+12%'
-            }}
-          >
+          <div>
             <div className="space-y-6">
               <div className="bg-white rounded-xl shadow-sm p-6">
                 <h3 className="text-lg font-semibold text-gray-900 mb-6">Revenue Analytics</h3>
@@ -289,23 +265,13 @@ export default function AnalyticsPage() {
                 </div>
               </div>
             </div>
-          </TierGate>
+          </div>
         )}
 
         {activeTab === 'staff' && (
-          <TierGate
-            feature="analytics"
-            tier={business?.subscription_tier || 'starter'}
-            fallback="preview"
-            previewData={{
-              totalStaff: '4',
-              avgUtilization: '73%',
-              topPerformer: 'Sarah ($1,240 revenue)',
-              totalHours: '148 hours'
-            }}
-          >
+          <div>
             <StaffPerformance businessId={getBusinessId()} dateRange={dateRange} />
-          </TierGate>
+          </div>
         )}
 
         {activeTab === 'services' && (
@@ -359,11 +325,7 @@ export default function AnalyticsPage() {
         )}
 
         {/* Advanced Analytics for Professional+ */}
-        <FeatureGate 
-          tier={business?.subscription_tier || 'starter'} 
-          requiredFeatures={['advanced_reporting']}
-          showUpgradePrompt={true}
-        >
+        {(['professional', 'business', 'enterprise'].includes(business?.subscription_tier || 'starter')) && (
           <div className="bg-white rounded-xl shadow-sm p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-6">Advanced Reporting</h3>
             
@@ -405,7 +367,7 @@ export default function AnalyticsPage() {
               </div>
             </div>
           </div>
-        </FeatureGate>
+        )}
       </div>
     </Layout>
   )

@@ -3,6 +3,8 @@
  * Controls rollout of new receptionist features while protecting existing beauty salon functionality
  */
 
+import { ReactNode } from 'react';
+
 export const FEATURE_FLAGS = {
   // Core receptionist features
   receptionistFeatures: process.env.ENABLE_RECEPTIONIST_FEATURES === 'true',
@@ -160,8 +162,8 @@ export const FeatureGate = ({
   fallback = null 
 }: { 
   feature: keyof typeof FEATURE_FLAGS;
-  children: React.ReactNode;
-  fallback?: React.ReactNode;
+  children: ReactNode;
+  fallback?: ReactNode;
 }) => {
   const isEnabled = FEATURE_FLAGS[feature];
   return isEnabled ? children : fallback;
