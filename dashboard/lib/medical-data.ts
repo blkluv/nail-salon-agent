@@ -12,6 +12,7 @@ export interface MedicalAppointmentType {
   description: string;
   icon: string;
   basePrice: number;
+  requiresPreAuth?: boolean;
 }
 
 export interface MedicalSpecialty {

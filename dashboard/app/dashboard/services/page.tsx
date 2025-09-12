@@ -18,6 +18,43 @@ import {
   EyeSlashIcon
 } from '@heroicons/react/24/outline'
 import { StarIcon as StarIconSolid } from '@heroicons/react/24/solid'
+
+// Helper function to get service icon based on category and business type
+const getServiceIcon = (category: string = 'General', businessType: string = 'beauty_salon'): string => {
+  const categoryLower = category.toLowerCase()
+  
+  // Medical practice icons
+  if (businessType === 'medical_practice') {
+    if (categoryLower.includes('consultation')) return '🩺'
+    if (categoryLower.includes('preventive')) return '❤️'
+    if (categoryLower.includes('procedure')) return '⚕️'
+    if (categoryLower.includes('follow')) return '📋'
+    if (categoryLower.includes('emergency')) return '🚨'
+    return '🩺'
+  }
+  
+  // Dental practice icons  
+  if (businessType === 'dental_practice') {
+    if (categoryLower.includes('preventive')) return '🦷'
+    if (categoryLower.includes('restorative')) return '🔧'
+    if (categoryLower.includes('cosmetic')) return '✨'
+    if (categoryLower.includes('surgery') || categoryLower.includes('surgical')) return '⚕️'
+    if (categoryLower.includes('emergency')) return '🚨'
+    if (categoryLower.includes('consultation')) return '📋'
+    return '🦷'
+  }
+  
+  // Beauty salon icons (default)
+  if (categoryLower.includes('manicure')) return '💅'
+  if (categoryLower.includes('pedicure')) return '🦶'
+  if (categoryLower.includes('enhancement')) return '✨'
+  if (categoryLower.includes('spa')) return '🧖‍♀️'
+  if (categoryLower.includes('massage')) return '💆‍♀️'
+  if (categoryLower.includes('facial')) return '✨'
+  
+  // Default icon
+  return '💅'
+}
 import { clsx } from 'clsx'
 
 interface Service {

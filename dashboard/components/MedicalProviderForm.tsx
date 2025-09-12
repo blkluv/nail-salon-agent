@@ -1,8 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { MEDICAL_SPECIALTIES, DENTAL_PROVIDER_ROLES } from '../lib/medical-data'
-import { DENTAL_PROVIDER_ROLES as DentalRoles } from '../lib/dental-data'
+import { MEDICAL_SPECIALTIES } from '../lib/medical-data'
+import { DENTAL_PROVIDER_ROLES } from '../lib/dental-data'
 import { XMarkIcon, CheckIcon } from '@heroicons/react/24/outline'
 
 interface MedicalProviderFormProps {
@@ -38,7 +38,7 @@ export default function MedicalProviderForm({ isOpen, onClose, onSubmit, busines
 
   const availableSpecialties = businessType === 'medical_practice' 
     ? MEDICAL_SPECIALTIES 
-    : DentalRoles.filter(role => role.category === 'specialist' || role.category === 'general')
+    : DENTAL_PROVIDER_ROLES.filter(role => role.category === 'specialist' || role.category === 'general')
 
   const availableRoles = businessType === 'medical_practice'
     ? [

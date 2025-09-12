@@ -22,15 +22,15 @@ export default function SmartSchedulingManager({
   businessId, 
   onRuleUpdate 
 }: SmartSchedulingManagerProps) {
-  const { hasFeature } = useFeatureFlags('professional') // Smart scheduling requires Professional+
+  const featureFlags = useFeatureFlags() // Smart scheduling requires Professional+
   const [schedulingEngine, setSchedulingEngine] = useState<SmartSchedulingEngine | null>(null)
   const [rules, setRules] = useState<SchedulingRule[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [showAddRule, setShowAddRule] = useState(false)
   const [testResults, setTestResults] = useState<any>(null)
 
-  // Check if user has access to smart scheduling
-  const hasSmartScheduling = hasFeature('smart_scheduling')
+  // Check if user has access to smart scheduling - use multiCalendar as proxy for advanced scheduling
+  const hasSmartScheduling = featureFlags.multiCalendar
 
   useEffect(() => {
     if (hasSmartScheduling) {

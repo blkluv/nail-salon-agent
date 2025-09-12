@@ -5,6 +5,7 @@ export interface AuthUser {
   businessId: string
   businessName: string
   email: string
+  businessType?: string
 }
 
 export function isAuthenticated(): boolean {
@@ -22,13 +23,15 @@ export function getAuthenticatedUser(): AuthUser | null {
   const businessId = localStorage.getItem('authenticated_business_id')
   const businessName = localStorage.getItem('authenticated_business_name')
   const email = localStorage.getItem('authenticated_user_email')
+  const businessType = localStorage.getItem('authenticated_business_type')
   
   if (!businessId || !email) return null
   
   return {
     businessId,
     businessName: businessName || 'Your Business',
-    email
+    email,
+    businessType: businessType || undefined
   }
 }
 

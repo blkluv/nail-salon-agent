@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { FEATURE_FLAGS, type BusinessType, getMayaJobForBusinessType } from '@/lib/feature-flags'
+import { FEATURE_FLAGS, type BusinessType, getMayaJobForBusinessType } from '../lib/feature-flags'
 
 interface BusinessTypeSelectorProps {
   onBusinessTypeSelect: (type: BusinessType, mayaJob: string) => void
