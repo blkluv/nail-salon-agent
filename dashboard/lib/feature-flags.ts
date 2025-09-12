@@ -147,3 +147,22 @@ export const getFeatureFlagStatus = () => {
     timestamp: new Date().toISOString()
   };
 };
+
+// React hook for feature flags
+export const useFeatureFlags = () => {
+  return FEATURE_FLAGS;
+};
+
+// Feature gate component - simple wrapper for conditional rendering
+export const FeatureGate = ({ 
+  feature, 
+  children, 
+  fallback = null 
+}: { 
+  feature: keyof typeof FEATURE_FLAGS;
+  children: React.ReactNode;
+  fallback?: React.ReactNode;
+}) => {
+  const isEnabled = FEATURE_FLAGS[feature];
+  return isEnabled ? children : fallback;
+};
