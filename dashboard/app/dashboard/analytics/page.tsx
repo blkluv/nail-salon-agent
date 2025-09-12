@@ -45,7 +45,7 @@ export default function AnalyticsPage() {
   const [isLoading, setIsLoading] = useState(true)
   
   const locationAPI = new LocationAPIImpl()
-  const featureFlags = useFeatureFlags(business?.subscription_tier || 'professional')
+  const featureFlags = useFeatureFlags()
 
   // Load initial data
   useEffect(() => {
