@@ -17,42 +17,50 @@ export default function BusinessTypeSelector({ onBusinessTypeSelect, selectedTyp
       icon: '💅',
       name: 'Beauty & Wellness',
       description: 'Nail salon, hair salon, spa, massage, barbershop',
-      features: ['Appointment booking', 'Service management', 'Staff scheduling', 'Customer loyalty']
+      features: ['Appointment booking', 'Service management', 'Staff scheduling', 'Customer loyalty'],
+      available: true
     },
     {
       type: 'general_business' as BusinessType,
       icon: '🏢',
       name: 'Professional Services', 
       description: 'Law firm, accounting, consulting, agency, B2B services',
-      features: ['Call routing', 'Lead qualification', 'Message taking', 'Meeting scheduling']
+      features: ['Call routing', 'Lead qualification', 'Message taking', 'Meeting scheduling'],
+      available: true
     },
     {
       type: 'medical_practice' as BusinessType,
       icon: '🏥',
       name: 'Medical Practice',
       description: 'Medical clinic, family practice, urgent care, specialist office',
-      features: ['HIPAA-compliant scheduling', 'Insurance verification', 'Patient reminders', 'Emergency routing']
+      features: ['HIPAA-compliant scheduling', 'Insurance verification', 'Patient reminders', 'Emergency routing'],
+      available: false,
+      comingSoon: true
     },
     {
       type: 'dental_practice' as BusinessType,
       icon: '🦷',
       name: 'Dental Practice',
       description: 'Dental office, orthodontist, oral surgeon, hygienist clinic',
-      features: ['Appointment scheduling', 'Insurance pre-auth', 'Treatment reminders', 'Emergency triage']
+      features: ['Appointment scheduling', 'Insurance pre-auth', 'Treatment reminders', 'Emergency triage'],
+      available: false,
+      comingSoon: true
     },
     {
       type: 'home_services' as BusinessType,
       icon: '🏠',
       name: 'Home Services',
       description: 'HVAC, plumbing, electrical, cleaning, landscaping',
-      features: ['Service calls', 'Quote scheduling', 'Emergency routing', 'Customer follow-up']
+      features: ['Service calls', 'Quote scheduling', 'Emergency routing', 'Customer follow-up'],
+      available: true
     },
     {
       type: 'fitness_wellness' as BusinessType,
       icon: '💪',
       name: 'Fitness & Wellness',
       description: 'Gym, yoga studio, personal training, martial arts, dance',
-      features: ['Class scheduling', 'Membership management', 'Trainer booking', 'Health screening']
+      features: ['Class scheduling', 'Membership management', 'Trainer booking', 'Health screening'],
+      available: true
     }
   ]
 
@@ -89,46 +97,66 @@ export default function BusinessTypeSelector({ onBusinessTypeSelect, selectedTyp
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {businessTypes.map((businessType) => (
-          <button
+          <div
             key={businessType.type}
-            onClick={() => handleSelection(businessType.type)}
-            className={`p-6 border-2 rounded-xl text-left transition-all duration-200 hover:shadow-md ${
-              selected === businessType.type
-                ? 'border-blue-500 bg-blue-50 shadow-lg'
-                : 'border-gray-200 hover:border-gray-300'
-            }`}
+            className={`relative ${!businessType.available ? 'opacity-75' : ''}`}
           >
-            <div className="flex items-start space-x-4">
-              <span className="text-4xl flex-shrink-0">{businessType.icon}</span>
-              <div className="flex-1 min-w-0">
-                <h4 className="font-semibold text-lg text-gray-900 mb-1">{businessType.name}</h4>
-                <p className="text-sm text-gray-600 mb-3">{businessType.description}</p>
-                
-                <div className="space-y-1">
-                  <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Maya will handle:</p>
-                  <ul className="text-sm text-gray-700 space-y-1">
-                    {businessType.features.map((feature, index) => (
-                      <li key={index} className="flex items-center">
-                        <svg className="w-3 h-3 text-green-500 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
-                          <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
-                        {feature}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                {selected === businessType.type && (
-                  <div className="mt-3 flex items-center text-blue-600">
-                    <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-                      <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                    </svg>
-                    <span className="text-sm font-medium">Selected</span>
+            <button
+              onClick={() => businessType.available && handleSelection(businessType.type)}
+              disabled={!businessType.available}
+              className={`p-6 border-2 rounded-xl text-left transition-all duration-200 w-full ${
+                businessType.available 
+                  ? selected === businessType.type
+                    ? 'border-blue-500 bg-blue-50 shadow-lg hover:shadow-md'
+                    : 'border-gray-200 hover:border-gray-300 hover:shadow-md cursor-pointer'
+                  : 'border-gray-200 bg-gray-50 cursor-not-allowed'
+              }`}
+            >
+              <div className="flex items-start space-x-4">
+                <span className="text-4xl flex-shrink-0">{businessType.icon}</span>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 mb-1">
+                    <h4 className="font-semibold text-lg text-gray-900">{businessType.name}</h4>
+                    {businessType.comingSoon && (
+                      <span className="px-2 py-1 text-xs font-medium bg-amber-100 text-amber-800 rounded-full">
+                        Coming Soon
+                      </span>
+                    )}
                   </div>
-                )}
+                  <p className="text-sm text-gray-600 mb-3">{businessType.description}</p>
+                  
+                  <div className="space-y-1">
+                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Maya will handle:</p>
+                    <ul className="text-sm text-gray-700 space-y-1">
+                      {businessType.features.map((feature, index) => (
+                        <li key={index} className="flex items-center">
+                          <svg className="w-3 h-3 text-green-500 mr-2 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                          </svg>
+                          {feature}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+
+                  {selected === businessType.type && businessType.available && (
+                    <div className="mt-3 flex items-center text-blue-600">
+                      <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                      <span className="text-sm font-medium">Selected</span>
+                    </div>
+                  )}
+
+                  {businessType.comingSoon && (
+                    <div className="mt-3 text-sm text-amber-700">
+                      We're working on bringing Maya to {businessType.name.toLowerCase()}. Join the waitlist to be notified when available!
+                    </div>
+                  )}
+                </div>
               </div>
-            </div>
-          </button>
+            </button>
+          </div>
         ))}
       </div>
 
